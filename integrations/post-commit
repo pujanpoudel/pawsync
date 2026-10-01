@@ -1,0 +1,8 @@
+#!/bin/sh
+# Copy into .git/hooks/post-commit and chmod +x it. Export PAWSYNC_TOKEN first.
+[ -n "$PAWSYNC_TOKEN" ] || exit 0
+curl --max-time 2 --silent --fail --request POST \
+  http://127.0.0.1:9876/v1/status \
+  --header "Authorization: Bearer $PAWSYNC_TOKEN" \
+  --header 'Content-Type: application/json' \
+  --data '{"status":"build_success"}' >/dev/null 2>&1 || true

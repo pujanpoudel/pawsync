@@ -1,0 +1,123 @@
+{
+  "id": "pixel-cat",
+  "name": "Maple the Cat",
+  "parts": {
+    "body": {
+      "anchor": [
+        0.5,
+        0.2
+      ],
+      "display_size": [
+        132,
+        88
+      ],
+      "file": "illustration.png",
+      "texture_rect": [
+        561,
+        86,
+        447,
+        400
+      ]
+    },
+    "head": {
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "parent_offset": [
+        0,
+        54
+      ],
+      "display_size": [
+        154,
+        130
+      ],
+      "eyes": [
+        [
+          0.33,
+          0.61
+        ],
+        [
+          0.67,
+          0.61
+        ]
+      ],
+      "file": "illustration.png",
+      "texture_rect": [
+        37,
+        84,
+        474,
+        394
+      ]
+    },
+    "left_paw": {
+      "anchor": [
+        0.5,
+        0.85
+      ],
+      "parent_offset": [
+        -34,
+        42
+      ],
+      "display_size": [
+        28,
+        35
+      ],
+      "file": "illustration.png",
+      "texture_rect": [
+        1221,
+        109,
+        176,
+        322
+      ]
+    },
+    "right_paw": {
+      "anchor": [
+        0.5,
+        0.85
+      ],
+      "parent_offset": [
+        34,
+        42
+      ],
+      "display_size": [
+        28,
+        35
+      ],
+      "file": "illustration.png",
+      "texture_rect": [
+        148,
+        598,
+        194,
+        323
+      ]
+    },
+    "tail": {
+      "anchor": [
+        0.12,
+        0.5
+      ],
+      "parent_offset": [
+        -55,
+        18
+      ],
+      "display_size": [
+        78,
+        54
+      ],
+      "file": "illustration.png",
+      "texture_rect": [
+        542,
+        647,
+        469,
+        204
+      ]
+    }
+  },
+  "preview_rect": [
+    37,
+    84,
+    474,
+    394
+  ]
+}

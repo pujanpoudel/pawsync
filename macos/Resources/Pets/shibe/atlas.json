@@ -1,0 +1,123 @@
+{
+  "id": "shibe",
+  "name": "Mochi the Shibe",
+  "parts": {
+    "body": {
+      "anchor": [
+        0.5,
+        0.2
+      ],
+      "display_size": [
+        132,
+        88
+      ],
+      "file": "illustration.png",
+      "texture_rect": [
+        576,
+        100,
+        414,
+        372
+      ]
+    },
+    "head": {
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "parent_offset": [
+        0,
+        54
+      ],
+      "display_size": [
+        154,
+        130
+      ],
+      "eyes": [
+        [
+          0.32,
+          0.6
+        ],
+        [
+          0.7,
+          0.6
+        ]
+      ],
+      "file": "illustration.png",
+      "texture_rect": [
+        72,
+        80,
+        435,
+        401
+      ]
+    },
+    "left_paw": {
+      "anchor": [
+        0.5,
+        0.85
+      ],
+      "parent_offset": [
+        -34,
+        42
+      ],
+      "display_size": [
+        28,
+        35
+      ],
+      "file": "illustration.png",
+      "texture_rect": [
+        1190,
+        120,
+        172,
+        301
+      ]
+    },
+    "right_paw": {
+      "anchor": [
+        0.5,
+        0.85
+      ],
+      "parent_offset": [
+        34,
+        42
+      ],
+      "display_size": [
+        28,
+        35
+      ],
+      "file": "illustration.png",
+      "texture_rect": [
+        173,
+        603,
+        179,
+        306
+      ]
+    },
+    "tail": {
+      "anchor": [
+        0.12,
+        0.5
+      ],
+      "parent_offset": [
+        -55,
+        18
+      ],
+      "display_size": [
+        78,
+        54
+      ],
+      "file": "illustration.png",
+      "texture_rect": [
+        589,
+        592,
+        365,
+        336
+      ]
+    }
+  },
+  "preview_rect": [
+    72,
+    80,
+    435,
+    401
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "id": "dobby",
+  "displayName": "Dobby",
+  "description": "Dobby is an earnest, genuinely helpful tiny house-elf Codex pet with huge ears, wide kind eyes, and a simple worn tunic.",
+  "spritesheetPath": "spritesheet.webp",
+  "kind": "character",
+  "vibes": [
+    "earnest",
+    "helpful",
+    "genuine"
+  ],
+  "tags": [
+    "earnest",
+    "helpful",
+    "genuine",
+    "house-elf"
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "id": "snoopy",
+  "displayName": "Snoopy",
+  "description": "A tiny black-and-white beagle with a red collar for calm coding sessions.",
+  "spritesheetPath": "spritesheet.webp"
+}

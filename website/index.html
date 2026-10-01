@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fffaf7">
+  <meta name="description" content="Meet PawSync, a little animated friend for your Mac. Preview and dress up the real companions bundled with the app.">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="stylesheet" href="styles.css?v=thought-cloud-20261002-1">
+  <script src="app.js?v=clean-20261001-2" defer></script>
+  <title>PawSync — a little friend for your Mac</title>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="PawSync home"><img src="assets/favicon.svg" width="36" height="36" alt="">PawSync</a>
+    <nav aria-label="Main navigation"><a href="#features">How it works</a><a href="#customize">Meet the pets</a></nav>
+    <a class="button button-small" href="#customize">Try a pet <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main>
+    <section class="hero wrap" id="top">
+      <div class="hero-copy">
+        <span class="eyebrow"><span class="eyebrow-dot"></span>A tiny friend for your Mac</span>
+        <h1>Make room for <span>a little joy.</span></h1>
+        <p>PawSync brings an expressive pet to your desktop. It waves when you visit, taps along while you work, and makes little breaks feel good.</p>
+        <div class="hero-actions"><a class="button" href="#customize">Find your pet <span aria-hidden="true">→</span></a><a class="quiet-link" href="#features">See what they do</a></div>
+        <p class="hero-meta">Native macOS 14+ <span>·</span> Apple silicon & Intel <span>·</span> Built for a softer workday</p>
+      </div>
+      <div class="hero-scene" aria-label="Preview of a PawSync pet on a desktop">
+        <div class="hero-desktop">
+          <div class="desktop-top"><span class="window-dots"><i></i><i></i><i></i></span><span>today's little wins</span><span>♡</span></div>
+          <div class="desktop-note"><span>your gentle checklist</span><p>Make something lovely.</p><p>Drink a little water.</p><p>Take a breath.</p></div>
+          <span class="desktop-doodle" aria-hidden="true">✳</span>
+          <div class="hero-pet-wrap"><span class="pet-sprite" id="hero-sprite" aria-hidden="true"></span><span class="hat-layer" id="hero-hat" aria-hidden="true"></span></div>
+          <span class="hero-speech">oh, hi there! ♡</span>
+        </div>
+        <span class="scene-caption">Real pet frames from the Mac app</span>
+      </div>
+    </section>
+
+    <section class="feature-section" id="features">
+      <div class="wrap">
+        <div class="section-intro"><span class="eyebrow">Small moments, big smiles</span><h2>A companion that feels alive.</h2><p>Always nearby, never in your way.</p></div>
+        <div class="feature-grid">
+          <article class="feature-card"><span class="feature-icon" aria-hidden="true">♡</span><h3>Reacts to you</h3><p>A wave, a happy hop, or tiny working paws when you type and click.</p></article>
+          <article class="feature-card"><span class="feature-icon" aria-hidden="true">↝</span><h3>Goes exploring</h3><p>Walks around your screen, notices your cursor, and settles down for a nap.</p></article>
+          <article class="feature-card"><span class="feature-icon" aria-hidden="true">✳</span><h3>Looks after you</h3><p>Gentle reminders for water, stretching, posture, and the little things.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="customize-section wrap" id="customize">
+      <div class="section-intro customize-intro"><span class="eyebrow">The pet studio</span><h2>Make a friend your own.</h2><p>Choose a real bundled pet, dress them up, and try their animations right here.</p></div>
+      <div class="studio-layout">
+        <div class="preview-column">
+          <div class="pet-stage scene-cream" id="pet-stage" tabindex="0" aria-label="Interactive pet preview. Click or drag the pet to greet it.">
+            <div class="stage-top"><span class="live-dot"></span>LIVE PET PREVIEW <span class="stage-heart" aria-hidden="true">♡</span></div>
+            <div class="speech" id="speech" role="status" aria-live="polite" hidden><span id="speech-text"></span><button id="dismiss-speech" type="button" aria-label="Dismiss message">×</button></div>
+            <div class="pet-figure" id="pet-figure"><span class="pet-sprite" id="stage-sprite" aria-hidden="true"></span><span class="hat-layer" id="stage-hat" aria-hidden="true"></span></div>
+            <div class="stage-floor"></div>
+            <div class="stage-caption"><strong id="pet-name">Mochi the Shibe</strong><span id="pet-origin">PawSync original</span></div>
+          </div>
+          <div class="action-row" role="group" aria-label="Try pet animations">
+            <button type="button" data-action="wave"><span aria-hidden="true">♡</span> Wave</button>
+            <button type="button" data-action="walk"><span aria-hidden="true">→</span> Walk</button>
+            <button type="button" data-action="jump"><span aria-hidden="true">↑</span> Jump</button>
+            <button type="button" data-action="work"><span aria-hidden="true">⌁</span> Work</button>
+            <button type="button" data-action="nap"><span aria-hidden="true">☾</span> Nap</button>
+            <button type="button" data-action="dance"><span aria-hidden="true">♫</span> Dance</button>
+          </div>
+        </div>
+        <div class="studio-controls">
+          <div class="control-block">
+            <div class="control-heading"><div><span class="step">01</span><h3>Choose your pet</h3></div><span class="control-hint">15 bundled friends</span></div>
+            <div class="filter-row" role="group" aria-label="Filter pets"><button type="button" data-filter="All" aria-pressed="true">All</button><button type="button" data-filter="PawSync" aria-pressed="false">PawSync</button><button type="button" data-filter="OpenPets" aria-pressed="false">OpenPets</button></div>
+            <div class="pet-grid" id="pet-grid" aria-label="Choose a pet"></div>
+          </div>
+          <div class="control-block">
+            <div class="control-heading"><div><span class="step">02</span><h3>Pick an accessory</h3></div><span class="control-hint">Preview the wardrobe</span></div>
+            <div class="accessory-grid" id="accessory-grid" aria-label="Choose an accessory"></div>
+          </div>
+          <div class="control-pair">
+            <div class="control-block compact"><div class="control-heading"><div><span class="step">03</span><h3>Pet size</h3></div><output id="size-output" for="pet-size">100%</output></div><input id="pet-size" type="range" min="40" max="180" value="100" aria-label="Pet size"></div>
+            <div class="control-block compact"><div class="control-heading"><div><span class="step">04</span><h3>Background</h3></div></div><div class="scene-options" role="group" aria-label="Preview background"><button type="button" data-scene="cream" aria-label="Cream" aria-pressed="true"></button><button type="button" data-scene="lavender" aria-label="Lavender" aria-pressed="false"></button><button type="button" data-scene="mint" aria-label="Mint" aria-pressed="false"></button><button type="button" data-scene="sky" aria-label="Sky" aria-pressed="false"></button></div></div>
+          </div>
+          <p class="studio-note">This studio uses the app's actual sprite sheets. It's a browser preview; earned hats and paid accessories unlock inside PawSync.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="download-section" id="download"><div class="wrap download-inner"><div><span class="eyebrow">Ready when you are</span><h2>Bring your buddy home.</h2><p>The current Mac build is a local development preview. Open it from this Mac:</p><code id="app-path">/Users/pujan/PawSync/build/PawSync.app</code><span id="copy-status" role="status"></span></div><button class="button" id="copy-app-path" type="button">Copy app path <span aria-hidden="true">↗</span></button></div></section>
+  </main>
+
+  <aside class="corner-buddy" id="corner-buddy" aria-label="Little PawSync pet preview"><span class="corner-bubble" id="corner-bubble">Click for a hello ♡</span><button id="corner-pet" type="button" aria-label="Wave to the pet"><span class="pet-sprite" id="corner-sprite" aria-hidden="true"></span><span class="hat-layer" id="corner-hat" aria-hidden="true"></span></button></aside>
+  <footer class="site-footer wrap"><a class="brand" href="#top"><img src="assets/favicon.svg" width="30" height="30" alt="">PawSync</a><p>A little company for your everyday.</p><span>Local preview · macOS 14+</span></footer>
+</body>
+</html>

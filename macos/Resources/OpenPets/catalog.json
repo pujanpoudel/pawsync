@@ -1,0 +1,56 @@
+[
+  {
+    "id": "openpets-default",
+    "name": "OpenPets Buddy",
+    "folder": "default",
+    "columns": 8,
+    "rows": 11,
+    "source": "https://github.com/OpenPetsHQ/openpets",
+    "author": "OpenPets"
+  },
+  {
+    "id": "openpets-snoopy",
+    "name": "Snoopy",
+    "folder": "snoopy",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://zip.openpets.dev/pets/snoopy-23e05847/snoopy.zip",
+    "author": "OpenPets"
+  },
+  {
+    "id": "openpets-clippit",
+    "name": "Clippy",
+    "folder": "clippit",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://zip.openpets.dev/pets/clippit-904b393f/clippit.zip",
+    "author": "Dimava"
+  },
+  {
+    "id": "openpets-tux",
+    "name": "Tux",
+    "folder": "tux",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://zip.openpets.dev/pets/tux-de2f300f/tux.zip",
+    "author": "seymour"
+  },
+  {
+    "id": "openpets-wall-e",
+    "name": "Wall-E",
+    "folder": "wall-e",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://zip.openpets.dev/pets/wall-e-779d5202/wall-e.zip",
+    "author": "OpenPets"
+  },
+  {
+    "id": "openpets-dobby",
+    "name": "Dobby",
+    "folder": "dobby",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://zip.openpets.dev/pets/dobby-3f6746e0/dobby.zip",
+    "author": "OpenPets"
+  }
+]

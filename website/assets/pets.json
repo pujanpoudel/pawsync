@@ -1,0 +1,1109 @@
+[
+  {
+    "id": "pixel-cat",
+    "name": "Maple the Cat",
+    "parts": {
+      "body": {
+        "anchor": [
+          0.5,
+          0.2
+        ],
+        "display_size": [
+          132,
+          88
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          561,
+          86,
+          447,
+          400
+        ]
+      },
+      "head": {
+        "anchor": [
+          0.5,
+          0.1
+        ],
+        "parent_offset": [
+          0,
+          54
+        ],
+        "display_size": [
+          154,
+          130
+        ],
+        "eyes": [
+          [
+            0.33,
+            0.61
+          ],
+          [
+            0.67,
+            0.61
+          ]
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          37,
+          84,
+          474,
+          394
+        ]
+      },
+      "left_paw": {
+        "anchor": [
+          0.5,
+          0.85
+        ],
+        "parent_offset": [
+          -34,
+          42
+        ],
+        "display_size": [
+          28,
+          35
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          1221,
+          109,
+          176,
+          322
+        ]
+      },
+      "right_paw": {
+        "anchor": [
+          0.5,
+          0.85
+        ],
+        "parent_offset": [
+          34,
+          42
+        ],
+        "display_size": [
+          28,
+          35
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          148,
+          598,
+          194,
+          323
+        ]
+      },
+      "tail": {
+        "anchor": [
+          0.12,
+          0.5
+        ],
+        "parent_offset": [
+          -55,
+          18
+        ],
+        "display_size": [
+          78,
+          54
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          542,
+          647,
+          469,
+          204
+        ]
+      }
+    },
+    "preview_rect": [
+      37,
+      84,
+      474,
+      394
+    ]
+  },
+  {
+    "id": "shibe",
+    "name": "Mochi the Shibe",
+    "parts": {
+      "body": {
+        "anchor": [
+          0.5,
+          0.2
+        ],
+        "display_size": [
+          132,
+          88
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          576,
+          100,
+          414,
+          372
+        ]
+      },
+      "head": {
+        "anchor": [
+          0.5,
+          0.1
+        ],
+        "parent_offset": [
+          0,
+          54
+        ],
+        "display_size": [
+          154,
+          130
+        ],
+        "eyes": [
+          [
+            0.32,
+            0.6
+          ],
+          [
+            0.7,
+            0.6
+          ]
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          72,
+          80,
+          435,
+          401
+        ]
+      },
+      "left_paw": {
+        "anchor": [
+          0.5,
+          0.85
+        ],
+        "parent_offset": [
+          -34,
+          42
+        ],
+        "display_size": [
+          28,
+          35
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          1190,
+          120,
+          172,
+          301
+        ]
+      },
+      "right_paw": {
+        "anchor": [
+          0.5,
+          0.85
+        ],
+        "parent_offset": [
+          34,
+          42
+        ],
+        "display_size": [
+          28,
+          35
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          173,
+          603,
+          179,
+          306
+        ]
+      },
+      "tail": {
+        "anchor": [
+          0.12,
+          0.5
+        ],
+        "parent_offset": [
+          -55,
+          18
+        ],
+        "display_size": [
+          78,
+          54
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          589,
+          592,
+          365,
+          336
+        ]
+      }
+    },
+    "preview_rect": [
+      72,
+      80,
+      435,
+      401
+    ]
+  },
+  {
+    "id": "fox",
+    "name": "Ember the Fox",
+    "parts": {
+      "body": {
+        "anchor": [
+          0.5,
+          0.2
+        ],
+        "display_size": [
+          132,
+          88
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          582,
+          104,
+          376,
+          369
+        ]
+      },
+      "head": {
+        "anchor": [
+          0.5,
+          0.1
+        ],
+        "parent_offset": [
+          0,
+          54
+        ],
+        "display_size": [
+          154,
+          130
+        ],
+        "eyes": [
+          [
+            0.36,
+            0.66
+          ],
+          [
+            0.64,
+            0.66
+          ]
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          42,
+          51,
+          446,
+          438
+        ]
+      },
+      "left_paw": {
+        "anchor": [
+          0.5,
+          0.85
+        ],
+        "parent_offset": [
+          -34,
+          42
+        ],
+        "display_size": [
+          28,
+          35
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          1214,
+          119,
+          205,
+          287
+        ]
+      },
+      "right_paw": {
+        "anchor": [
+          0.5,
+          0.85
+        ],
+        "parent_offset": [
+          34,
+          42
+        ],
+        "display_size": [
+          28,
+          35
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          108,
+          618,
+          207,
+          289
+        ]
+      },
+      "tail": {
+        "anchor": [
+          0.12,
+          0.5
+        ],
+        "parent_offset": [
+          -55,
+          18
+        ],
+        "display_size": [
+          78,
+          54
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          542,
+          613,
+          459,
+          326
+        ]
+      }
+    },
+    "preview_rect": [
+      42,
+      51,
+      446,
+      438
+    ]
+  },
+  {
+    "id": "bunny",
+    "name": "Clover the Bunny",
+    "parts": {
+      "body": {
+        "anchor": [
+          0.5,
+          0.2
+        ],
+        "display_size": [
+          132,
+          88
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          591,
+          140,
+          353,
+          342
+        ]
+      },
+      "head": {
+        "anchor": [
+          0.5,
+          0.1
+        ],
+        "parent_offset": [
+          0,
+          54
+        ],
+        "display_size": [
+          154,
+          130
+        ],
+        "eyes": [
+          [
+            0.31,
+            0.73
+          ],
+          [
+            0.7,
+            0.73
+          ]
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          92,
+          51,
+          354,
+          458
+        ]
+      },
+      "left_paw": {
+        "anchor": [
+          0.5,
+          0.85
+        ],
+        "parent_offset": [
+          -34,
+          42
+        ],
+        "display_size": [
+          28,
+          35
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          1191,
+          139,
+          168,
+          289
+        ]
+      },
+      "right_paw": {
+        "anchor": [
+          0.5,
+          0.85
+        ],
+        "parent_offset": [
+          34,
+          42
+        ],
+        "display_size": [
+          28,
+          35
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          162,
+          615,
+          177,
+          308
+        ]
+      },
+      "tail": {
+        "anchor": [
+          0.12,
+          0.5
+        ],
+        "parent_offset": [
+          -55,
+          18
+        ],
+        "display_size": [
+          78,
+          54
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          653,
+          654,
+          234,
+          215
+        ]
+      }
+    },
+    "preview_rect": [
+      92,
+      51,
+      354,
+      458
+    ]
+  },
+  {
+    "id": "bear",
+    "name": "Cocoa the Bear",
+    "parts": {
+      "body": {
+        "anchor": [
+          0.5,
+          0.2
+        ],
+        "display_size": [
+          132,
+          88
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          572,
+          75,
+          411,
+          402
+        ]
+      },
+      "head": {
+        "anchor": [
+          0.5,
+          0.1
+        ],
+        "parent_offset": [
+          0,
+          54
+        ],
+        "display_size": [
+          154,
+          130
+        ],
+        "eyes": [
+          [
+            0.32,
+            0.58
+          ],
+          [
+            0.66,
+            0.58
+          ]
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          27,
+          102,
+          478,
+          366
+        ]
+      },
+      "left_paw": {
+        "anchor": [
+          0.5,
+          0.85
+        ],
+        "parent_offset": [
+          -34,
+          42
+        ],
+        "display_size": [
+          28,
+          35
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          1234,
+          108,
+          189,
+          319
+        ]
+      },
+      "right_paw": {
+        "anchor": [
+          0.5,
+          0.85
+        ],
+        "parent_offset": [
+          34,
+          42
+        ],
+        "display_size": [
+          28,
+          35
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          132,
+          600,
+          191,
+          310
+        ]
+      },
+      "tail": {
+        "anchor": [
+          0.12,
+          0.5
+        ],
+        "parent_offset": [
+          -55,
+          18
+        ],
+        "display_size": [
+          78,
+          54
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          681,
+          662,
+          191,
+          188
+        ]
+      }
+    },
+    "preview_rect": [
+      27,
+      102,
+      478,
+      366
+    ]
+  },
+  {
+    "id": "panda",
+    "name": "Bao the Panda",
+    "parts": {
+      "body": {
+        "anchor": [
+          0.5,
+          0.2
+        ],
+        "display_size": [
+          132,
+          88
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          546,
+          71,
+          449,
+          398
+        ]
+      },
+      "head": {
+        "anchor": [
+          0.5,
+          0.1
+        ],
+        "parent_offset": [
+          0,
+          54
+        ],
+        "display_size": [
+          154,
+          130
+        ],
+        "eyes": [
+          [
+            0.33,
+            0.61
+          ],
+          [
+            0.67,
+            0.61
+          ]
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          36,
+          98,
+          446,
+          361
+        ]
+      },
+      "left_paw": {
+        "anchor": [
+          0.5,
+          0.85
+        ],
+        "parent_offset": [
+          -34,
+          42
+        ],
+        "display_size": [
+          28,
+          35
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          1198,
+          101,
+          191,
+          329
+        ]
+      },
+      "right_paw": {
+        "anchor": [
+          0.5,
+          0.85
+        ],
+        "parent_offset": [
+          34,
+          42
+        ],
+        "display_size": [
+          28,
+          35
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          150,
+          590,
+          193,
+          330
+        ]
+      },
+      "tail": {
+        "anchor": [
+          0.12,
+          0.5
+        ],
+        "parent_offset": [
+          -55,
+          18
+        ],
+        "display_size": [
+          78,
+          54
+        ],
+        "file": "illustration.png",
+        "texture_rect": [
+          669,
+          666,
+          185,
+          188
+        ]
+      }
+    },
+    "preview_rect": [
+      36,
+      98,
+      446,
+      361
+    ]
+  },
+  {
+    "id": "hamster",
+    "name": "Peaches the Hamster",
+    "parts": {
+      "head": {
+        "file": "illustration.png",
+        "texture_rect": [
+          38,
+          104,
+          465,
+          358
+        ],
+        "display_size": [
+          154,
+          130
+        ],
+        "anchor": [
+          0.5,
+          0.1
+        ],
+        "parent_offset": [
+          0,
+          54
+        ],
+        "eyes": [
+          [
+            0.33,
+            0.55
+          ],
+          [
+            0.67,
+            0.55
+          ]
+        ]
+      },
+      "body": {
+        "file": "illustration.png",
+        "texture_rect": [
+          584,
+          161,
+          368,
+          275
+        ],
+        "display_size": [
+          132,
+          98
+        ],
+        "anchor": [
+          0.5,
+          0.2
+        ]
+      },
+      "left_paw": {
+        "file": "illustration.png",
+        "texture_rect": [
+          1211,
+          188,
+          142,
+          177
+        ],
+        "display_size": [
+          28,
+          35
+        ],
+        "anchor": [
+          0.5,
+          0.85
+        ],
+        "parent_offset": [
+          -34,
+          42
+        ]
+      },
+      "right_paw": {
+        "file": "illustration.png",
+        "texture_rect": [
+          193,
+          679,
+          142,
+          174
+        ],
+        "display_size": [
+          28,
+          35
+        ],
+        "anchor": [
+          0.5,
+          0.85
+        ],
+        "parent_offset": [
+          34,
+          42
+        ]
+      },
+      "tail": {
+        "file": "illustration.png",
+        "texture_rect": [
+          680,
+          670,
+          173,
+          175
+        ],
+        "display_size": [
+          65,
+          45
+        ],
+        "anchor": [
+          0.12,
+          0.5
+        ],
+        "parent_offset": [
+          -45,
+          12
+        ]
+      }
+    },
+    "preview_rect": [
+      1084,
+      520,
+      389,
+      467
+    ]
+  },
+  {
+    "id": "otter",
+    "name": "Pebble the Otter",
+    "parts": {
+      "head": {
+        "file": "illustration.png",
+        "texture_rect": [
+          54,
+          108,
+          422,
+          308
+        ],
+        "display_size": [
+          154,
+          130
+        ],
+        "anchor": [
+          0.5,
+          0.1
+        ],
+        "parent_offset": [
+          0,
+          54
+        ],
+        "eyes": [
+          [
+            0.33,
+            0.55
+          ],
+          [
+            0.67,
+            0.55
+          ]
+        ]
+      },
+      "body": {
+        "file": "illustration.png",
+        "texture_rect": [
+          612,
+          118,
+          314,
+          282
+        ],
+        "display_size": [
+          132,
+          98
+        ],
+        "anchor": [
+          0.5,
+          0.2
+        ]
+      },
+      "left_paw": {
+        "file": "illustration.png",
+        "texture_rect": [
+          1198,
+          158,
+          160,
+          208
+        ],
+        "display_size": [
+          28,
+          35
+        ],
+        "anchor": [
+          0.5,
+          0.85
+        ],
+        "parent_offset": [
+          -34,
+          42
+        ]
+      },
+      "right_paw": {
+        "file": "illustration.png",
+        "texture_rect": [
+          169,
+          646,
+          161,
+          209
+        ],
+        "display_size": [
+          28,
+          35
+        ],
+        "anchor": [
+          0.5,
+          0.85
+        ],
+        "parent_offset": [
+          34,
+          42
+        ]
+      },
+      "tail": {
+        "file": "illustration.png",
+        "texture_rect": [
+          563,
+          657,
+          405,
+          197
+        ],
+        "display_size": [
+          65,
+          45
+        ],
+        "anchor": [
+          0.12,
+          0.5
+        ],
+        "parent_offset": [
+          -45,
+          12
+        ]
+      }
+    },
+    "preview_rect": [
+      1099,
+      512,
+      402,
+      440
+    ]
+  },
+  {
+    "id": "capybara",
+    "name": "Pudding the Capybara",
+    "parts": {
+      "head": {
+        "file": "illustration.png",
+        "texture_rect": [
+          66,
+          115,
+          436,
+          338
+        ],
+        "display_size": [
+          154,
+          130
+        ],
+        "anchor": [
+          0.5,
+          0.1
+        ],
+        "parent_offset": [
+          0,
+          54
+        ],
+        "eyes": [
+          [
+            0.33,
+            0.55
+          ],
+          [
+            0.67,
+            0.55
+          ]
+        ]
+      },
+      "body": {
+        "file": "illustration.png",
+        "texture_rect": [
+          606,
+          145,
+          357,
+          302
+        ],
+        "display_size": [
+          132,
+          98
+        ],
+        "anchor": [
+          0.5,
+          0.2
+        ]
+      },
+      "left_paw": {
+        "file": "illustration.png",
+        "texture_rect": [
+          1211,
+          159,
+          164,
+          242
+        ],
+        "display_size": [
+          28,
+          35
+        ],
+        "anchor": [
+          0.5,
+          0.85
+        ],
+        "parent_offset": [
+          -34,
+          42
+        ]
+      },
+      "right_paw": {
+        "file": "illustration.png",
+        "texture_rect": [
+          176,
+          651,
+          166,
+          239
+        ],
+        "display_size": [
+          28,
+          35
+        ],
+        "anchor": [
+          0.5,
+          0.85
+        ],
+        "parent_offset": [
+          34,
+          42
+        ]
+      },
+      "tail": {
+        "file": "illustration.png",
+        "texture_rect": [
+          688,
+          687,
+          163,
+          149
+        ],
+        "display_size": [
+          65,
+          45
+        ],
+        "anchor": [
+          0.12,
+          0.5
+        ],
+        "parent_offset": [
+          -45,
+          12
+        ]
+      }
+    },
+    "preview_rect": [
+      1085,
+      523,
+      353,
+      447
+    ]
+  }
+]

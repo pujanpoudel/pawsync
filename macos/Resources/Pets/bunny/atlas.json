@@ -1,0 +1,123 @@
+{
+  "id": "bunny",
+  "name": "Clover the Bunny",
+  "parts": {
+    "body": {
+      "anchor": [
+        0.5,
+        0.2
+      ],
+      "display_size": [
+        132,
+        88
+      ],
+      "file": "illustration.png",
+      "texture_rect": [
+        591,
+        140,
+        353,
+        342
+      ]
+    },
+    "head": {
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "parent_offset": [
+        0,
+        54
+      ],
+      "display_size": [
+        154,
+        130
+      ],
+      "eyes": [
+        [
+          0.31,
+          0.73
+        ],
+        [
+          0.7,
+          0.73
+        ]
+      ],
+      "file": "illustration.png",
+      "texture_rect": [
+        92,
+        51,
+        354,
+        458
+      ]
+    },
+    "left_paw": {
+      "anchor": [
+        0.5,
+        0.85
+      ],
+      "parent_offset": [
+        -34,
+        42
+      ],
+      "display_size": [
+        28,
+        35
+      ],
+      "file": "illustration.png",
+      "texture_rect": [
+        1191,
+        139,
+        168,
+        289
+      ]
+    },
+    "right_paw": {
+      "anchor": [
+        0.5,
+        0.85
+      ],
+      "parent_offset": [
+        34,
+        42
+      ],
+      "display_size": [
+        28,
+        35
+      ],
+      "file": "illustration.png",
+      "texture_rect": [
+        162,
+        615,
+        177,
+        308
+      ]
+    },
+    "tail": {
+      "anchor": [
+        0.12,
+        0.5
+      ],
+      "parent_offset": [
+        -55,
+        18
+      ],
+      "display_size": [
+        78,
+        54
+      ],
+      "file": "illustration.png",
+      "texture_rect": [
+        653,
+        654,
+        234,
+        215
+      ]
+    }
+  },
+  "preview_rect": [
+    92,
+    51,
+    354,
+    458
+  ]
+}

@@ -1,0 +1,599 @@
+{
+  "auditedAt": "2026-09-27",
+  "commit": "0145a86524cf8528701f44bbb6897fd9ce658612",
+  "status": "Native P1–P7 approved; implementation in progress",
+  "features": [
+    {
+      "id": "F01",
+      "group": "Desktop",
+      "name": "Transparent overlay and gesture routing",
+      "status": "Partial",
+      "phase": "P0",
+      "details": "Nonactivating panel, alpha hit tests, petting, drag, context menus and click-through after sleep/spaces.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/desktop.md"
+    },
+    {
+      "id": "F02",
+      "group": "Desktop",
+      "name": "Single instance and Control Center",
+      "status": "New",
+      "phase": "P1",
+      "details": "One control window; Dashboard, Pets, Settings, Plugins, Integrations, optional Teams.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/architecture.md"
+    },
+    {
+      "id": "F03",
+      "group": "Desktop",
+      "name": "Visibility, pause and lifecycle",
+      "status": "Partial",
+      "phase": "P0",
+      "details": "Manual hide versus temporary close; screen sleep; restore pets; default launch preference.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/desktop.md"
+    },
+    {
+      "id": "F04",
+      "group": "Desktop",
+      "name": "Size, flip and HUD scale",
+      "status": "Partial",
+      "phase": "P1",
+      "details": "Continuous size exists; add presets, per-pet horizontal flip and separate HUD size.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/desktop.md"
+    },
+    {
+      "id": "F05",
+      "group": "Desktop",
+      "name": "Reaction maps and live menus",
+      "status": "New",
+      "phase": "P1",
+      "details": "Categorical agent reactions, busy loops, bounded one-shots, waiting cadence, state-sensitive commands.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/desktop.md"
+    },
+    {
+      "id": "F06",
+      "group": "Desktop",
+      "name": "Presentation coordinator",
+      "status": "Partial",
+      "phase": "P2",
+      "details": "Bubbly messages, sticky alerts, four-metric HUD, media, couriers and chat arbitration.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/plugins.md"
+    },
+    {
+      "id": "F07",
+      "group": "Desktop",
+      "name": "Theme and shortcuts",
+      "status": "New",
+      "phase": "P1",
+      "details": "System/light/dark, optional Chat/Talk buttons, shortcut collision detection and rollback.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/desktop.md"
+    },
+    {
+      "id": "F08",
+      "group": "Desktop",
+      "name": "State and diagnostics",
+      "status": "Partial",
+      "phase": "P7",
+      "details": "Atomic schema migrations, corrupt-file quarantine, bounded redacted logs, health dashboard.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/architecture.md"
+    },
+    {
+      "id": "F09",
+      "group": "Pets",
+      "name": "Nine native rigs and six sample imports",
+      "status": "Needs verification",
+      "phase": "P0",
+      "details": "Existing original atlases and small OpenPets sample set; test all, finish three character sheets.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/pets.md"
+    },
+    {
+      "id": "F10",
+      "group": "Pets",
+      "name": "Full gallery and offline browsing",
+      "status": "New",
+      "phase": "P1",
+      "details": "V3 index/pages, search/categories, original/featured, v2/fixture fallback, on-demand downloads.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/catalog.md"
+    },
+    {
+      "id": "F11",
+      "group": "Pets",
+      "name": "Pet lifecycle and provenance",
+      "status": "Partial",
+      "phase": "P1",
+      "details": "Install/remove/default/details/preview; source labels, broken-pet fallback, separate team roots.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/pets.md"
+    },
+    {
+      "id": "F12",
+      "group": "Pets",
+      "name": "Safe ZIP/folder/CLI installation",
+      "status": "New",
+      "phase": "P1",
+      "details": "Exact metadata/atlas contract, traversal/symlink/bomb rejection, staging/journal/rollback, install lock.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/pets.md"
+    },
+    {
+      "id": "F13",
+      "group": "Pets",
+      "name": "V1/V2 and cursor gaze",
+      "status": "Partial",
+      "phase": "P1",
+      "details": "8×9 versus 8×11 frames, V2 exact dimensions/neutral frame/16 directions, reject unknown formats.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/pets.md"
+    },
+    {
+      "id": "F14",
+      "group": "Pets",
+      "name": "Codex pet import",
+      "status": "New",
+      "phase": "P1",
+      "details": "Read ~/.codex/pets without writeback; bounded native loaders and source indicators.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/pets.md"
+    },
+    {
+      "id": "F15",
+      "group": "Motion",
+      "name": "Walk, follow, patrol and jumps",
+      "status": "Needs verification",
+      "phase": "P0",
+      "details": "Native bottom-edge stroll/arced jump exists; add patrol and shared cancellation semantics.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/desktop.md"
+    },
+    {
+      "id": "F16",
+      "group": "Motion",
+      "name": "Display memory and cross-screen motion",
+      "status": "Partial",
+      "phase": "P3",
+      "details": "Active primary display, reclamp disconnects, optional cross-display, gap handling.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/desktop.md"
+    },
+    {
+      "id": "F17",
+      "group": "Motion",
+      "name": "Gravity and sole position owner",
+      "status": "Partial",
+      "phase": "P3",
+      "details": "One writer for motion/drag/confinement; gravity, bounce and fractional positions.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/desktop.md"
+    },
+    {
+      "id": "F18",
+      "group": "Motion",
+      "name": "Multi-pet leases and confinement",
+      "status": "New",
+      "phase": "P3",
+      "details": "Ordered pool, PID/session identity, heartbeat/TTL, terminal geometry and owner death cleanup.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/ipc.md"
+    },
+    {
+      "id": "F19",
+      "group": "Motion",
+      "name": "System-audio dance",
+      "status": "Needs verification",
+      "phase": "P0",
+      "details": "ScreenCaptureKit energy-only signal; lazy permission, debounce, free functional headphones.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/desktop.md"
+    },
+    {
+      "id": "F20",
+      "group": "Plugins",
+      "name": "SDK v3 compatibility",
+      "status": "New",
+      "phase": "P4",
+      "details": "All 23 namespaces, typed manifests/config, scoped files, schedules, events, metrics, secrets.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/sdk.md"
+    },
+    {
+      "id": "F21",
+      "group": "Plugins",
+      "name": "Isolated JS host",
+      "status": "New",
+      "phase": "P4",
+      "details": "Reviewed native isolation boundary; no Node/arbitrary HTML/files/global keys; bridge quotas.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/plugins.md"
+    },
+    {
+      "id": "F22",
+      "group": "Plugins",
+      "name": "Permissions and approved hosts",
+      "status": "New",
+      "phase": "P4",
+      "details": "Declared ∩ approved capabilities per call; internet/local/write separation and SSRF defenses.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/plugins.md"
+    },
+    {
+      "id": "F23",
+      "group": "Plugins",
+      "name": "Catalog and lifecycle",
+      "status": "New",
+      "phase": "P4",
+      "details": "V2 catalog, min-app semver, hashes/source consistency, enable/update/remove/health.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/plugins.md"
+    },
+    {
+      "id": "F24",
+      "group": "Plugins",
+      "name": "Author CLI and development",
+      "status": "New",
+      "phase": "P4",
+      "details": "Six scaffold templates, package/validate, bounded reload, fake-clock harness plus real bridge tests.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/sdk.md"
+    },
+    {
+      "id": "F25",
+      "group": "Plugins",
+      "name": "Explicit assistant tools",
+      "status": "New",
+      "phase": "P4",
+      "details": "Bounded schema/arguments, deadlines, canonical names, generation fencing and stale cancellation.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/sdk.md"
+    },
+    {
+      "id": "F26",
+      "group": "Assistant",
+      "name": "Attached chat and personality",
+      "status": "New",
+      "phase": "P5",
+      "details": "Compact composer, expandable panel, drafts, names/tone/style, typed and voice lane coordination.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/desktop.md"
+    },
+    {
+      "id": "F27",
+      "group": "Assistant",
+      "name": "Provider library",
+      "status": "New",
+      "phase": "P5",
+      "details": "Separate Text/STT/TTS, native Anthropic, compatible endpoints, local text, system/cloud speech.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/desktop.md"
+    },
+    {
+      "id": "F28",
+      "group": "Assistant",
+      "name": "Tools and bounded history",
+      "status": "New",
+      "phase": "P5",
+      "details": "Actual result receipts, validated batches, local retention/deletion, date/timezone context.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/desktop.md"
+    },
+    {
+      "id": "F29",
+      "group": "Assistant",
+      "name": "Push-to-talk and realtime",
+      "status": "New",
+      "phase": "P5",
+      "details": "Fourth lazy permission: mic; visible stop/cancel, devices, bounded STT/TTS, exclusive realtime.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/desktop.md"
+    },
+    {
+      "id": "F30",
+      "group": "Agents",
+      "name": "Private IPC/client/MCP",
+      "status": "New",
+      "phase": "P3",
+      "details": "Unix socket/discovery/auth/NDJSON, status/react/say, bounded media, pinned client and leases.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/ipc.md"
+    },
+    {
+      "id": "F31",
+      "group": "Agents",
+      "name": "Eight agent adapters",
+      "status": "New",
+      "phase": "P3",
+      "details": "Generic MCP, Claude Code, OpenCode, Cursor, Zed, Pi, OpenClaw, DSH; safe config edits/backup.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/agent-integrations.md"
+    },
+    {
+      "id": "F32",
+      "group": "Connected",
+      "name": "Calendar, music and task services",
+      "status": "New",
+      "phase": "P5",
+      "details": "Google Calendar, Spotify/lyrics, Higgsfield; own OAuth/API credentials and explicit hosts.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/official-plugins.md"
+    },
+    {
+      "id": "F33",
+      "group": "Connected",
+      "name": "Dropped vocabulary and local usage",
+      "status": "New",
+      "phase": "P5",
+      "details": "Definitions/translations/optional Anki writes; external local Claude/Codex usage monitor.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/official-plugins.md"
+    },
+    {
+      "id": "F34",
+      "group": "Remote",
+      "name": "Scoped remote control",
+      "status": "New",
+      "phase": "P6",
+      "details": "Off by default, concrete private binds, hashed revocable tokens, limits, encrypted proposal.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/desktop.md"
+    },
+    {
+      "id": "F35",
+      "group": "Remote",
+      "name": "Experimental LAN visitors",
+      "status": "New",
+      "phase": "P6",
+      "details": "Edge handoff, topology, trusted assets, coarse work-return only; real cross-machine tests.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/lan-mode.md"
+    },
+    {
+      "id": "F36",
+      "group": "Teams",
+      "name": "Enrollment and team packs",
+      "status": "New",
+      "phase": "P6",
+      "details": "Own backend, expiring preview/finish, credentials, immutable artifacts, approval, source isolation.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/desktop.md"
+    },
+    {
+      "id": "F37",
+      "group": "Teams",
+      "name": "Manager check-ins",
+      "status": "New",
+      "phase": "P6",
+      "details": "Organization schedules, explicit Share, bounded note/history, private pause, no input surveillance.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/desktop.md"
+    },
+    {
+      "id": "F38",
+      "group": "Operations",
+      "name": "Localization and release tools",
+      "status": "Partial",
+      "phase": "P7",
+      "details": "Seven main locales, signed Sparkle/notarization, opt-in telemetry, benchmarks and regressions.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/i18n.md"
+    },
+    {
+      "id": "F39",
+      "group": "Operations",
+      "name": "Cross-platform distribution",
+      "status": "Separate scope",
+      "phase": "Separate",
+      "details": "Windows/Linux packages and X11/Wayland differences require separate platform approval.",
+      "source": "https://github.com/OpenPetsHQ/openpets/blob/0145a86524cf8528701f44bbb6897fd9ce658612/docs/desktop.md"
+    },
+    {
+      "id": "F40",
+      "group": "Paw-Paw",
+      "name": "Landing page and interactive mascot",
+      "status": "Implemented preview",
+      "phase": "P0",
+      "details": "Original site, nine pets, binary typing, click/pet/walk/jump/size/dress-up; local-only preview.",
+      "source": "https://paw-paw.pet/"
+    },
+    {
+      "id": "F41",
+      "group": "Paw-Paw",
+      "name": "Earned pets and free hats",
+      "status": "Implemented code",
+      "phase": "P0",
+      "details": "Approved free earned content plus separate optional paid packs; persisted nonduplicate drops.",
+      "source": "https://paw-paw.pet/"
+    },
+    {
+      "id": "F42",
+      "group": "Paw-Paw",
+      "name": "Wardrobe transforms and extra polish",
+      "status": "New",
+      "phase": "P1",
+      "details": "Native drag-to-equip/hat transforms, per-app hiding, typing effects, confirmed local reset.",
+      "source": "https://paw-paw.pet/changelog"
+    }
+  ],
+  "plugins": [
+    {
+      "name": "Quick Reminders",
+      "publisher": "Official",
+      "delivery": "Bundled · on",
+      "status": "Partial",
+      "behavior": "Due/missed; snooze/done; pending/cancel; notifications; assistant tools",
+      "dependency": "Local schedule/storage; optional notification/audio",
+      "id": "openpets.reminders"
+    },
+    {
+      "name": "Simple Timer",
+      "publisher": "Official",
+      "delivery": "Bundled · on",
+      "status": "New",
+      "behavior": "Custom/preset countdown; HUD; pause/resume/+5; expiry snooze",
+      "dependency": "Local schedule/storage; notification/audio",
+      "id": "openpets.simple-timer"
+    },
+    {
+      "name": "Anxiety Aid Tools",
+      "publisher": "Official",
+      "delivery": "Bundled · on",
+      "status": "New",
+      "behavior": "Breathing, relaxation, grounding, meditation, sounds and practice controls",
+      "dependency": "Declared media host; content attribution",
+      "id": "openpets.anxiety-aid-tools"
+    },
+    {
+      "name": "Focus Buddy",
+      "publisher": "Official",
+      "delivery": "Bundled · on",
+      "status": "Partial",
+      "behavior": "Pomodoro; pause/resume/end/skip; HUD; assistant tools",
+      "dependency": "Local schedule/storage/audio",
+      "id": "openpets.focus-buddy"
+    },
+    {
+      "name": "Launch Buddy",
+      "publisher": "Official",
+      "delivery": "Bundled · on",
+      "status": "Partial",
+      "behavior": "Time-aware/custom/random greeting; once/day/after-away/delay",
+      "dependency": "Local schedule/storage/audio",
+      "id": "openpets.launch-buddy"
+    },
+    {
+      "name": "Daily Fortune Cookie",
+      "publisher": "Official",
+      "delivery": "Bundled · on",
+      "status": "New",
+      "behavior": "Daily scheduled fortune; deterministic daily and manual another",
+      "dependency": "Local schedule/storage",
+      "id": "openpets.fortune-cookie"
+    },
+    {
+      "name": "Virtual Pet",
+      "publisher": "Official",
+      "delivery": "Bundled · off",
+      "status": "New",
+      "behavior": "Hunger/affection/energy/bond; feed/play/pet/nap; HUD; assistant tools",
+      "dependency": "Local state/events/audio",
+      "id": "openpets.virtual-pet"
+    },
+    {
+      "name": "System Resources",
+      "publisher": "Official",
+      "delivery": "Bundled · off",
+      "status": "New",
+      "behavior": "CPU/RAM/optional GPU/disk; battery/network; threshold alerts",
+      "dependency": "Aggregate native metrics; separate MIT submodule",
+      "id": "openpets.system-resources"
+    },
+    {
+      "name": "Calendar Airmail",
+      "publisher": "Official",
+      "delivery": "Installable",
+      "status": "New",
+      "behavior": "Google primary calendar; upcoming reminders; animated courier",
+      "dependency": "Google OAuth PKCE/read-only calendar/network",
+      "id": "openpets.calendar-airmail"
+    },
+    {
+      "name": "Morning & Evening Routine",
+      "publisher": "Official",
+      "delivery": "Installable",
+      "status": "Partial",
+      "behavior": "Scheduled once/day greetings; manual check-in; pause today",
+      "dependency": "Local schedule/storage",
+      "id": "openpets.day-routine"
+    },
+    {
+      "name": "Magic 8-Ball",
+      "publisher": "Official",
+      "delivery": "Installable",
+      "status": "New",
+      "behavior": "Local optional question/random answer/last answer",
+      "dependency": "Local storage; no AI provider",
+      "id": "openpets.magic-8-ball"
+    },
+    {
+      "name": "Mood Check-in",
+      "publisher": "Official",
+      "delivery": "Installable",
+      "status": "New",
+      "behavior": "Five moods, local history/summary, daily prompt, pause today",
+      "dependency": "Local personal data; no automatic team sharing",
+      "id": "openpets.mood-check-in"
+    },
+    {
+      "name": "Water Reminder",
+      "publisher": "Official",
+      "delivery": "Installable",
+      "status": "Partial",
+      "behavior": "Cadence; drank-water; pause today; preview/sound",
+      "dependency": "Local schedule/storage/audio",
+      "id": "openpets.water-reminder"
+    },
+    {
+      "name": "Walkabout",
+      "publisher": "Community",
+      "delivery": "Installable · off",
+      "status": "Partial",
+      "behavior": "Wander/follow/patrol; speed/interval; busy-pause; all pets",
+      "dependency": "Movement/display/power events",
+      "id": "openpets.walkabout"
+    },
+    {
+      "name": "Spotify Buddy",
+      "publisher": "Community",
+      "delivery": "Installable · off",
+      "status": "New",
+      "behavior": "Tracks, lyrics/offset, playback control and mood reactions",
+      "dependency": "Spotify OAuth/network writes; lyric host",
+      "id": "openpets.spotify-buddy"
+    },
+    {
+      "name": "Vocabulary Drag & Drop",
+      "publisher": "Community",
+      "delivery": "Installable · off",
+      "status": "New",
+      "behavior": "Explicit drop → dictionary/translation; optional Anki deck",
+      "dependency": "Declared dictionary/translation; local Anki write",
+      "id": "openpets.drag-vocab"
+    },
+    {
+      "name": "Higgsfield Watch",
+      "publisher": "Community",
+      "delivery": "Installable · off",
+      "status": "New",
+      "behavior": "Job status polling, start/finish announcements and celebration",
+      "dependency": "API token/network; Keychain",
+      "id": "openpets.higgsfield-watch"
+    },
+    {
+      "name": "Usage Buddy",
+      "publisher": "Community",
+      "delivery": "Installable · off",
+      "status": "New",
+      "behavior": "Claude/Codex utilization and persistent threshold warnings",
+      "dependency": "Loopback usage-monitor required; separate MIT submodule",
+      "id": "regis.usage-buddy"
+    }
+  ],
+  "phases": [
+    {
+      "id": "P0",
+      "name": "Verify the companion",
+      "approval": "Existing authorized work",
+      "deliverable": "Nine rigs/six samples, paws, global keys/clicks, bubbles, size, walk/jump, free wardrobe, sleep and profiling."
+    },
+    {
+      "id": "P1",
+      "name": "Native shell and content",
+      "approval": "Approved 2026-09-27",
+      "deliverable": "Gallery/import recovery, V2 gaze, maps/menus/HUDs, dashboard, wardrobe transforms and per-app hiding."
+    },
+    {
+      "id": "P2",
+      "name": "Offline companion features",
+      "approval": "Approved 2026-09-27",
+      "deliverable": "Complete reminders/focus; timer, routines, fortunes, 8-ball, mood, virtual needs, resource HUD and practice sessions."
+    },
+    {
+      "id": "P3",
+      "name": "Agent compatibility",
+      "approval": "Approved 2026-09-27",
+      "deliverable": "Private IPC/MCP, all eight adapters, safe configuration edits, leases/pool/window confinement."
+    },
+    {
+      "id": "P4",
+      "name": "Plugin platform",
+      "approval": "Approved 2026-09-27",
+      "deliverable": "Isolated host, 23 namespaces, per-call permissions/quotas, catalog, lifecycle, author CLI and 18-package compatibility."
+    },
+    {
+      "id": "P5",
+      "name": "Assistant and connected plugins",
+      "approval": "Approved 2026-09-27",
+      "deliverable": "Text/STT/TTS/realtime, history/personality/tools, Calendar/Spotify/Higgsfield/vocabulary/Anki/usage."
+    },
+    {
+      "id": "P6",
+      "name": "Optional remote, LAN and Teams",
+      "approval": "Approved 2026-09-27",
+      "deliverable": "Protected remote control, experimental visitors, owned organization backend/enrollment/packs/check-ins."
+    },
+    {
+      "id": "P7",
+      "name": "Release acceptance",
+      "approval": "Approved 2026-09-27",
+      "deliverable": "Locales, isolation/privacy/migration checks, real service tests, measured budgets, signed/notarized updates and site publication."
+    }
+  ]
+}

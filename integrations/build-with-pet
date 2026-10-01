@@ -1,0 +1,18 @@
+#!/bin/sh
+# Usage: PAWSYNC_TOKEN=... ./integrations/build-with-pet npm run build
+if [ "$#" -eq 0 ]; then
+  echo 'Usage: build-with-pet command [args...]' >&2
+  exit 2
+fi
+"$@"
+result=$?
+status=build_failed
+[ "$result" -eq 0 ] && status=build_success
+if [ -n "$PAWSYNC_TOKEN" ]; then
+  curl --max-time 2 --silent --fail --request POST \
+    http://127.0.0.1:9876/v1/status \
+    --header "Authorization: Bearer $PAWSYNC_TOKEN" \
+    --header 'Content-Type: application/json' \
+    --data "{\"status\":\"$status\"}" >/dev/null 2>&1 || true
+fi
+exit "$result"

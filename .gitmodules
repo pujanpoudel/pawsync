@@ -1,0 +1,3 @@
+[submodule "vendor/openpets"]
+	path = vendor/openpets
+	url = https://github.com/OpenPetsHQ/openpets.git

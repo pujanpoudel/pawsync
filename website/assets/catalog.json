@@ -1,0 +1,137 @@
+[
+  {
+    "id": "pixel-cat",
+    "name": "Maple the Cat",
+    "group": "PawSync",
+    "sheet": "assets/frames/pixel-cat.webp",
+    "thumbnail": "assets/thumbs/pixel-cat.png",
+    "rows": 9,
+    "idleColumn": 0
+  },
+  {
+    "id": "shibe",
+    "name": "Mochi the Shibe",
+    "group": "PawSync",
+    "sheet": "assets/frames/shibe.webp",
+    "thumbnail": "assets/thumbs/shibe.png",
+    "rows": 9,
+    "idleColumn": 0
+  },
+  {
+    "id": "fox",
+    "name": "Ember the Fox",
+    "group": "PawSync",
+    "sheet": "assets/frames/fox.webp",
+    "thumbnail": "assets/thumbs/fox.png",
+    "rows": 9,
+    "idleColumn": 0
+  },
+  {
+    "id": "bunny",
+    "name": "Clover the Bunny",
+    "group": "PawSync",
+    "sheet": "assets/frames/bunny.webp",
+    "thumbnail": "assets/thumbs/bunny.png",
+    "rows": 9,
+    "idleColumn": 0
+  },
+  {
+    "id": "bear",
+    "name": "Cocoa the Bear",
+    "group": "PawSync",
+    "sheet": "assets/frames/bear.webp",
+    "thumbnail": "assets/thumbs/bear.png",
+    "rows": 9,
+    "idleColumn": 0
+  },
+  {
+    "id": "panda",
+    "name": "Bao the Panda",
+    "group": "PawSync",
+    "sheet": "assets/frames/panda.webp",
+    "thumbnail": "assets/thumbs/panda.png",
+    "rows": 9,
+    "idleColumn": 0
+  },
+  {
+    "id": "hamster",
+    "name": "Peaches the Hamster",
+    "group": "PawSync",
+    "sheet": "assets/frames/hamster.webp",
+    "thumbnail": "assets/thumbs/hamster.png",
+    "rows": 9,
+    "idleColumn": 0
+  },
+  {
+    "id": "otter",
+    "name": "Pebble the Otter",
+    "group": "PawSync",
+    "sheet": "assets/frames/otter.webp",
+    "thumbnail": "assets/thumbs/otter.png",
+    "rows": 9,
+    "idleColumn": 0
+  },
+  {
+    "id": "capybara",
+    "name": "Pudding the Capybara",
+    "group": "PawSync",
+    "sheet": "assets/frames/capybara.webp",
+    "thumbnail": "assets/thumbs/capybara.png",
+    "rows": 9,
+    "idleColumn": 0
+  },
+  {
+    "id": "openpets-default",
+    "name": "OpenPets Buddy",
+    "group": "OpenPets",
+    "sheet": "assets/frames/openpets-default.webp",
+    "thumbnail": "assets/thumbs/openpets-default.png",
+    "rows": 11,
+    "idleColumn": 6
+  },
+  {
+    "id": "openpets-snoopy",
+    "name": "Snoopy",
+    "group": "OpenPets",
+    "sheet": "assets/frames/openpets-snoopy.webp",
+    "thumbnail": "assets/thumbs/openpets-snoopy.png",
+    "rows": 9,
+    "idleColumn": 0
+  },
+  {
+    "id": "openpets-clippit",
+    "name": "Clippy",
+    "group": "OpenPets",
+    "sheet": "assets/frames/openpets-clippit.webp",
+    "thumbnail": "assets/thumbs/openpets-clippit.png",
+    "rows": 9,
+    "idleColumn": 0
+  },
+  {
+    "id": "openpets-tux",
+    "name": "Tux",
+    "group": "OpenPets",
+    "sheet": "assets/frames/openpets-tux.webp",
+    "thumbnail": "assets/thumbs/openpets-tux.png",
+    "rows": 9,
+    "idleColumn": 0
+  },
+  {
+    "id": "openpets-wall-e",
+    "name": "Wall-E",
+    "group": "OpenPets",
+    "sheet": "assets/frames/openpets-wall-e.webp",
+    "thumbnail": "assets/thumbs/openpets-wall-e.png",
+    "rows": 9,
+    "idleColumn": 0
+  },
+  {
+    "id": "openpets-dobby",
+    "name": "Dobby",
+    "group": "OpenPets",
+    "sheet": "assets/frames/openpets-dobby.webp",
+    "thumbnail": "assets/thumbs/openpets-dobby.png",
+    "rows": 9,
+    "idleColumn": 0
+  }
+]

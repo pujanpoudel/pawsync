@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Example only; scripts/notarize_release.py generates the real signed feed. -->
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>PawSync updates</title>
+    <item>
+      <title>PawSync 0.1.0</title>
+      <sparkle:releaseNotesLink>https://updates.example.com/releases/0.1.0.html</sparkle:releaseNotesLink>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure url="https://updates.example.com/PawSync-0.1.0.zip" sparkle:version="1"
+        sparkle:shortVersionString="0.1.0" length="REPLACE_WITH_BYTES"
+        type="application/octet-stream" sparkle:edSignature="REPLACE_WITH_REAL_EDDSA_SIGNATURE" />
+    </item>
+  </channel>
+</rss>

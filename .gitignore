@@ -1,0 +1,15 @@
+.DS_Store
+.build/
+build/
+.venv/
+__pycache__/
+.pytest_cache/
+.env
+**/.env*
+!**/.env.example
+*.pem
+*.p8
+*.p12
+*.key
+backend/data/
+macos/Resources/Config.local.json

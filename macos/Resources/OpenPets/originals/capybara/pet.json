@@ -1,0 +1,8 @@
+{
+  "author" : "PawSync",
+  "description" : "An original PawSync companion with OpenPets-compatible frame animations.",
+  "displayName" : "Pudding the Capybara",
+  "id" : "capybara",
+  "spritesheetPath" : "spritesheet.webp",
+  "spriteVersionNumber" : 1
+}

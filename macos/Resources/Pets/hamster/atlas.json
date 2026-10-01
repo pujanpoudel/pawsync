@@ -1,0 +1,123 @@
+{
+  "id": "hamster",
+  "name": "Peaches the Hamster",
+  "parts": {
+    "head": {
+      "file": "illustration.png",
+      "texture_rect": [
+        38,
+        104,
+        465,
+        358
+      ],
+      "display_size": [
+        154,
+        130
+      ],
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "parent_offset": [
+        0,
+        54
+      ],
+      "eyes": [
+        [
+          0.33,
+          0.55
+        ],
+        [
+          0.67,
+          0.55
+        ]
+      ]
+    },
+    "body": {
+      "file": "illustration.png",
+      "texture_rect": [
+        584,
+        161,
+        368,
+        275
+      ],
+      "display_size": [
+        132,
+        98
+      ],
+      "anchor": [
+        0.5,
+        0.2
+      ]
+    },
+    "left_paw": {
+      "file": "illustration.png",
+      "texture_rect": [
+        1211,
+        188,
+        142,
+        177
+      ],
+      "display_size": [
+        28,
+        35
+      ],
+      "anchor": [
+        0.5,
+        0.85
+      ],
+      "parent_offset": [
+        -34,
+        42
+      ]
+    },
+    "right_paw": {
+      "file": "illustration.png",
+      "texture_rect": [
+        193,
+        679,
+        142,
+        174
+      ],
+      "display_size": [
+        28,
+        35
+      ],
+      "anchor": [
+        0.5,
+        0.85
+      ],
+      "parent_offset": [
+        34,
+        42
+      ]
+    },
+    "tail": {
+      "file": "illustration.png",
+      "texture_rect": [
+        680,
+        670,
+        173,
+        175
+      ],
+      "display_size": [
+        65,
+        45
+      ],
+      "anchor": [
+        0.12,
+        0.5
+      ],
+      "parent_offset": [
+        -45,
+        12
+      ]
+    }
+  },
+  "preview_rect": [
+    1084,
+    520,
+    389,
+    467
+  ]
+}
