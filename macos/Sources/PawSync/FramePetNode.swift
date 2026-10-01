@@ -23,6 +23,8 @@ import SpriteKit
     private let caption=SKLabelNode(fontNamed:NSFont.systemFont(ofSize:10,weight:.semibold).fontName)
     private let accessories=SKNode()
     private let sleepLabel=SKLabelNode(fontNamed:NSFont.systemFont(ofSize:17,weight:.semibold).fontName)
+    private let reactionLabel=SKLabelNode(fontNamed:"AppleColorEmoji")
+    private var clickMood=0
     private(set) var sleeping=false
     var onNeedsRender:(()->Void)?
 
@@ -43,6 +45,7 @@ import SpriteKit
         addChild(sprite); accessories.name="head-accessories"; accessories.zPosition=10; sprite.addChild(accessories)
         caption.fontSize=10; caption.fontColor = .brown; caption.position.y = -25; addChild(caption)
         sleepLabel.text="z z"; sleepLabel.fontSize=17; sleepLabel.fontColor = .systemPurple; sleepLabel.position=CGPoint(x:63,y:154); sleepLabel.isHidden=true; addChild(sleepLabel)
+        reactionLabel.fontSize=23;reactionLabel.position=CGPoint(x:58,y:202);reactionLabel.alpha=0;addChild(reactionLabel)
         show(row:0,column:spec.rows == 11 ? 6 : 0)
     }
     required init?(coder:NSCoder) { fatalError("Unsupported") }
@@ -92,7 +95,14 @@ import SpriteKit
         begin(PetFrameSequence(row:7,frames:6,duration:0.82,iterations:nil))
         typingUntil=ProcessInfo.processInfo.systemUptime+0.5
     }
-    func click(toward point:CGPoint) { wave() }
+    func click(toward point:CGPoint) {
+        guard !sleeping else { return }
+        let moods:[(PetAnimation,String)]=[(.review,"❔"),(.waiting,"✨"),(.jumping,"💛"),(.waving,"♡"),(.running,"❕")]
+        let mood=moods[clickMood % moods.count];clickMood+=1
+        play(mood.0,looping:false,relaxed:true)
+        reactionLabel.removeAllActions();reactionLabel.text=mood.1;reactionLabel.alpha=0;reactionLabel.setScale(0.65)
+        reactionLabel.run(.sequence([.group([.fadeIn(withDuration:0.12),.scale(to:1,duration:0.18)]),.wait(forDuration:0.48),.group([.fadeOut(withDuration:0.24),.moveBy(x:0,y:16,duration:0.24)]),.run{[weak self] in self?.reactionLabel.position.y=202}]))
+    }
     func pet(direction:CGFloat) { play(.review,looping:false,relaxed:true) }
     func setSleeping(_ value:Bool) {
         guard value != sleeping else { return }; sleeping=value; stopFrames(); sprite.removeAllActions(); sprite.position = .zero; sprite.zRotation=0; sprite.setScale(1); sprite.xScale=flipped ? -1 : 1

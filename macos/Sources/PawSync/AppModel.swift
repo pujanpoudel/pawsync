@@ -21,6 +21,7 @@ import Combine
     let speech = CompanionSpeech()
     let fileInbox:PetFileInbox
     let fileShelf:PetFileShelfController
+    private var quickActions:PetQuickActionsController!
     let windowEdges = WindowEdgeService()
     let music = MusicReactionService()
     @Published var settingsSection: SettingsSection = .general
@@ -58,6 +59,18 @@ import Combine
         resources=ResourceMonitor(features:features)
         onboarding = !preferences.onboarded
         super.init()
+        quickActions=PetQuickActionsController { [weak self] id in
+            guard let self else { return }
+            switch id {
+            case "water": self.menuWater()
+            case "reminder": self.menuAddReminder()
+            case "focus": self.focus.phase == .ready ? self.menuFocus() : self.menuStopFocus()
+            case "walk": self.menuWalk()
+            case "files": self.fileInbox.files.isEmpty ? self.fileInbox.openFolder() : self.fileShelf.show(near:self.overlay.window)
+            case "hello": self.menuHello()
+            default: break
+            }
+        }
         overlay.showSettings = { [weak self] in self?.openSettings?() }
         overlay.shouldTemporarilyHide = { [weak self] in
             guard let self,let id=NSWorkspace.shared.frontmostApplication?.bundleIdentifier else { return false }
@@ -68,8 +81,11 @@ import Combine
         overlay.restorePresentation = { [weak self] in self?.applyPresentation() }
         shortcuts.onToggle = { [weak self] in self?.preferences.hidden.toggle() }
         overlay.makeContextMenu = { [weak self] in self?.petContextMenu() ?? NSMenu() }
+        overlay.showQuickActions = { [weak self] in guard let self else { return };self.quickActions.show(near:self.overlay.window) }
         fileShelf.attach(to:overlay.window)
-        overlay.showFileShelf = { [weak self] in self?.fileShelf.show() }
+        overlay.showFileShelf = { [weak self] in guard let self, !self.fileInbox.files.isEmpty else { return };self.fileShelf.show(near:self.overlay.window) }
+        overlay.showDropTarget = { [weak self] in guard let self else { return };self.fileShelf.showDropTarget(near:self.overlay.window) }
+        overlay.hideDropTarget = { [weak self] in self?.fileShelf.hideDropTarget() }
         overlay.canAcceptFiles = { [weak self] urls in self?.fileInbox.canAccept(urls) ?? false }
         overlay.onFileDrop = { [weak self] urls in
             guard let self,self.canUseApp else { return false }

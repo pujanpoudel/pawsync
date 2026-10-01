@@ -19,6 +19,7 @@ import SpriteKit
     private var motionMode="idle"
     private var lastTap:TimeInterval = -1
     private var lastStroke:TimeInterval = -1
+    private var clickMood=0
     private var accessorySKU="none"
     private var hatTransform=HatTransform()
 
@@ -167,8 +168,20 @@ import SpriteKit
     func click(toward point: CGPoint) {
         guard !sleeping else { return }
         transition("click")
-        let tilt = point.x < position.x ? 0.087 : -0.087
-        joints["head"]?.run(.sequence([eased(.group([.rotate(toAngle:tilt,duration:0.16),.scale(to:1.035,duration:0.16)]),.easeOut),.wait(forDuration:0.12),eased(.group([.rotate(toAngle:0,duration:0.30),.scale(to:1,duration:0.30)]))]),withKey:"reaction")
+        let tilt:CGFloat = point.x < position.x ? 0.105 : -0.105
+        let head=joints["head"],body=joints["body"]
+        switch clickMood % 4 {
+        case 0:
+            head?.run(.sequence([eased(.group([.rotate(toAngle:tilt,duration:0.16),.scale(to:1.045,duration:0.16)]),.easeOut),.run{[weak self] in self?.blink()},.wait(forDuration:0.1),eased(.group([.rotate(toAngle:0,duration:0.30),.scale(to:1,duration:0.30)]))]),withKey:"reaction")
+        case 1:
+            blink();cheeks();body?.run(.sequence([eased(.scaleY(to:0.92,duration:0.12)),eased(.scaleY(to:1.05,duration:0.13)),eased(.scaleY(to:1,duration:0.2))]),withKey:"reaction")
+        case 2:
+            let key=nextLeftPaw ? "left_paw":"right_paw";let paw=joints[key];nextLeftPaw.toggle();let rest=restPositions[key] ?? .zero
+            paw?.run(.sequence([eased(.group([.moveBy(x:0,y:15,duration:0.14),.rotate(toAngle:tilt*1.5,duration:0.14)])),.wait(forDuration:0.12),eased(.move(to:rest,duration:0.2)),eased(.rotate(toAngle:0,duration:0.2))]),withKey:"reaction")
+        default:
+            cheeks();head?.run(.sequence([eased(.rotate(toAngle:tilt*1.7,duration:0.2)),.wait(forDuration:0.22),eased(.rotate(toAngle:-tilt*0.65,duration:0.2)),.wait(forDuration:0.12),eased(.rotate(toAngle:0,duration:0.28))]),withKey:"reaction")
+        }
+        clickMood+=1
     }
     func pet(direction: CGFloat) {
         guard !sleeping else { return }

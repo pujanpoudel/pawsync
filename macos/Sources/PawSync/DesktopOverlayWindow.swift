@@ -29,6 +29,7 @@ import QuartzCore
         if let id=sender.draggingPasteboard.string(forType:.string),id.hasPrefix("free."),id.count<=80 { return .copy }
         guard let controller,controller.canAcceptFiles(fileURLs(sender.draggingPasteboard)) else { return [] }
         controller.setDropHighlight(true)
+        controller.showDropTarget?()
         return .copy
     }
     override func performDragOperation(_ sender:any NSDraggingInfo) -> Bool {
@@ -38,10 +39,10 @@ import QuartzCore
             return controller?.onHatDrop?(id,scene.convertPoint(fromView:local)) ?? false
         }
         guard let controller else { return false }
-        defer { controller.setDropHighlight(false) }
+        defer { controller.setDropHighlight(false);controller.hideDropTarget?() }
         return controller.onFileDrop?(fileURLs(sender.draggingPasteboard)) ?? false
     }
-    override func draggingExited(_ sender:(any NSDraggingInfo)?) { controller?.setDropHighlight(false) }
+    override func draggingExited(_ sender:(any NSDraggingInfo)?) { controller?.setDropHighlight(false);controller?.hideDropTarget?() }
     private func fileURLs(_ pasteboard:NSPasteboard)->[URL] {
         let objects=pasteboard.readObjects(forClasses:[NSURL.self],options:[.urlReadingFileURLsOnly:true]) as? [NSURL] ?? []
         return objects.map{$0 as URL}
@@ -71,7 +72,8 @@ import QuartzCore
                 let petPoint=controller.pet?.position ?? CGPoint(x:scene.size.width/2,y:scene.size.height/2)
                 let viewPoint=scene.convertPoint(toView:petPoint)
                 let position=CGPoint(x:viewPoint.x,y:min(bounds.maxY-4,viewPoint.y+95))
-                (controller.makeContextMenu?() ?? NSMenu()).popUp(positioning:nil,at:position,in:self)
+                if let show=controller.showQuickActions { show() }
+                else { (controller.makeContextMenu?() ?? NSMenu()).popUp(positioning:nil,at:position,in:self) }
                 controller.updatePassThrough()
             }
             return
@@ -93,8 +95,8 @@ import QuartzCore
         previous = nil; controller?.isInteracting = false; controller?.updatePassThrough()
     }
     override func rightMouseDown(with event: NSEvent) {
-        let menu = controller?.makeContextMenu?() ?? NSMenu()
-        NSMenu.popUpContextMenu(menu, with: event, for: self)
+        if let controller,let show=controller.showQuickActions { show() }
+        else { let menu = controller?.makeContextMenu?() ?? NSMenu();NSMenu.popUpContextMenu(menu, with: event, for: self) }
     }
 }
 
@@ -113,6 +115,9 @@ import QuartzCore
     var isSettingsPoint: ((CGPoint) -> Bool)?
     var makeContextMenu: (() -> NSMenu)?
     var showFileShelf:(()->Void)?
+    var showDropTarget:(()->Void)?
+    var hideDropTarget:(()->Void)?
+    var showQuickActions:(()->Void)?
     var canAcceptFiles:(([URL])->Bool)?
     var onFileDrop:(([URL])->Bool)?
     var onHatDrop: ((String,CGPoint)->Bool)?

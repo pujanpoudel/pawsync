@@ -8,7 +8,7 @@ struct PetInboxFile:Identifiable,Codable,Equatable {
     var size:Int64
     var added:Date
     var idValue:UUID { UUID(uuidString:id) ?? UUID() }
-    var url:URL { PetStore.root.appendingPathComponent("PetInbox",isDirectory:true).appendingPathComponent("\(id)-\(name)") }
+    var url:URL { PetStore.root.appendingPathComponent("PetInbox",isDirectory:true).appendingPathComponent("\(id)__\(name)") }
     var displaySize:String { ByteCountFormatter.string(fromByteCount:size,countStyle:.file) }
 }
 
@@ -96,6 +96,7 @@ struct PetInboxFile:Identifiable,Codable,Equatable {
     private let inbox:PetFileInbox
     private weak var petWindow:NSWindow?
     private var panel:NSPanel?
+    private var dropTargetActive=false
     private var closeTimer:Timer?
     private var eventMonitors:[Any]=[]
     init(inbox:PetFileInbox) {
@@ -115,6 +116,19 @@ struct PetInboxFile:Identifiable,Codable,Equatable {
         } as Any)
     }
     func show(near window:NSWindow?=nil) {
+        guard !inbox.files.isEmpty else { return }
+        present(near:window)
+    }
+    func showDropTarget(near window:NSWindow?=nil) {
+        dropTargetActive=true
+        present(near:window)
+    }
+    func hideDropTarget() {
+        dropTargetActive=false
+        if inbox.files.isEmpty { closeTimer?.invalidate(); panel?.orderOut(nil) }
+        else { refresh() }
+    }
+    private func present(near window:NSWindow?=nil) {
         if let window { petWindow=window }
         guard let petWindow,let screen=petWindow.screen ?? NSScreen.main else { return }
         closeTimer?.invalidate()
@@ -123,7 +137,7 @@ struct PetInboxFile:Identifiable,Codable,Equatable {
             created.isOpaque=false;created.backgroundColor = .clear;created.hasShadow=false;created.hidesOnDeactivate=false
             created.isReleasedWhenClosed=false;created.becomesKeyOnlyIfNeeded=true;created.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary,.ignoresCycle]
             created.level = NSWindow.Level(rawValue:NSWindow.Level.mainMenu.rawValue-2)
-            created.contentView=NSHostingView(rootView:PetFileShelfView(inbox:inbox,onInteraction:{[weak self] in self?.holdOpen()}))
+            created.contentView=NSHostingView(rootView:PetFileShelfView(inbox:inbox,dropTarget:dropTargetActive,onInteraction:{[weak self] in self?.holdOpen()}))
             panel=created
         }
         let visible=screen.visibleFrame,frame=petWindow.frame
@@ -133,7 +147,7 @@ struct PetInboxFile:Identifiable,Codable,Equatable {
         panel?.orderFrontRegardless();holdOpen()
     }
     func holdOpen() { closeTimer?.invalidate();closeTimer=nil }
-    private func refresh() { if panel?.isVisible == true { panel?.contentView=NSHostingView(rootView:PetFileShelfView(inbox:inbox,onInteraction:{[weak self] in self?.holdOpen()})) } }
+    private func refresh() { if panel?.isVisible == true { panel?.contentView=NSHostingView(rootView:PetFileShelfView(inbox:inbox,dropTarget:dropTargetActive,onInteraction:{[weak self] in self?.holdOpen()})) } }
     private func checkPointer(_ point:CGPoint) {
         guard let panel,panel.isVisible else { return }
         if panel.frame.insetBy(dx:-12,dy:-12).contains(point) { holdOpen();return }
@@ -146,9 +160,15 @@ struct PetInboxFile:Identifiable,Codable,Equatable {
 
 private struct PetFileShelfView:View {
     @ObservedObject var inbox:PetFileInbox
+    var dropTarget:Bool
     var onInteraction:()->Void
     var body:some View {
         VStack(alignment:.leading,spacing:10) {
+            if dropTarget && inbox.files.isEmpty {
+                Spacer(minLength:8)
+                VStack(spacing:9) { Image(systemName:"tray.and.arrow.down.fill").font(.system(size:31));Text("I’ll catch it!").font(.system(size:15,weight:.bold,design:.rounded));Text("Drop your file here").font(.system(size:11,weight:.medium,design:.rounded)).foregroundStyle(.secondary) }.frame(maxWidth:.infinity)
+                Spacer(minLength:8)
+            } else {
             HStack(spacing:9) {
                 Image(systemName:"tray.full.fill").font(.system(size:16,weight:.semibold)).foregroundStyle(Color(red:0.83,green:0.43,blue:0.57))
                 VStack(alignment:.leading,spacing:1) { Text("Buddy’s pocket").font(.system(size:14,weight:.bold,design:.rounded));Text("\(inbox.files.count) caught \(inbox.files.count==1 ? "file":"files")").font(.system(size:10,weight:.medium,design:.rounded)).foregroundStyle(.secondary) }
@@ -173,6 +193,7 @@ private struct PetFileShelfView:View {
                 }
                 if inbox.files.count>8 { Text("\(inbox.files.count-8) more in the pocket folder").font(.system(size:9,design:.rounded)).foregroundStyle(.secondary) }
             }
-        }.padding(14).frame(width:318,height:290).background(RoundedRectangle(cornerRadius:25).fill(Color(red:1,green:0.97,blue:0.96))).overlay(RoundedRectangle(cornerRadius:25).stroke(Color(red:0.91,green:0.78,blue:0.80),lineWidth:1.4)).shadow(color:.black.opacity(0.16),radius:12,y:5).onHover{inside in if inside { onInteraction() }}
+            }
+        }.padding(14).frame(width:318,height:290).background(.ultraThinMaterial,in:RoundedRectangle(cornerRadius:25)).overlay(RoundedRectangle(cornerRadius:25).fill(Color(red:1,green:0.91,blue:0.94).opacity(dropTarget ? 0.64 : 0.23))).overlay(RoundedRectangle(cornerRadius:25).stroke(dropTarget ? Color.pink.opacity(0.75) : Color.white.opacity(0.72),style:StrokeStyle(lineWidth:dropTarget ? 2 : 1.1,dash:dropTarget ? [7,4] : []) )).shadow(color:.black.opacity(0.12),radius:14,y:5).onHover{inside in if inside { onInteraction() }}
     }
 }
