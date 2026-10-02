@@ -5,21 +5,41 @@ import SwiftUI
     private var panel:NSPanel?
     private weak var anchor:NSWindow?
     private let action:(String)->Void
+    private var clickMonitor:Any?
     init(action:@escaping (String)->Void) { self.action=action }
     func show(near window:NSWindow) {
         anchor=window
         if panel == nil {
-            let p=NSPanel(contentRect:CGRect(x:0,y:0,width:300,height:198),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
+            let p=NSPanel(contentRect:CGRect(x:0,y:0,width:340,height:150),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
             p.isOpaque=false;p.backgroundColor = .clear;p.hasShadow=false;p.hidesOnDeactivate=false;p.isReleasedWhenClosed=false;p.becomesKeyOnlyIfNeeded=true
             p.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary,.ignoresCycle];p.level=NSWindow.Level(rawValue:NSWindow.Level.mainMenu.rawValue-1)
-            p.contentView=NSHostingView(rootView:PetQuickActionsView { [weak self] id in self?.action(id);self?.panel?.orderOut(nil) })
+            let host=PetQuickActionsHostingView(rootView:PetQuickActionsView { [weak self] id in self?.action(id);self?.dismiss() })
+            p.contentView=host
             panel=p
         }
         let screen=window.screen ?? NSScreen.main,visible=screen?.visibleFrame ?? .zero
-        let size=CGSize(width:300,height:198),pet=window.frame
+        let size=CGSize(width:340,height:150),pet=window.frame
         let x=max(visible.minX,min(visible.maxX-size.width,pet.midX-size.width/2))
-        let y=max(visible.minY,min(visible.maxY-size.height,pet.maxY+8))
+        // Float over the pet's head so the actions feel attached to its body.
+        let y=max(visible.minY,min(visible.maxY-size.height,pet.maxY-100))
         panel?.setFrame(CGRect(origin:CGPoint(x:x,y:y),size:size),display:true);panel?.orderFrontRegardless()
+        if clickMonitor == nil {
+            clickMonitor=NSEvent.addGlobalMonitorForEvents(matching:.leftMouseDown) { [weak self] _ in
+                DispatchQueue.main.async { guard let self,let panel=self.panel,panel.isVisible else { return };let p=NSEvent.mouseLocation;if !panel.frame.contains(p) && !(self.anchor?.frame.insetBy(dx:-8,dy:-8).contains(p) ?? false) { self.dismiss() } }
+            }
+        }
+    }
+    private func dismiss() { panel?.orderOut(nil) }
+}
+
+@MainActor private final class PetQuickActionsHostingView:NSHostingView<PetQuickActionsView> {
+    private let centers:[CGPoint]=[CGPoint(x:37,y:41),CGPoint(x:91,y:87),CGPoint(x:146,y:111),CGPoint(x:201,y:111),CGPoint(x:256,y:87),CGPoint(x:310,y:41)]
+    required init(rootView:PetQuickActionsView) { super.init(rootView:rootView) }
+    required init?(coder:NSCoder) { fatalError("Unsupported") }
+    override func hitTest(_ point:NSPoint)->NSView? {
+        let swiftPoint=CGPoint(x:point.x,y:bounds.height-point.y)
+        guard centers.contains(where:{abs($0.x-swiftPoint.x)<=34 && abs($0.y-swiftPoint.y)<=36}) else { return nil }
+        return super.hitTest(point)
     }
 }
 
@@ -34,13 +54,27 @@ private struct PetQuickActionsView:View {
         ("hello","Say hi","face.smiling",Color(red:0.85,green:0.53,blue:0.62))
     ]
     var body:some View {
-        VStack(alignment:.leading,spacing:12) {
-            HStack(spacing:8) { Image(systemName:"sparkles").foregroundStyle(Color(red:0.82,green:0.45,blue:0.59));Text("A little menu").font(.system(size:15,weight:.bold,design:.rounded));Spacer();Button { perform("close") } label:{Image(systemName:"xmark").font(.system(size:10,weight:.bold)).foregroundStyle(.secondary).frame(width:23,height:23).background(.white.opacity(0.72),in:Circle())}.buttonStyle(.plain) }
-            LazyVGrid(columns:[GridItem(.flexible()),GridItem(.flexible()),GridItem(.flexible())],spacing:8) {
-                ForEach(actions,id:\.0) { item in
-                    Button { perform(item.0) } label:{VStack(spacing:6){Image(systemName:item.2).font(.system(size:16,weight:.semibold)).foregroundStyle(item.3);Text(item.1).font(.system(size:10,weight:.semibold,design:.rounded)).foregroundStyle(Color.primary.opacity(0.82)).lineLimit(1)}}.buttonStyle(.plain).frame(maxWidth:.infinity,minHeight:56).background(.white.opacity(0.66),in:RoundedRectangle(cornerRadius:14,style:.continuous)).overlay(RoundedRectangle(cornerRadius:14).stroke(.white.opacity(0.8),lineWidth:1))
-                }
+        ZStack {
+            ForEach(Array(actions.enumerated()),id:\.element.0) { index,item in
+                let locations:[CGPoint]=[CGPoint(x:37,y:41),CGPoint(x:91,y:87),CGPoint(x:146,y:111),CGPoint(x:201,y:111),CGPoint(x:256,y:87),CGPoint(x:310,y:41)]
+                OrbitActionButton(title:item.1,icon:item.2,color:item.3) { perform(item.0) }
+                    .position(locations[index])
             }
-        }.padding(13).frame(width:300,height:198).background(.ultraThinMaterial,in:PetBubbleShape()).overlay(PetBubbleShape().fill(LinearGradient(colors:[Color(red:1,green:0.94,blue:0.93).opacity(0.48),Color(red:0.92,green:0.87,blue:0.98).opacity(0.26)],startPoint:.topLeading,endPoint:.bottomTrailing))).overlay(PetBubbleShape().stroke(.white.opacity(0.86),lineWidth:1.2)).shadow(color:Color(red:0.56,green:0.36,blue:0.45).opacity(0.18),radius:17,y:7)
+        }.frame(width:340,height:150)
+    }
+}
+
+private struct OrbitActionButton:View {
+    let title:String;let icon:String;let color:Color;let action:()->Void
+    var body:some View {
+        Button(action:action) {
+            VStack(spacing:3) {
+                Image(systemName:icon).font(.system(size:16,weight:.semibold)).foregroundStyle(color)
+            }.frame(width:46,height:46).background(.regularMaterial,in:Circle())
+                .overlay(Circle().fill(LinearGradient(colors:[.white.opacity(0.52),color.opacity(0.15)],startPoint:.topLeading,endPoint:.bottomTrailing)))
+                .overlay(Circle().stroke(.white.opacity(0.92),lineWidth:1.4))
+                .shadow(color:color.opacity(0.24),radius:7,y:4)
+            Text(title).font(.system(size:8,weight:.bold,design:.rounded)).foregroundStyle(Color.primary.opacity(0.86)).lineLimit(1).fixedSize()
+        }.buttonStyle(.plain).help(title)
     }
 }
