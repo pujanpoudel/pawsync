@@ -59,6 +59,9 @@ import Combine
         resources=ResourceMonitor(features:features)
         onboarding = !preferences.onboarded
         super.init()
+        fileInbox.objectWillChange.sink { [weak self] _ in
+            DispatchQueue.main.async { guard let self else { return };self.overlay.setHeldFileCount(self.fileInbox.files.count) }
+        }.store(in:&subscriptions)
         quickActions=PetQuickActionsController { [weak self] id in
             guard let self else { return }
             switch id {
@@ -84,6 +87,7 @@ import Combine
         overlay.showQuickActions = { [weak self] in guard let self else { return };self.quickActions.show(near:self.overlay.window) }
         fileShelf.attach(to:overlay.window)
         overlay.showFileShelf = { [weak self] in guard let self, !self.fileInbox.files.isEmpty else { return };self.fileShelf.show(near:self.overlay.window) }
+        overlay.storedFileCount = { [weak self] in self?.fileInbox.files.count ?? 0 }
         overlay.showDropTarget = { [weak self] in guard let self else { return };self.fileShelf.showDropTarget(near:self.overlay.window) }
         overlay.hideDropTarget = { [weak self] in self?.fileShelf.hideDropTarget() }
         overlay.canAcceptFiles = { [weak self] urls in self?.fileInbox.canAccept(urls) ?? false }

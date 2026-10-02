@@ -24,6 +24,9 @@ import SpriteKit
     private let accessories=SKNode()
     private let sleepLabel=SKLabelNode(fontNamed:NSFont.systemFont(ofSize:17,weight:.semibold).fontName)
     private let reactionLabel=SKLabelNode(fontNamed:"AppleColorEmoji")
+    private let heldFilesBadge=SKShapeNode(rectOf:CGSize(width:45,height:31),cornerRadius:13)
+    private let heldFilesLabel=SKLabelNode(fontNamed:"AppleColorEmoji")
+    private let heldFilesCount=SKLabelNode(fontNamed:NSFont.systemFont(ofSize:9,weight:.bold).fontName)
     private var clickMood=0
     private(set) var sleeping=false
     var onNeedsRender:(()->Void)?
@@ -46,6 +49,9 @@ import SpriteKit
         caption.fontSize=10; caption.fontColor = .brown; caption.position.y = -25; addChild(caption)
         sleepLabel.text="z z"; sleepLabel.fontSize=17; sleepLabel.fontColor = .systemPurple; sleepLabel.position=CGPoint(x:63,y:154); sleepLabel.isHidden=true; addChild(sleepLabel)
         reactionLabel.fontSize=23;reactionLabel.position=CGPoint(x:58,y:202);reactionLabel.alpha=0;addChild(reactionLabel)
+        heldFilesBadge.fillColor=NSColor(calibratedRed:1,green:0.87,blue:0.79,alpha:0.94);heldFilesBadge.strokeColor = .white;heldFilesBadge.lineWidth=1.5;heldFilesBadge.position=CGPoint(x:69,y:25);heldFilesBadge.zPosition=25;heldFilesBadge.isHidden=true;addChild(heldFilesBadge)
+        heldFilesLabel.text="📄";heldFilesLabel.fontSize=13;heldFilesLabel.position=CGPoint(x:-7,y:-5);heldFilesBadge.addChild(heldFilesLabel)
+        heldFilesCount.fontSize=9;heldFilesCount.fontColor=NSColor(calibratedRed:0.36,green:0.25,blue:0.25,alpha:1);heldFilesCount.horizontalAlignmentMode = .center;heldFilesCount.verticalAlignmentMode = .center;heldFilesCount.position=CGPoint(x:12,y:-1);heldFilesBadge.addChild(heldFilesCount)
         show(row:0,column:spec.rows == 11 ? 6 : 0)
     }
     required init?(coder:NSCoder) { fatalError("Unsupported") }
@@ -104,6 +110,7 @@ import SpriteKit
         reactionLabel.run(.sequence([.group([.fadeIn(withDuration:0.12),.scale(to:1,duration:0.18)]),.wait(forDuration:0.48),.group([.fadeOut(withDuration:0.24),.moveBy(x:0,y:16,duration:0.24)]),.run{[weak self] in self?.reactionLabel.position.y=202}]))
     }
     func pet(direction:CGFloat) { play(.review,looping:false,relaxed:true) }
+    func setHeldFileCount(_ count:Int) { heldFilesBadge.isHidden=count<=0;heldFilesCount.text=count>9 ? "9+":"\(max(0,count))";onNeedsRender?() }
     func setSleeping(_ value:Bool) {
         guard value != sleeping else { return }; sleeping=value; stopFrames(); sprite.removeAllActions(); sprite.position = .zero; sprite.zRotation=0; sprite.setScale(1); sprite.xScale=flipped ? -1 : 1
         sleepLabel.isHidden = !value; sprite.alpha=value ? 0.85 : 1

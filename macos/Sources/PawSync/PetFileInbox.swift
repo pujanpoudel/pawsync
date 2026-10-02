@@ -147,7 +147,11 @@ struct PetInboxFile:Identifiable,Codable,Equatable {
         panel?.orderFrontRegardless();holdOpen()
     }
     func holdOpen() { closeTimer?.invalidate();closeTimer=nil }
-    private func refresh() { if panel?.isVisible == true { panel?.contentView=NSHostingView(rootView:PetFileShelfView(inbox:inbox,dropTarget:dropTargetActive,onInteraction:{[weak self] in self?.holdOpen()})) } }
+    private func refresh() {
+        guard panel?.isVisible == true else { return }
+        guard !inbox.files.isEmpty || dropTargetActive else { panel?.orderOut(nil);return }
+        panel?.contentView=NSHostingView(rootView:PetFileShelfView(inbox:inbox,dropTarget:dropTargetActive,onInteraction:{[weak self] in self?.holdOpen()}))
+    }
     private func checkPointer(_ point:CGPoint) {
         guard let panel,panel.isVisible else { return }
         if panel.frame.insetBy(dx:-12,dy:-12).contains(point) { holdOpen();return }
@@ -171,7 +175,7 @@ private struct PetFileShelfView:View {
             } else {
             HStack(spacing:9) {
                 Image(systemName:"tray.full.fill").font(.system(size:16,weight:.semibold)).foregroundStyle(Color(red:0.83,green:0.43,blue:0.57))
-                VStack(alignment:.leading,spacing:1) { Text("Buddy’s pocket").font(.system(size:14,weight:.bold,design:.rounded));Text("\(inbox.files.count) caught \(inbox.files.count==1 ? "file":"files")").font(.system(size:10,weight:.medium,design:.rounded)).foregroundStyle(.secondary) }
+                VStack(alignment:.leading,spacing:1) { Text("My little satchel").font(.system(size:14,weight:.bold,design:.rounded));Text("\(inbox.files.count) caught \(inbox.files.count==1 ? "file":"files")").font(.system(size:10,weight:.medium,design:.rounded)).foregroundStyle(.secondary) }
                 Spacer();Button { inbox.openFolder();onInteraction() } label:{Image(systemName:"folder")}.buttonStyle(.plain).help("Open pet’s pocket folder")
             }
             if inbox.files.isEmpty {
@@ -194,6 +198,13 @@ private struct PetFileShelfView:View {
                 if inbox.files.count>8 { Text("\(inbox.files.count-8) more in the pocket folder").font(.system(size:9,design:.rounded)).foregroundStyle(.secondary) }
             }
             }
-        }.padding(14).frame(width:318,height:290).background(.ultraThinMaterial,in:RoundedRectangle(cornerRadius:25)).overlay(RoundedRectangle(cornerRadius:25).fill(Color(red:1,green:0.91,blue:0.94).opacity(dropTarget ? 0.64 : 0.23))).overlay(RoundedRectangle(cornerRadius:25).stroke(dropTarget ? Color.pink.opacity(0.75) : Color.white.opacity(0.72),style:StrokeStyle(lineWidth:dropTarget ? 2 : 1.1,dash:dropTarget ? [7,4] : []) )).shadow(color:.black.opacity(0.12),radius:14,y:5).onHover{inside in if inside { onInteraction() }}
+        }.padding(14).frame(width:318,height:290).background(.ultraThinMaterial,in:PetBubbleShape()).overlay(PetBubbleShape().fill(Color(red:1,green:0.91,blue:0.94).opacity(dropTarget ? 0.48 : 0.19))).overlay(PetBubbleShape().stroke(dropTarget ? Color.pink.opacity(0.75) : Color.white.opacity(0.82),style:StrokeStyle(lineWidth:dropTarget ? 2 : 1.1,dash:dropTarget ? [7,4] : []) )).shadow(color:.black.opacity(0.12),radius:14,y:5).onHover{inside in if inside { onInteraction() }}
+    }
+}
+
+struct PetBubbleShape:Shape {
+    func path(in rect:CGRect)->Path {
+        let r:CGFloat=24,tail:CGFloat=11,c=rect.midX
+        var p=Path();p.move(to:CGPoint(x:rect.minX+r,y:rect.minY));p.addLine(to:CGPoint(x:rect.maxX-r,y:rect.minY));p.addQuadCurve(to:CGPoint(x:rect.maxX,y:rect.minY+r),control:CGPoint(x:rect.maxX,y:rect.minY));p.addLine(to:CGPoint(x:rect.maxX,y:rect.maxY-r-tail));p.addQuadCurve(to:CGPoint(x:rect.maxX-r,y:rect.maxY-tail),control:CGPoint(x:rect.maxX,y:rect.maxY-tail));p.addLine(to:CGPoint(x:c+14,y:rect.maxY-tail));p.addLine(to:CGPoint(x:c,y:rect.maxY));p.addLine(to:CGPoint(x:c-14,y:rect.maxY-tail));p.addLine(to:CGPoint(x:rect.minX+r,y:rect.maxY-tail));p.addQuadCurve(to:CGPoint(x:rect.minX,y:rect.maxY-r-tail),control:CGPoint(x:rect.minX,y:rect.maxY-tail));p.addLine(to:CGPoint(x:rect.minX,y:rect.minY+r));p.addQuadCurve(to:CGPoint(x:rect.minX+r,y:rect.minY),control:CGPoint(x:rect.minX,y:rect.minY));p.closeSubpath();return p
     }
 }

@@ -16,6 +16,7 @@ import SpriteKit
     func setAccessory(_ sku: String)
     func setAccessoryVisibility(_ visible: Bool)
     func setCaption(_ text: String)
+    func setHeldFileCount(_ count:Int)
     func wave()
     func setWalking(_ value: Bool)
     func face(_ direction: CGFloat)
@@ -28,6 +29,7 @@ import SpriteKit
 }
 extension CompanionAnimating {
     func setRenderingSuspended(_ value:Bool) {}
+    func setHeldFileCount(_ count:Int) {}
 }
 struct ImportedPet: Codable, Identifiable {
     let id: String

@@ -5,8 +5,8 @@ import QuartzCore
 @MainActor final class DesktopOverlayWindow: NSPanel {
     init() {
         super.init(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
-        level = NSWindow.Level(rawValue: NSWindow.Level.mainMenu.rawValue - 1)
-        collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle, .fullScreenAuxiliary]
+        level = .floating
+        collectionBehavior = [.canJoinAllSpaces, .ignoresCycle, .fullScreenAuxiliary]
         isOpaque = false; backgroundColor = .clear; hasShadow = false
         ignoresMouseEvents = false; hidesOnDeactivate = false; isReleasedWhenClosed = false
         // The pet can receive a mouse-down without taking keyboard focus from
@@ -115,6 +115,7 @@ import QuartzCore
     var isSettingsPoint: ((CGPoint) -> Bool)?
     var makeContextMenu: (() -> NSMenu)?
     var showFileShelf:(()->Void)?
+    var storedFileCount:(()->Int)?
     var showDropTarget:(()->Void)?
     var hideDropTarget:(()->Void)?
     var showQuickActions:(()->Void)?
@@ -204,7 +205,18 @@ import QuartzCore
             MainActor.assumeIsolated { self?.reposition() }
         })
         workspaceObservers.append(center.addObserver(forName: NSWorkspace.activeSpaceDidChangeNotification, object: nil, queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated { self?.reposition() }
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.reposition()
+                // Reassert all-Spaces membership after the transition so a
+                // nonactivating panel cannot remain on its original desktop.
+                DispatchQueue.main.asyncAfter(deadline:.now()+0.18) { [weak self] in
+                    guard let self else { return }
+                    self.window.collectionBehavior=[.canJoinAllSpaces,.ignoresCycle,.fullScreenAuxiliary]
+                    self.reposition()
+                    if !self.isHidden && !self.settingsVisible { self.window.orderFrontRegardless() }
+                }
+            }
         })
         workspaceObservers.append(center.addObserver(forName: NSWorkspace.screensDidSleepNotification, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.screenSleeping = true; self?.stopWalking(); self?.stopDance(); self?.pet?.setRenderingSuspended(true); self?.renderPauseWork?.cancel(); self?.view.isPaused = true; self?.onVisibilityChanged?() }
@@ -244,6 +256,7 @@ import QuartzCore
         node.setRenderingSuspended(screenSleeping || isHidden || preferences.reactionsPaused)
         setScale(preferences.petScale)
         node.setAccessory(preferences.accessory)
+        node.setHeldFileCount(storedFileCount?() ?? 0)
         updateSleep(); animate(for: 3); node.idle()
         updatePassThrough()
     }
@@ -410,6 +423,7 @@ import QuartzCore
         animate(for:1.5);pet?.play(.jumping,looping:false,relaxed:false)
         DispatchQueue.main.asyncAfter(deadline:.now()+2.5){[weak self] in if self?.statusLabel.text=="Caught it!" { self?.statusLabel.text=nil } }
     }
+    func setHeldFileCount(_ count:Int) { pet?.setHeldFileCount(count) }
     func setDropHighlight(_ active:Bool) {
         statusLabel.text=active ? "Drop to catch!" : nil
         if active { animate(for:1) }

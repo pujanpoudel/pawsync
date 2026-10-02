@@ -41,6 +41,6 @@ private struct PetQuickActionsView:View {
                     Button { perform(item.0) } label:{VStack(spacing:6){Image(systemName:item.2).font(.system(size:16,weight:.semibold)).foregroundStyle(item.3);Text(item.1).font(.system(size:10,weight:.semibold,design:.rounded)).foregroundStyle(Color.primary.opacity(0.82)).lineLimit(1)}}.buttonStyle(.plain).frame(maxWidth:.infinity,minHeight:56).background(.white.opacity(0.66),in:RoundedRectangle(cornerRadius:14,style:.continuous)).overlay(RoundedRectangle(cornerRadius:14).stroke(.white.opacity(0.8),lineWidth:1))
                 }
             }
-        }.padding(13).frame(width:300,height:198).background(.ultraThinMaterial,in:RoundedRectangle(cornerRadius:23,style:.continuous)).overlay(RoundedRectangle(cornerRadius:23,style:.continuous).fill(Color(red:1,green:0.91,blue:0.94).opacity(0.24))).overlay(RoundedRectangle(cornerRadius:23,style:.continuous).stroke(.white.opacity(0.76),lineWidth:1)).shadow(color:.black.opacity(0.14),radius:16,y:7)
+        }.padding(13).frame(width:300,height:198).background(.ultraThinMaterial,in:PetBubbleShape()).overlay(PetBubbleShape().fill(LinearGradient(colors:[Color(red:1,green:0.94,blue:0.93).opacity(0.48),Color(red:0.92,green:0.87,blue:0.98).opacity(0.26)],startPoint:.topLeading,endPoint:.bottomTrailing))).overlay(PetBubbleShape().stroke(.white.opacity(0.86),lineWidth:1.2)).shadow(color:Color(red:0.56,green:0.36,blue:0.45).opacity(0.18),radius:17,y:7)
     }
 }
