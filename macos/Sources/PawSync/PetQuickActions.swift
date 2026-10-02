@@ -68,13 +68,11 @@ private struct OrbitActionButton:View {
     let title:String;let icon:String;let color:Color;let action:()->Void
     var body:some View {
         Button(action:action) {
-            VStack(spacing:3) {
-                Image(systemName:icon).font(.system(size:16,weight:.semibold)).foregroundStyle(color)
-            }.frame(width:46,height:46).background(.regularMaterial,in:Circle())
-                .overlay(Circle().fill(LinearGradient(colors:[.white.opacity(0.52),color.opacity(0.15)],startPoint:.topLeading,endPoint:.bottomTrailing)))
-                .overlay(Circle().stroke(.white.opacity(0.92),lineWidth:1.4))
-                .shadow(color:color.opacity(0.24),radius:7,y:4)
-            Text(title).font(.system(size:8,weight:.bold,design:.rounded)).foregroundStyle(Color.primary.opacity(0.86)).lineLimit(1).fixedSize()
-        }.buttonStyle(.plain).help(title)
+            Image(systemName:icon).font(.system(size:17,weight:.semibold)).foregroundStyle(color)
+                .frame(width:46,height:46).background(color.opacity(0.12),in:Circle())
+                .overlay(Circle().fill(LinearGradient(colors:[.white.opacity(0.30),color.opacity(0.10)],startPoint:.topLeading,endPoint:.bottomTrailing)))
+                .overlay(Circle().stroke(.white.opacity(0.92),lineWidth:1.35))
+                .shadow(color:color.opacity(0.22),radius:7,y:4)
+        }.buttonStyle(.plain).help(title).accessibilityLabel(title)
     }
 }

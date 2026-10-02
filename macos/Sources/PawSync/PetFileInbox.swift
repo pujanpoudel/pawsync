@@ -98,7 +98,7 @@ struct PetInboxFile:Identifiable,Codable,Equatable {
     private var panel:NSPanel?
     private var dropTargetActive=false
     private var closeTimer:Timer?
-    private var eventMonitors:[Any]=[]
+    private var pointerTimer:Timer?
     init(inbox:PetFileInbox) {
         self.inbox=inbox
         inbox.objectWillChange.sink { [weak self] _ in DispatchQueue.main.async { self?.refresh() } }.store(in:&cancellables)
@@ -106,14 +106,6 @@ struct PetInboxFile:Identifiable,Codable,Equatable {
     private var cancellables=Set<AnyCancellable>()
     func attach(to window:NSWindow) {
         petWindow=window
-        eventMonitors.append(NSEvent.addGlobalMonitorForEvents(matching:[.mouseMoved,.leftMouseDown]) { [weak self] event in
-            guard let self else { return }
-            DispatchQueue.main.async { self.checkPointer(NSEvent.mouseLocation) }
-        } as Any)
-        eventMonitors.append(NSEvent.addLocalMonitorForEvents(matching:[.mouseMoved,.leftMouseDown]) { [weak self] event in
-            guard let self else { return event }
-            self.checkPointer(NSEvent.mouseLocation); return event
-        } as Any)
     }
     func show(near window:NSWindow?=nil) {
         guard !inbox.files.isEmpty else { return }
@@ -133,72 +125,69 @@ struct PetInboxFile:Identifiable,Codable,Equatable {
         guard let petWindow,let screen=petWindow.screen ?? NSScreen.main else { return }
         closeTimer?.invalidate()
         if panel==nil {
-            let created=NSPanel(contentRect:CGRect(x:0,y:0,width:318,height:290),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
+            let created=NSPanel(contentRect:CGRect(x:0,y:0,width:304,height:232),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
             created.isOpaque=false;created.backgroundColor = .clear;created.hasShadow=false;created.hidesOnDeactivate=false
             created.isReleasedWhenClosed=false;created.becomesKeyOnlyIfNeeded=true;created.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary,.ignoresCycle]
             created.level = NSWindow.Level(rawValue:NSWindow.Level.mainMenu.rawValue-2)
-            created.contentView=NSHostingView(rootView:PetFileShelfView(inbox:inbox,dropTarget:dropTargetActive,onInteraction:{[weak self] in self?.holdOpen()}))
+            created.contentView=NSHostingView(rootView:PetFileShelfView(inbox:inbox,dropTarget:dropTargetActive,onClose:{[weak self] in self?.dismiss()},onInteraction:{[weak self] in self?.holdOpen()}))
             panel=created
         }
         let visible=screen.visibleFrame,frame=petWindow.frame
-        let x=max(visible.minX,min(visible.maxX-318,frame.midX-159))
-        let y=max(visible.minY,min(visible.maxY-290,frame.maxY-10))
-        panel?.setFrame(CGRect(x:x,y:y,width:318,height:290),display:true)
+        let x=max(visible.minX,min(visible.maxX-304,frame.midX-152))
+        let y=max(visible.minY,min(visible.maxY-232,frame.maxY-10))
+        panel?.setFrame(CGRect(x:x,y:y,width:304,height:232),display:true)
         panel?.orderFrontRegardless();holdOpen()
+        if pointerTimer == nil { pointerTimer=Timer.scheduledTimer(withTimeInterval:0.22,repeats:true){[weak self] _ in MainActor.assumeIsolated { guard let self else { return };self.checkPointer(NSEvent.mouseLocation) } } }
     }
     func holdOpen() { closeTimer?.invalidate();closeTimer=nil }
+    func dismiss() { closeTimer?.invalidate();closeTimer=nil;pointerTimer?.invalidate();pointerTimer=nil;panel?.orderOut(nil) }
     private func refresh() {
         guard panel?.isVisible == true else { return }
-        guard !inbox.files.isEmpty || dropTargetActive else { panel?.orderOut(nil);return }
-        panel?.contentView=NSHostingView(rootView:PetFileShelfView(inbox:inbox,dropTarget:dropTargetActive,onInteraction:{[weak self] in self?.holdOpen()}))
+        guard !inbox.files.isEmpty || dropTargetActive else { dismiss();return }
+        panel?.contentView=NSHostingView(rootView:PetFileShelfView(inbox:inbox,dropTarget:dropTargetActive,onClose:{[weak self] in self?.dismiss()},onInteraction:{[weak self] in self?.holdOpen()}))
     }
     private func checkPointer(_ point:CGPoint) {
         guard let panel,panel.isVisible else { return }
         if panel.frame.insetBy(dx:-12,dy:-12).contains(point) { holdOpen();return }
         if let petWindow,petWindow.frame.insetBy(dx:-20,dy:-20).contains(point) { holdOpen();return }
         guard closeTimer==nil else { return }
-        closeTimer=Timer.scheduledTimer(withTimeInterval:1.2,repeats:false) { [weak self] _ in MainActor.assumeIsolated { self?.panel?.orderOut(nil);self?.closeTimer=nil } }
+        closeTimer=Timer.scheduledTimer(withTimeInterval:0.72,repeats:false) { [weak self] _ in MainActor.assumeIsolated { guard let self,self.panel?.isVisible == true else { return };self.closeTimer=nil;let current=NSEvent.mouseLocation;if !(self.panel?.frame.insetBy(dx:-8,dy:-8).contains(current) ?? false) && !(self.petWindow?.frame.insetBy(dx:-18,dy:-18).contains(current) ?? false) { self.dismiss() } } }
     }
-    func stop() { closeTimer?.invalidate();closeTimer=nil;eventMonitors.forEach(NSEvent.removeMonitor);eventMonitors=[];panel?.orderOut(nil);panel?.contentView=nil;panel=nil }
+    func stop() { closeTimer?.invalidate();closeTimer=nil;pointerTimer?.invalidate();pointerTimer=nil;panel?.orderOut(nil);panel?.contentView=nil;panel=nil }
 }
 
 private struct PetFileShelfView:View {
     @ObservedObject var inbox:PetFileInbox
     var dropTarget:Bool
+    var onClose:()->Void
     var onInteraction:()->Void
     var body:some View {
         VStack(alignment:.leading,spacing:10) {
             if dropTarget && inbox.files.isEmpty {
                 Spacer(minLength:8)
-                VStack(spacing:9) { Image(systemName:"tray.and.arrow.down.fill").font(.system(size:31));Text("I’ll catch it!").font(.system(size:15,weight:.bold,design:.rounded));Text("Drop your file here").font(.system(size:11,weight:.medium,design:.rounded)).foregroundStyle(.secondary) }.frame(maxWidth:.infinity)
+                VStack(spacing:9) { Image(systemName:"pawprint.circle.fill").font(.system(size:34)).foregroundStyle(Color(red:0.85,green:0.51,blue:0.63));Text("Catch this for me?").font(.system(size:14,weight:.bold,design:.rounded));Text("Drop it here and I’ll keep it safe.").font(.system(size:11,design:.rounded)).foregroundStyle(.secondary) }.frame(maxWidth:.infinity)
                 Spacer(minLength:8)
             } else {
             HStack(spacing:9) {
-                Image(systemName:"tray.full.fill").font(.system(size:16,weight:.semibold)).foregroundStyle(Color(red:0.83,green:0.43,blue:0.57))
-                VStack(alignment:.leading,spacing:1) { Text("My little satchel").font(.system(size:14,weight:.bold,design:.rounded));Text("\(inbox.files.count) caught \(inbox.files.count==1 ? "file":"files")").font(.system(size:10,weight:.medium,design:.rounded)).foregroundStyle(.secondary) }
-                Spacer();Button { inbox.openFolder();onInteraction() } label:{Image(systemName:"folder")}.buttonStyle(.plain).help("Open pet’s pocket folder")
+                Image(systemName:"pawprint.fill").font(.system(size:15,weight:.semibold)).foregroundStyle(Color(red:0.83,green:0.43,blue:0.57))
+                VStack(alignment:.leading,spacing:1) { Text("I caught these!").font(.system(size:14,weight:.bold,design:.rounded));Text("\(inbox.files.count) little \(inbox.files.count==1 ? "treasure":"treasures")").font(.system(size:10,weight:.medium,design:.rounded)).foregroundStyle(.secondary) }
+                Spacer();Button { inbox.openFolder();onInteraction() } label:{Image(systemName:"folder")}.buttonStyle(.plain).help("Open saved files");Button(action:onClose){Image(systemName:"xmark").font(.system(size:10,weight:.bold)).foregroundStyle(.secondary).frame(width:25,height:25).background(.white.opacity(0.68),in:Circle())}.buttonStyle(.plain).help("Close")
             }
-            if inbox.files.isEmpty {
-                Spacer(minLength:8)
-                VStack(spacing:8) { Image(systemName:"shippingbox.fill").font(.system(size:29)).foregroundStyle(Color(red:0.84,green:0.68,blue:0.72));Text("Nothing in my pocket yet!").font(.system(size:12,weight:.semibold,design:.rounded));Text("Drag a file onto me and I’ll catch it.").font(.system(size:10,design:.rounded)).foregroundStyle(.secondary).multilineTextAlignment(.center) }.frame(maxWidth:.infinity)
-                Spacer(minLength:8)
-            } else {
                 ScrollView {
-                    VStack(spacing:5) { ForEach(inbox.files.prefix(8)) { file in
+                    VStack(spacing:6) { ForEach(inbox.files.prefix(6)) { file in
                         HStack(spacing:9) {
-                            Image(systemName:"doc.fill").font(.system(size:13)).foregroundStyle(Color(red:0.62,green:0.49,blue:0.70)).frame(width:21)
-                            VStack(alignment:.leading,spacing:1){Text(file.name).font(.system(size:10,weight:.semibold,design:.rounded)).lineLimit(1);Text(file.displaySize).font(.system(size:9,design:.rounded)).foregroundStyle(.secondary)}
+                            Image(systemName:"doc.text.fill").font(.system(size:14)).foregroundStyle(Color(red:0.62,green:0.49,blue:0.70)).frame(width:23,height:26).background(Color.white.opacity(0.75),in:RoundedRectangle(cornerRadius:8))
+                            VStack(alignment:.leading,spacing:2){Text(file.name).font(.system(size:10,weight:.semibold,design:.rounded)).lineLimit(1);Text(file.displaySize).font(.system(size:9,design:.rounded)).foregroundStyle(.secondary)}
                             Spacer(minLength:3)
-                            Button { inbox.open(file);onInteraction() } label:{Image(systemName:"arrow.up.right.square")}.buttonStyle(.plain).help("Open file")
-                            Button { inbox.reveal(file);onInteraction() } label:{Image(systemName:"folder.badge.questionmark")}.buttonStyle(.plain).help("Show in Finder")
-                            Button { inbox.remove(file);onInteraction() } label:{Image(systemName:"xmark.circle.fill").foregroundStyle(.secondary)}.buttonStyle(.plain).help("Remove from pocket")
-                        }.padding(.horizontal,7).padding(.vertical,5).background(.white.opacity(0.76),in:RoundedRectangle(cornerRadius:11))
+                            Button { inbox.open(file);onInteraction() } label:{Image(systemName:"arrow.up.right")}.buttonStyle(.plain).help("Open file")
+                            Button { inbox.reveal(file);onInteraction() } label:{Image(systemName:"folder")}.buttonStyle(.plain).help("Show in Finder")
+                            Button { inbox.remove(file);onInteraction() } label:{Image(systemName:"xmark").foregroundStyle(.secondary)}.buttonStyle(.plain).help("Remove from pocket")
+                        }.padding(.horizontal,8).padding(.vertical,6).background(.white.opacity(0.56),in:Capsule())
                     } }
                 }
-                if inbox.files.count>8 { Text("\(inbox.files.count-8) more in the pocket folder").font(.system(size:9,design:.rounded)).foregroundStyle(.secondary) }
+                if inbox.files.count>6 { Text("+\(inbox.files.count-6) more in the folder").font(.system(size:9,design:.rounded)).foregroundStyle(.secondary) }
             }
-            }
-        }.padding(14).frame(width:318,height:290).background(.ultraThinMaterial,in:PetBubbleShape()).overlay(PetBubbleShape().fill(Color(red:1,green:0.91,blue:0.94).opacity(dropTarget ? 0.48 : 0.19))).overlay(PetBubbleShape().stroke(dropTarget ? Color.pink.opacity(0.75) : Color.white.opacity(0.82),style:StrokeStyle(lineWidth:dropTarget ? 2 : 1.1,dash:dropTarget ? [7,4] : []) )).shadow(color:.black.opacity(0.12),radius:14,y:5).onHover{inside in if inside { onInteraction() }}
+        }.padding(13).frame(width:304,height:232).background(.ultraThinMaterial,in:PetBubbleShape()).overlay(PetBubbleShape().fill(LinearGradient(colors:[Color(red:1,green:0.93,blue:0.91).opacity(dropTarget ? 0.58 : 0.35),Color(red:0.91,green:0.88,blue:0.98).opacity(0.30)],startPoint:.topLeading,endPoint:.bottomTrailing))).overlay(PetBubbleShape().stroke(dropTarget ? Color.pink.opacity(0.84) : Color.white.opacity(0.86),style:StrokeStyle(lineWidth:dropTarget ? 2 : 1.2,dash:dropTarget ? [6,4] : []) )).shadow(color:Color(red:0.53,green:0.36,blue:0.43).opacity(0.16),radius:13,y:5).onHover{inside in if inside { onInteraction() }}
     }
 }
 

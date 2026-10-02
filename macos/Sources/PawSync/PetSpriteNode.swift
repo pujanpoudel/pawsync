@@ -10,8 +10,7 @@ import SpriteKit
     private var eyeLocations: [[Double]]?
     private let sleepLabel = SKLabelNode(fontNamed: NSFont.systemFont(ofSize:19,weight:.semibold).fontName)
     private let shadow = SKShapeNode(ellipseOf: CGSize(width: 115, height: 14))
-    private let heldFilesBadge=SKShapeNode(rectOf:CGSize(width:48,height:32),cornerRadius:14)
-    private let heldFilesCount=SKLabelNode(fontNamed:NSFont.systemFont(ofSize:9,weight:.bold).fontName)
+    private let heldFiles=PetHeldFilesIndicator()
     private var nextLeftPaw = true
     private(set) var lastTappedPaw: String?
     private let caption = SKLabelNode(fontNamed: NSFont.systemFont(ofSize:10,weight:.semibold).fontName)
@@ -84,9 +83,7 @@ import SpriteKit
         let body = joints["body"]!
         addChild(body)
         for key in PetManifest.required where key != "body" { body.addChild(joints[key]!) }
-        heldFilesBadge.fillColor=NSColor(calibratedRed:1,green:0.87,blue:0.79,alpha:0.94);heldFilesBadge.strokeColor = .white;heldFilesBadge.lineWidth=1.5;heldFilesBadge.position=CGPoint(x:joints["body"]!.size.width*0.38,y:joints["body"]!.size.height*0.20);heldFilesBadge.zPosition=25;heldFilesBadge.isHidden=true;body.addChild(heldFilesBadge)
-        let heldIcon=SKLabelNode(fontNamed:"AppleColorEmoji");heldIcon.text="📄";heldIcon.fontSize=13;heldIcon.position=CGPoint(x:-8,y:-5);heldFilesBadge.addChild(heldIcon)
-        heldFilesCount.fontSize=9;heldFilesCount.fontColor=NSColor(calibratedRed:0.36,green:0.25,blue:0.25,alpha:1);heldFilesCount.horizontalAlignmentMode = .center;heldFilesCount.verticalAlignmentMode = .center;heldFilesCount.position=CGPoint(x:12,y:-1);heldFilesBadge.addChild(heldFilesCount)
+        heldFiles.position=CGPoint(x:0,y:joints["body"]!.size.height*0.14);body.addChild(heldFiles)
         accessorySlot.position = CGPoint(x: 0, y: joints["head"]!.size.height * (1-joints["head"]!.anchorPoint.y) - 5)
         accessorySlot.zPosition = 30
         joints["head"]!.addChild(accessorySlot)
@@ -254,7 +251,7 @@ import SpriteKit
     }
     func setAccessoryVisibility(_ visible: Bool) { accessorySlot.isHidden = !visible }
     func setCaption(_ text: String) { if caption.text != text { caption.text = text } }
-    func setHeldFileCount(_ count:Int) { heldFilesBadge.isHidden=count<=0;heldFilesCount.text=count>9 ? "9+":"\(max(0,count))";onNeedsRender?() }
+    func setHeldFileCount(_ count:Int) { heldFiles.setCount(count);onNeedsRender?() }
     func wave() {
         guard !sleeping else { return }; transition("wave"); cheeks()
         let node = joints["right_paw"]!
