@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/seal/seal-both-up.webp",
+    "sha256": "ec83c2d783075b3a0f5bbd21ae48bc263590655c35f464e83caeeeec7115d569"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/seal/seal-both-down.webp",
+    "sha256": "6705be3fd940ed5b82953ec1db8451aa2a66919b268cde05db4c064aab4289e5"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/seal/seal-left-down.webp",
+    "sha256": "ad22bf5bbde6ca6675e6214dbdc399f5795436a931c097edc91b41a214922c2d"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/seal/seal-right-down.webp",
+    "sha256": "4317cc25afc51e5508ddd2d05bff5750ef50f62f8d83343ba8e944e599fbe68d"
+  }
+}

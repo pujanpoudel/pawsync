@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/capybara/capybara-both-up.webp",
+    "sha256": "fb41ee372ab4f3645ca30fb542d2be1ef047c32c48a6aa7dfdeadcf6c00b6d8d"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/capybara/capybara-both-down.webp",
+    "sha256": "5dd30191c966598ee6013a7e1d9ecbb0f2ce78f5b2b4983ef5e741a9fd4c287e"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/capybara/capybara-left-down.webp",
+    "sha256": "274cb2291ef71ae4cf954b0a404f5d3c9bbd6b135d1c0e78ed8b2834b0ed6b3f"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/capybara/capybara-right-down.webp",
+    "sha256": "1d1f00d51a4097df792a47f476100e14b0e23402503a1180e6cd44a177a34b97"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/season2-penguin/season2-penguin-both-up.webp",
+    "sha256": "aa8a0aec7ee5e062370cc2d615cbb284f9bb74972d68c4ee0deb63d1c8cc4f6a"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-penguin/season2-penguin-both-down.webp",
+    "sha256": "06fda621cfa6bb562646203c3e8acd369818ad088c19c3f025401a6eeff40a32"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-penguin/season2-penguin-left-down.webp",
+    "sha256": "3cba1f3417f44e6d6264d006ecab1a6b052fb44fa2dd49b278dac2d40b46d74b"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-penguin/season2-penguin-right-down.webp",
+    "sha256": "d075f8e7cc6fe8694fa161431f31b58050036ee4e6030d841bd45c44fc5faded"
+  }
+}

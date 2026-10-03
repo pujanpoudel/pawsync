@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/season2-sloth/season2-sloth-both-up.webp",
+    "sha256": "2b3ea6771dd1dc13e79d6b343d024ee6b2393e5ee6b4053832324826ec846323"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-sloth/season2-sloth-both-down.webp",
+    "sha256": "69a4e316b6ea3058c2387d5e7639c6df0646917e5eca5b309a54a2d02a49a806"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-sloth/season2-sloth-left-down.webp",
+    "sha256": "bf2081dca95f8f2a45e9edcaa21948f38b2b25cb38492d4eab36fef4279af4c0"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-sloth/season2-sloth-right-down.webp",
+    "sha256": "fee20329d92144092f176015bb99365433320e1702094b7b933141479eb98252"
+  }
+}

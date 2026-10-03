@@ -1,0 +1,8 @@
+{
+  "id": "pawpaw-raccoon",
+  "displayName": "Raccoon",
+  "description": "Public Paw-Paw website preview, adapted for local PawSync development.",
+  "spritesheetPath": "spritesheet.webp",
+  "spriteVersionNumber": 1,
+  "author": "Paw-Paw"
+}

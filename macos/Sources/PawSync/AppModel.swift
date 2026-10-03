@@ -70,7 +70,7 @@ import Combine
             case "focus": self.focus.phase == .ready ? self.menuFocus() : self.menuStopFocus()
             case "walk": self.menuWalk()
             case "files":
-                if self.fileInbox.files.isEmpty { self.speech.show(title:"My paws are free!",text:"Drop a file on me and I’ll keep it safe. Hover over my little pocket to get it back.") }
+                if self.fileInbox.files.isEmpty { self.speech.show(title:"My paws are free!",text:"Drop a file on me for a temporary helping paw. Hover over my pocket, then drag it out. Your original stays put.") }
                 else { self.overlay.stopWalking();self.fileShelf.show(near:self.overlay.window) }
             case "hello": self.menuHello()
             default: break
@@ -104,7 +104,7 @@ import Combine
         overlay.storedFileCount = { [weak self] in self?.fileInbox.files.count ?? 0 }
         overlay.showDropTarget = { [weak self] in guard let self else { return };self.quickActions.dismiss();self.fileShelf.showDropTarget(near:self.overlay.window) }
         overlay.hideDropTarget = { [weak self] in self?.fileShelf.hideDropTarget() }
-        overlay.canAcceptFiles = { [weak self] urls in self?.fileInbox.canAccept(urls) ?? false }
+        overlay.canAcceptFiles = { [weak self] urls in self?.fileInbox.canAcceptDrop(urls) ?? false }
         overlay.onFileDrop = { [weak self] urls in
             guard let self,self.canUseApp else { return false }
             do {
@@ -115,6 +115,7 @@ import Combine
             } catch { self.notice=error.localizedDescription;return false }
         }
         fileShelf.onFileDrop = { [weak self] urls in self?.overlay.onFileDrop?(urls) ?? false }
+        fileShelf.onReceivingFiles = { [weak self] active in self?.overlay.setDropHighlight(active) }
         daily.canDeliver = { [weak self] in self?.canDeliverCompanionMessage ?? false }
         daily.greetingsEnabled = { [weak self] in self?.preferences.greetings ?? false }
         daily.onMessage = { [weak self] _,title,text,reaction in
@@ -440,6 +441,7 @@ import Combine
         NSSound(contentsOf: url, byReference: true)?.play()
     }
     func stop() {
+        fileInbox.empty()
         fileShelf.stop();hud.shutdown(); practices.stop(); daily.shutdown(); care.shutdown(); resources.shutdown(); countdown.shutdown()
         shortcuts.stop(); catalog.stop(); music.stop(); input.stop(); server.stop(); focus.shutdown(); overlay.stop()
         activity.stop()

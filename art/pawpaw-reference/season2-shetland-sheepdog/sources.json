@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/season2-shetland-sheepdog/season2-shetland-sheepdog-both-up.webp",
+    "sha256": "b1bc0e4261f938ee7a613f506ffdae8c44ac02d57baa1c3c9eeb41f3f1acad13"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-shetland-sheepdog/season2-shetland-sheepdog-both-down.webp",
+    "sha256": "ea352fb3d6d593692deb88d029087a3815ae4ee70ee40e2817ee0f2d15f15c41"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-shetland-sheepdog/season2-shetland-sheepdog-left-down.webp",
+    "sha256": "b4458bf0ef61b79ad41d0a3bbc61d6903b6476b7d61c4808067f934c7c7da05d"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-shetland-sheepdog/season2-shetland-sheepdog-right-down.webp",
+    "sha256": "358eeb4fb96df44906acc056d18be42803e7d245a89e112ee8aec28c30641e48"
+  }
+}

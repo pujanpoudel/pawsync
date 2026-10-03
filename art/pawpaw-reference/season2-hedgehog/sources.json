@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/season2-hedgehog/season2-hedgehog-both-up.webp",
+    "sha256": "9e1280ecc1e3a43c14fceee7812ad03a95135e8fdc8bff4c5960c790b997c4cb"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-hedgehog/season2-hedgehog-both-down.webp",
+    "sha256": "c4e68ad0ad60f710a6f686b53a41ab4efc96f8b742930686304351f571dc86c2"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-hedgehog/season2-hedgehog-left-down.webp",
+    "sha256": "6da8e6034a9e15ee982b6bb5c52361cee9b2fe051d7ca2b5f4124dca0a96918b"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-hedgehog/season2-hedgehog-right-down.webp",
+    "sha256": "98dcb43ef2bbb554c83c9bbaab044af16b6ce7cf411e91b37fbcf377c247f2d1"
+  }
+}

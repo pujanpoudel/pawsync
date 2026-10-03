@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/season2-bat/season2-bat-both-up.webp",
+    "sha256": "14c56762ecc4f86fe5d8911332fdb9d543a61b84d26d85758e2cacd905c296c2"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-bat/season2-bat-both-down.webp",
+    "sha256": "4271fbf6cc6085d858f5c3afe04e57ed7f02f31e3c6dce07c01a6170cc2bf8d7"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-bat/season2-bat-left-down.webp",
+    "sha256": "27083dfa2fc66fb1eca18ef147ec22620d359553873caa03cdd9602c6bc060d8"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-bat/season2-bat-right-down.webp",
+    "sha256": "c7047e009e04e6ea39a3c16b3b273b30ea3c48974166e0decc88e1fb33782196"
+  }
+}

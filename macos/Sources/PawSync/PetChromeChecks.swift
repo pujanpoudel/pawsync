@@ -41,8 +41,13 @@ import SpriteKit
         }
         guard dismissed == 2,snoozed == 1 else { throw PawError.message("Thought-bubble actions did not dispatch.") }
         guard speech.hitTest(speech.convert(CGPoint(x:0,y:0),to:speech.superview)) == nil else { throw PawError.message("Thought-bubble transparent corner intercepts clicks.") }
-        let fixtures=[PetInboxFile(id:UUID().uuidString,name:"Weekend ideas.pdf",size:240_300,added:Date()),PetInboxFile(id:UUID().uuidString,name:"Little moments.png",size:1_324_000,added:Date())]
-        for id in ["bunny","fox","openpets-default"] {
+        let fixtures=[PetInboxFile(id:UUID().uuidString,name:"Weekend ideas.pdf",size:240_300,added:Date(),url:URL(fileURLWithPath:"/tmp/Weekend ideas.pdf")),PetInboxFile(id:UUID().uuidString,name:"Little moments.png",size:1_324_000,added:Date(),url:URL(fileURLWithPath:"/tmp/Little moments.png"))]
+        var cleared=0
+        let pocket=PetPocketNativeView(files:fixtures,dropTarget:false,palette:.companion("hamster"),name:"Peaches",onOpen:{_ in},onRemove:{_ in},onFolder:{},onClose:{},onDrop:{_ in false},canDrop:{_ in true},onDragging:{_ in},onClear:{cleared+=1})
+        guard let clear=pocket.subviews.compactMap({$0 as? PetSoftButton}).first(where:{$0.title == "Clear all"}),pocket.hitTest(pocket.convert(CGPoint(x:clear.frame.midX,y:clear.frame.midY),to:pocket.superview)) === clear else { throw PawError.message("Clear all is missing or not clickable.") }
+        clear.performClick(nil)
+        guard cleared == 1 else { throw PawError.message("Clear all did not dispatch.") }
+        for id in ["bunny","fox","hamster","openpets-default","pawpaw-season2-frog","pawpaw-season2-axolotl"] {
             let spec=PetStore.frameOriginal(id) ?? PetStore.imports.first(where:{$0.id == id})!
             let source=try DecodedPetImage(url:spec.directory.appendingPathComponent("spritesheet.webp"))
             let w=source.width/8,h=source.height/spec.rows
@@ -50,19 +55,19 @@ import SpriteKit
             guard let cell=source.image.cropping(to:CGRect(x:column*w,y:0,width:w,height:h)) else { throw PawError.message("Could not preview companion.") }
             let petImage=NSImage(cgImage:cell,size:CGSize(width:192,height:208))
             let palette=PetChromePalette.companion(id)
-            for mode in ["actions","actions-dark","thought","pocket","drop"] {
+            for mode in ["actions","actions-dark","thought","thought-dark","pocket","drop"] {
                 let root=PetChromePreviewView(frame:CGRect(x:0,y:0,width:640,height:470))
-                if mode == "actions-dark" { root.background=NSColor(calibratedRed:0.12,green:0.10,blue:0.18,alpha:1) }
+                if mode.hasSuffix("-dark") { root.background=NSColor(calibratedRed:0.12,green:0.10,blue:0.18,alpha:1) }
                 let pet=NSImageView(frame:CGRect(x:396,y:252,width:192,height:208));pet.image=petImage;pet.imageScaling = .scaleAxesIndependently;root.addSubview(pet)
                 let content:NSView
                 switch mode {
                 case "actions","actions-dark": content=PetQuickActionsNativeView(palette:palette,action:{_ in});content.frame.origin=CGPoint(x:291,y:125)
-                case "thought": content=PetSpeechNativeView(title:"A little sip?",text:"Your water bottle misses you. Let’s have a drink together!",reminder:true,actions:[],palette:palette,height:208,onDismiss:{},onSnooze:{});content.frame.origin=CGPoint(x:210,y:43)
+                case "thought","thought-dark": content=PetSpeechNativeView(title:"A little sip?",text:"Your water bottle misses you. Let’s have a drink together!",reminder:true,actions:[],palette:palette,height:208,onDismiss:{},onSnooze:{});content.frame.origin=CGPoint(x:210,y:43)
                 default:
                     content=PetPocketNativeView(files:mode == "drop" ? []:fixtures,dropTarget:mode == "drop",palette:palette,name:id == "bunny" ? "Clover":id == "fox" ? "Maple":"Buddy",onOpen:{_ in},onRemove:{_ in},onFolder:{},onClose:{},onDrop:{_ in false},canDrop:{_ in true},onDragging:{_ in})
                     content.frame.origin=CGPoint(x:120,y:195)
                     if mode == "pocket" {
-                        let held=NSImageView(frame:CGRect(x:470,y:402,width:44,height:42));held.image=PetChromeDrawing.heldPocket(size:CGSize(width:44,height:42),palette:palette,count:2);root.addSubview(held)
+                        let held=NSImageView(frame:CGRect(x:477,y:408,width:34,height:32));held.image=PetChromeDrawing.heldNote(size:CGSize(width:34,height:32),palette:palette,count:2);root.addSubview(held)
                     }
                 }
                 root.addSubview(content)
@@ -76,12 +81,13 @@ import SpriteKit
             }
             let node=try FramePetNode(spec:spec);let scene=SKScene(size:CGSize(width:280,height:260));scene.addChild(node);node.position=CGPoint(x:140,y:32)
             node.setHeldFileCount(2)
-            guard node.containsHeldFilesPoint(CGPoint(x:140,y:68)) else { throw PawError.message("Held pocket has no interactive region.") }
+            let heldPoint=node.heldFilesPointInScene
+            guard node.containsHeldFilesPoint(heldPoint) else { throw PawError.message("Held pocket has no interactive region.") }
             node.setHeldFileCount(0)
-            guard !node.containsHeldFilesPoint(CGPoint(x:140,y:68)) else { throw PawError.message("Empty held pocket stayed interactive.") }
+            guard !node.containsHeldFilesPoint(heldPoint) else { throw PawError.message("Empty held pocket stayed interactive.") }
             node.setRenderingSuspended(true)
         }
-        print("Companion UI checks passed: double tap opens once; hover/single tap do not open; six readable whole-paw/first-click targets dispatch; empty menu center passes through; thought dismiss/done/snooze dispatch; held-pocket hit region disappears when empty. Rendered 15 native previews at \(directory.path).")
+        print("Companion UI checks passed: double-tap-only actions; readable whole-paw targets; thought dismiss/done/snooze; Clear all dispatch; empty held-note hit region. Rendered 36 native previews, including dark backgrounds and six pet palettes, at \(directory.path).")
     }
 }
 

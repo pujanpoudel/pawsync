@@ -6,7 +6,7 @@ import UniformTypeIdentifiers
 
 /// Offscreen native rendering: no input capture, TCC prompts, or UI automation.
 @MainActor enum MotionChecks {
-    @MainActor private final class Renderer {
+    @MainActor final class Renderer {
         let renderer:SKRenderer
         let queue:any MTLCommandQueue
         let texture:any MTLTexture
@@ -41,7 +41,7 @@ import UniformTypeIdentifiers
     private static func require(_ condition:@autoclosure ()->Bool,_ message:String) throws {
         guard condition() else { throw PawError.message(message) }
     }
-    private static func writeGrid(_ rows:[(String,[CGImage])],columns:[String],to url:URL) throws {
+    static func writeGrid(_ rows:[(String,[CGImage])],columns:[String],to url:URL) throws {
         let width=columns.count*260,height=rows.count*290+40
         guard let context=CGContext(data:nil,width:width,height:height,bitsPerComponent:8,bytesPerRow:width*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue) else { throw PawError.message("Could not create proof sheet.") }
         context.setFillColor(NSColor.white.cgColor); context.fill(CGRect(x:0,y:0,width:width,height:height))
@@ -129,13 +129,13 @@ import UniformTypeIdentifiers
             node.typing(at:pulseTime+0.11)
             try require(node.lastTappedPaw != firstPaw,"Successive typing pulses did not alternate paws for \(id).")
             node.click(toward:.zero)
-            try require([6,8].contains(node.sequence?.row ?? -1),"A mouse click reused the typing/wave animation for \(id).")
+            try require(node.currentEmotion == .surprised,"A mouse click did not show its boop expression for \(id).")
             node.idle()
             try require(!node.requiresContinuousRendering,"Typing/click activity kept rendering active after idle for \(id).")
             node.look(toward:CGPoint(x:200,y:120))
-            try require(node.sequence?.row == 3,"Cursor dwell did not greet for \(id).")
+            try require(node.currentEmotion == .curious,"Cursor dwell did not look curious for \(id).")
             node.pet(direction:7)
-            try require(node.sequence?.row == 8,"Petting did not show a distinct happy expression for \(id).")
+            try require(node.currentEmotion == .affectionate,"Petting did not show a distinct affectionate expression for \(id).")
             frameOriginals.append((spec.name,images))
             node.setRenderingSuspended(true)
         }

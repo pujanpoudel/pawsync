@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/season2-dolphin/season2-dolphin-both-up.webp",
+    "sha256": "c77e0c2f4865b37c92583ab89df648f77db284c264af40df25f5874fba143eed"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-dolphin/season2-dolphin-both-down.webp",
+    "sha256": "e326c9a8d98408f4ab32b7a4580e74028c66766c9af8e43f76153f4711e30dbe"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-dolphin/season2-dolphin-left-down.webp",
+    "sha256": "841e58cf945d7a466c342300edcb3041424d411d709c63bc17c6d38f97c97335"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-dolphin/season2-dolphin-right-down.webp",
+    "sha256": "f25ec209240d67d7beed07cb8b4364efe3ac276bd02073f6a545a46d7c3987ed"
+  }
+}

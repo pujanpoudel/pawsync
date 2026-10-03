@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/season2-squirrel/season2-squirrel-both-up.webp",
+    "sha256": "8c75b5956787644411fafaccf1910133064d7b52d45d5752383fb26f55fd9c9b"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-squirrel/season2-squirrel-both-down.webp",
+    "sha256": "630be397f78d57f8504477d5a874ef929601572bf19eba27f96e61ae328192c4"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-squirrel/season2-squirrel-left-down.webp",
+    "sha256": "5085438dc55aabd55cce1163ec32337173995f67ee3bcef6fa2423ec517fbf55"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-squirrel/season2-squirrel-right-down.webp",
+    "sha256": "b0ca9556668ab4e612dff98cebae84f46c529d36bb9d3760a9321567ac65c08f"
+  }
+}

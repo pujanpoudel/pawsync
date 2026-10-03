@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/corgi/corgi-both-up.webp",
+    "sha256": "1e5de2dbddeb1fc66353c20ceca9f911529da547c6b3d7d95a08e2ea15b0fe00"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/corgi/corgi-both-down.webp",
+    "sha256": "1fb047ff60d58fe16bdab8bb3455575c165a01d26f977e2a7d2ef4873a775340"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/corgi/corgi-left-down.webp",
+    "sha256": "7da1b3c823b4a093dafb9de8d52c198db0354d67fc1106e89f80628ab4285a21"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/corgi/corgi-right-down.webp",
+    "sha256": "55ba103dce044da566929938d52204c2b6178941a8498cdcee79ce18a46de37c"
+  }
+}

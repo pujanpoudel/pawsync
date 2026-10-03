@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/koala/koala-both-up.webp",
+    "sha256": "5bd3a01df73972752d8e7a44066b1e3e56c044945bca02df73702aa0a0c25185"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/koala/koala-both-down.webp",
+    "sha256": "29b63e865988652cf168b6d8db28109069ca373cb3e577eb9dd65ddd19ae3b23"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/koala/koala-left-down.webp",
+    "sha256": "2aa7d0b693cbac2935c88330a072e2ec1dac130a627a1bcfc129e8553eaceb14"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/koala/koala-right-down.webp",
+    "sha256": "bc855da633bbf394bbb5f95b0b28eba5c2fe9422964e909848d09bca9632052b"
+  }
+}

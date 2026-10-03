@@ -25,6 +25,9 @@ import SpriteKit
     func setAccessoryVisibility(_ visible: Bool)
     func setCaption(_ text: String)
     func setHeldFileCount(_ count:Int)
+    func setReceivingFiles(_ active:Bool)
+    func catchFiles()
+    func express(_ emotion:PetEmotion)
     func wave()
     func setWalking(_ value: Bool)
     func face(_ direction: CGFloat)
@@ -41,6 +44,9 @@ extension CompanionAnimating {
     func containsHeldFilesPoint(_ point:CGPoint)->Bool { false }
     func setRenderingSuspended(_ value:Bool) {}
     func setHeldFileCount(_ count:Int) {}
+    func setReceivingFiles(_ active:Bool) {}
+    func catchFiles() { celebrate() }
+    func express(_ emotion:PetEmotion) { play(emotion == .sad ? .failed : emotion == .excited ? .jumping : .review,looping:false,relaxed:true) }
 }
 
 @MainActor final class PetHeldFilesIndicator:SKNode {
@@ -49,7 +55,7 @@ extension CompanionAnimating {
     private var count=0
     override init() {
         super.init();zPosition=28;isHidden=true
-        pouch.size=CGSize(width:44,height:42);addChild(pouch)
+        pouch.size=CGSize(width:34,height:32);addChild(pouch)
     }
     required init?(coder:NSCoder) { fatalError("Unsupported") }
     func setTheme(_ id:String) { palette = .companion(id);if count>0 { render() } }
@@ -57,11 +63,17 @@ extension CompanionAnimating {
         guard count != value else { return };count=max(0,value);isHidden=count == 0
         if count>0 { render() }
     }
-    private func render() { pouch.texture=SKTexture(image:PetChromeDrawing.heldPocket(size:CGSize(width:44,height:42),palette:palette,count:min(99,count))) }
+    private func render() { pouch.texture=SKTexture(image:PetChromeDrawing.heldNote(size:CGSize(width:34,height:32),palette:palette,count:count)) }
+    func catchBounce() {
+        removeAction(forKey:"catch");setScale(0.7)
+        let up=SKAction.scale(to:1.12,duration:0.14),down=SKAction.scale(to:1,duration:0.18)
+        up.timingMode = .easeOut;down.timingMode = .easeInEaseOut
+        run(.sequence([up,down]),withKey:"catch")
+    }
     func containsScenePoint(_ point:CGPoint)->Bool {
         guard !isHidden,let scene else { return false }
         let local=convert(point,from:scene)
-        return CGRect(x:-25,y:-23,width:50,height:46).contains(local)
+        return CGRect(x:-20,y:-20,width:40,height:40).contains(local)
     }
 }
 struct ImportedPet: Codable, Identifiable {

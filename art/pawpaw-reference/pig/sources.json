@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/pig/pig-both-up.webp",
+    "sha256": "ba28f042520966eea932e02b46f430ca29049cbfe43b2e9187ef1a7fc2b9ab13"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/pig/pig-both-down.webp",
+    "sha256": "48b66ad650930e1481789709ef012e079f0f44a808a3e755580ba4422b93d717"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/pig/pig-left-down.webp",
+    "sha256": "d426263a86f26918cccd4fe6c313d84d8c755b679cd6e67bb3de959e02419e8b"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/pig/pig-right-down.webp",
+    "sha256": "7e5f5ca49c8486c97856c82e863ea7ec163af787bea77f57424c15695cdf5359"
+  }
+}

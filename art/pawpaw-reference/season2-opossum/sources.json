@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/season2-opossum/season2-opossum-both-up.webp",
+    "sha256": "5085db5892114e558acd75f65958e7cc30f3ad2bca7d11f39d92fff462fb6448"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-opossum/season2-opossum-both-down.webp",
+    "sha256": "1db03ee041778e89b9e2c8ffd15b5aa31ec015f81f46d03f61f580c28984816c"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-opossum/season2-opossum-left-down.webp",
+    "sha256": "1112d57342938e6321057174976737f1ca554fc74e240419e13bf01caf753a8e"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-opossum/season2-opossum-right-down.webp",
+    "sha256": "bdc5cf096507b2593030ec32da891b9a02a74c0ad75750e252ee7c90acba1964"
+  }
+}

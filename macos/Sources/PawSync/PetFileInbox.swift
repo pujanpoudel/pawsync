@@ -2,93 +2,92 @@ import AppKit
 import Combine
 import UniformTypeIdentifiers
 
-struct PetInboxFile:Identifiable,Codable,Equatable {
-    var id:String
-    var name:String
-    var size:Int64
-    var added:Date
-    var idValue:UUID { UUID(uuidString:id) ?? UUID() }
-    var url:URL { PetStore.root.appendingPathComponent("PetInbox",isDirectory:true).appendingPathComponent("\(id)__\(name)") }
+/// A session-only reference. PawSync never copies, renames, moves or deletes it.
+struct PetInboxFile:Identifiable,Equatable {
+    let id:String
+    let name:String
+    let size:Int64
+    let added:Date
+    let url:URL
     var displaySize:String { ByteCountFormatter.string(fromByteCount:size,countStyle:.file) }
 }
 
 @MainActor final class PetFileInbox:ObservableObject {
-    static let maxFileSize:Int64=100*1024*1024
-    static let maxBatchSize:Int64=250*1024*1024
-    static let maxStoredSize:Int64=500*1024*1024
     static let maxBatchFiles=20
+    static let maxHeldFiles=200
     @Published private(set) var files:[PetInboxFile]=[]
-    @Published private(set) var message="Drop a file on your buddy to let them catch it."
-    private let directory=PetStore.root.appendingPathComponent("PetInbox",isDirectory:true)
-    init() { reload() }
+    @Published private(set) var message="Drop a file on your buddy for a temporary helping paw."
+    private var scopedURLs:[String:URL]=[:]
+    // Earlier versions made persistent copies. Leave those recoverable, but do
+    // not load them into this session's pocket or delete somebody's only copy.
+    private let legacyDirectory:URL
+    init(legacyDirectory:URL=PetStore.root.appendingPathComponent("PetInbox",isDirectory:true)) { self.legacyDirectory=legacyDirectory }
+    deinit { scopedURLs.values.forEach { $0.stopAccessingSecurityScopedResource() } }
+    var hasEarlierCopies:Bool {
+        let entries=(try? FileManager.default.contentsOfDirectory(at:legacyDirectory,includingPropertiesForKeys:nil,options:[.skipsHiddenFiles])) ?? []
+        return entries.contains { $0.lastPathComponent.contains("__") }
+    }
+    func showEarlierCopies() { NSWorkspace.shared.open(legacyDirectory) }
     func canAccept(_ urls:[URL])->Bool {
         guard !urls.isEmpty,urls.count<=Self.maxBatchFiles else { return false }
-        var total:Int64=0
-        for url in urls {
-            let values=try? url.resourceValues(forKeys:[.isRegularFileKey,.isSymbolicLinkKey,.fileSizeKey])
-            guard url.isFileURL,values?.isRegularFile == true,values?.isSymbolicLink != true,let size=values?.fileSize,size>=0,Int64(size)<=Self.maxFileSize else { return false }
-            total+=Int64(size); if total>Self.maxBatchSize { return false }
+        return urls.allSatisfy { url in
+            guard url.isFileURL else { return false }
+            let values=try? url.resourceValues(forKeys:[.isRegularFileKey,.isSymbolicLinkKey])
+            return values?.isRegularFile == true && values?.isSymbolicLink != true
         }
-        return true
+    }
+    func canAcceptDrop(_ urls:[URL])->Bool {
+        let held=Set(files.map { $0.url.standardizedFileURL.path })
+        return canAccept(urls) && urls.contains { !held.contains($0.standardizedFileURL.path) }
     }
     @discardableResult func catchFiles(_ urls:[URL]) throws -> Int {
-        guard canAccept(urls) else { throw PawError.message("Your pet can catch up to 20 regular files at once, each under 100 MB (250 MB total).") }
-        let incoming=urls.reduce(Int64(0)){sum,url in sum+Int64((try? url.resourceValues(forKeys:[.fileSizeKey]).fileSize) ?? 0)}
-        guard files.reduce(Int64(0),{$0+$1.size})+incoming<=Self.maxStoredSize,files.count+urls.count<=200 else { throw PawError.message("Your pet’s pocket is full. Remove a few files before dropping more.") }
-        if FileManager.default.fileExists(atPath:directory.path) {
-            let values=try directory.resourceValues(forKeys:[.isDirectoryKey,.isSymbolicLinkKey])
-            guard values.isDirectory == true,values.isSymbolicLink != true else { throw PawError.message("The pet’s pocket folder is not a safe directory.") }
-        } else { try FileManager.default.createDirectory(at:directory,withIntermediateDirectories:true,attributes:[.posixPermissions:0o700]) }
-        var caught=0
-        var copied:[URL]=[]
+        guard canAccept(urls) else { throw PawError.message("Your pet can hold up to 20 regular files at a time. The originals stay where they are.") }
+        reload()
+        var paths=Set(files.map { $0.url.standardizedFileURL.path })
+        let incoming=urls.filter { paths.insert($0.standardizedFileURL.path).inserted }
+        guard files.count+incoming.count<=Self.maxHeldFiles else { throw PawError.message("Your pet’s paws are full. Release a few files before dropping more.") }
+        var received:[PetInboxFile]=[]
+        var scoped:[String:URL]=[:]
         do {
-            for source in urls {
+            for source in incoming {
                 let id=UUID().uuidString
-                let name=Self.safeName(source.lastPathComponent)
-                let target=directory.appendingPathComponent("\(id)__\(name)")
-                let scoped=source.startAccessingSecurityScopedResource()
-                defer { if scoped { source.stopAccessingSecurityScopedResource() } }
-                try FileManager.default.copyItem(at:source,to:target)
-                copied.append(target)
-                try FileManager.default.setAttributes([.posixPermissions:0o600],ofItemAtPath:target.path)
-                let size=(try target.resourceValues(forKeys:[.fileSizeKey]).fileSize).map(Int64.init) ?? 0
-                files.insert(PetInboxFile(id:id,name:name,size:size,added:Date()),at:0)
-                caught+=1
+                if source.startAccessingSecurityScopedResource() { scoped[id]=source }
+                let values=try source.resourceValues(forKeys:[.isRegularFileKey,.isSymbolicLinkKey,.fileSizeKey])
+                guard values.isRegularFile == true,values.isSymbolicLink != true else { throw PawError.message("That file is no longer available.") }
+                received.append(PetInboxFile(id:id,name:source.lastPathComponent,size:Int64(values.fileSize ?? 0),added:Date(),url:source))
             }
-            if files.count>200 { for expired in files.dropFirst(200) { try? FileManager.default.removeItem(at:expired.url) }; files=Array(files.prefix(200)) }
-            message=caught == 1 ? "Caught \(files[0].name)!" : "Caught \(caught) files!"
-            return caught
         } catch {
-            copied.forEach{try? FileManager.default.removeItem(at:$0)}
-            reload()
-            throw PawError.message("Your pet couldn’t store that file: \(error.localizedDescription)")
+            scoped.values.forEach { $0.stopAccessingSecurityScopedResource() }
+            throw PawError.message("Your pet couldn’t hold that file: \(error.localizedDescription)")
         }
+        scopedURLs.merge(scoped) { _,new in new }
+        files.insert(contentsOf:received.reversed(),at:0)
+        message=received.isEmpty ? "Already in my paws!" : received.count == 1 ? "Holding \(received[0].name) for now!" : "Holding \(received.count) files for now!"
+        return received.count
     }
+    /// Refresh availability, never restore a saved shelf after restarting.
     func reload() {
-        let children=(try? FileManager.default.contentsOfDirectory(at:directory,includingPropertiesForKeys:[.isRegularFileKey,.isSymbolicLinkKey,.fileSizeKey,.creationDateKey],options:[.skipsHiddenFiles])) ?? []
-        files=children.compactMap { url in
-            let leaf=url.lastPathComponent
-            guard let split=leaf.range(of:"__") else { return nil }
-            let id=String(leaf[..<split.lowerBound]),name=String(leaf[split.upperBound...])
-            guard UUID(uuidString:id) != nil,!name.isEmpty,
-                  let values=try? url.resourceValues(forKeys:[.isRegularFileKey,.isSymbolicLinkKey,.fileSizeKey,.creationDateKey]),values.isRegularFile == true,values.isSymbolicLink != true else { return nil }
-            return PetInboxFile(id:id,name:name,size:Int64(values.fileSize ?? 0),added:values.creationDate ?? .distantPast)
-        }.sorted { $0.added>$1.added }
+        let missing=files.filter { !FileManager.default.fileExists(atPath:$0.url.path) }
+        for file in missing { release(file.id) }
     }
-    func open(_ file:PetInboxFile) { guard FileManager.default.fileExists(atPath:file.url.path) else { reload(); return }; NSWorkspace.shared.open(file.url) }
-    func openFolder() {
-        do {
-            if !FileManager.default.fileExists(atPath:directory.path) { try FileManager.default.createDirectory(at:directory,withIntermediateDirectories:true,attributes:[.posixPermissions:0o700]) }
-            NSWorkspace.shared.open(directory)
-        } catch { message="Could not open the pocket folder." }
+    func open(_ file:PetInboxFile) {
+        guard FileManager.default.fileExists(atPath:file.url.path) else { reload();message="The original file is no longer there.";return }
+        NSWorkspace.shared.open(file.url)
     }
+    func showOriginals() { NSWorkspace.shared.activateFileViewerSelecting(files.map(\.url)) }
     func reveal(_ file:PetInboxFile) { NSWorkspace.shared.activateFileViewerSelecting([file.url]) }
-    func remove(_ file:PetInboxFile) { try? FileManager.default.removeItem(at:file.url); files.removeAll{$0.id==file.id}; message="Put \(file.name) back." }
-    func empty() { for file in files { try? FileManager.default.removeItem(at:file.url) }; files=[]; message="Your pet hasn’t caught anything yet." }
-    private static func safeName(_ value:String)->String {
-        let clean=value.replacingOccurrences(of:"/",with:"-").replacingOccurrences(of:"\\",with:"-").trimmingCharacters(in:.whitespacesAndNewlines)
-        let bounded=String((clean.isEmpty ? "Dropped file" : clean).prefix(160))
-        return bounded == "." || bounded == ".." ? "Dropped file" : bounded
+    func remove(_ file:PetInboxFile) { release(file.id);message="Released \(file.name). Your original is untouched." }
+    func finishDrag(_ file:PetInboxFile,operation:NSDragOperation) {
+        guard !operation.intersection([.copy,.move,.link]).isEmpty else { return }
+        remove(file)
+    }
+    private func release(_ id:String) {
+        scopedURLs.removeValue(forKey:id)?.stopAccessingSecurityScopedResource()
+        files.removeAll { $0.id == id }
+    }
+    func empty() {
+        scopedURLs.values.forEach { $0.stopAccessingSecurityScopedResource() };scopedURLs.removeAll()
+        files=[];message="Your pet’s paws are free. Your originals are untouched."
     }
 }
 
@@ -104,6 +103,7 @@ struct PetInboxFile:Identifiable,Codable,Equatable {
     var isVisible:Bool { panel?.isVisible == true }
     var attachment:(()->PetChromeAnchor)?
     var onFileDrop:(([URL])->Bool)?
+    var onReceivingFiles:((Bool)->Void)?
     init(inbox:PetFileInbox) {
         self.inbox=inbox
         inbox.objectWillChange.sink { [weak self] _ in DispatchQueue.main.async { self?.refresh() } }.store(in:&cancellables)
@@ -132,7 +132,7 @@ struct PetInboxFile:Identifiable,Codable,Equatable {
         }
     }
     private func refreshContent(context:PetChromeAnchor) {
-        panel?.contentView=PetPocketNativeView(files:inbox.files,dropTarget:dropTargetActive,palette:context.palette,name:context.name,onOpen:{[weak self] file in self?.inbox.open(file);self?.holdOpen()},onRemove:{[weak self] file in self?.inbox.remove(file);self?.holdOpen()},onFolder:{[weak self] in self?.inbox.openFolder()},onClose:{[weak self] in self?.dismiss()},onDrop:{[weak self] urls in self?.onFileDrop?(urls) ?? false},canDrop:{[weak self] urls in self?.inbox.canAccept(urls) ?? false},onDragging:{[weak self] active in self?.draggingOut=active;self?.holdOpen()})
+        panel?.contentView=PetPocketNativeView(files:inbox.files,dropTarget:dropTargetActive,palette:context.palette,name:context.name,onOpen:{[weak self] file in self?.inbox.open(file);self?.holdOpen()},onRemove:{[weak self] file in self?.inbox.remove(file);self?.holdOpen()},onFolder:{[weak self] in self?.inbox.showOriginals()},onClose:{[weak self] in self?.dismiss()},onDrop:{[weak self] urls in self?.onFileDrop?(urls) ?? false},canDrop:{[weak self] urls in self?.inbox.canAcceptDrop(urls) ?? false},onReceiving:{[weak self] active in self?.onReceivingFiles?(active);self?.holdOpen()},onDragging:{[weak self] active in self?.draggingOut=active;self?.holdOpen()},onDragCompleted:{[weak self] file,operation in self?.inbox.finishDrag(file,operation:operation)},onClear:{[weak self] in self?.inbox.empty()})
     }
     func holdOpen() { lastInside=Date() }
     func dismiss() { guard !draggingOut else { return };pointerTimer?.invalidate();pointerTimer=nil;panel?.orderOut(nil) }
@@ -161,21 +161,23 @@ struct PetInboxFile:Identifiable,Codable,Equatable {
     private let onDrop:([URL])->Bool
     private let canDrop:([URL])->Bool
     private let onDragging:(Bool)->Void
-    init(files:[PetInboxFile],dropTarget:Bool,palette:PetChromePalette,name:String,onOpen:@escaping (PetInboxFile)->Void,onRemove:@escaping (PetInboxFile)->Void,onFolder:@escaping ()->Void,onClose:@escaping ()->Void,onDrop:@escaping ([URL])->Bool,canDrop:@escaping ([URL])->Bool,onDragging:@escaping (Bool)->Void) {
-        self.files=files;self.dropTarget=dropTarget;self.palette=palette;self.onDrop=onDrop;self.canDrop=canDrop;self.onDragging=onDragging
+    private let onReceiving:(Bool)->Void
+    init(files:[PetInboxFile],dropTarget:Bool,palette:PetChromePalette,name:String,onOpen:@escaping (PetInboxFile)->Void,onRemove:@escaping (PetInboxFile)->Void,onFolder:@escaping ()->Void,onClose:@escaping ()->Void,onDrop:@escaping ([URL])->Bool,canDrop:@escaping ([URL])->Bool,onReceiving:@escaping (Bool)->Void={_ in},onDragging:@escaping (Bool)->Void,onDragCompleted:@escaping (PetInboxFile,NSDragOperation)->Void={_,_ in},onClear:@escaping ()->Void={}) {
+        self.files=files;self.dropTarget=dropTarget;self.palette=palette;self.onDrop=onDrop;self.canDrop=canDrop;self.onDragging=onDragging;self.onReceiving=onReceiving
         super.init(frame:CGRect(x:0,y:0,width:300,height:250));registerForDraggedTypes([.fileURL])
         if !files.isEmpty {
             let heading=NSTextField(labelWithString:"\(name)’s pocket");heading.font = .systemFont(ofSize:14,weight:.semibold);heading.textColor=palette.ink;heading.frame=CGRect(x:29,y:58,width:195,height:20);addSubview(heading)
-            for (title,symbol,x,action) in [("Open pocket folder","folder",CGFloat(224),onFolder),("Close pocket","xmark",CGFloat(253),onClose)] {
+            for (title,symbol,x,action) in [("Show originals in Finder","folder",CGFloat(224),onFolder),("Close pocket","xmark",CGFloat(253),onClose)] {
                 let b=PetSoftButton(title:"",symbol:symbol,action:action);b.palette=palette;b.frame=CGRect(x:x,y:56,width:24,height:24);b.setAccessibilityLabel(title);addSubview(b)
             }
             let scroll=NSScrollView(frame:CGRect(x:26,y:89,width:250,height:121));scroll.drawsBackground=false;scroll.hasVerticalScroller=true;scroll.autohidesScrollers=true;scroll.scrollerStyle = .overlay;scroll.borderType = .noBorder;scroll.contentView.drawsBackground=false
             let document=PetPocketRowsView(frame:CGRect(x:0,y:0,width:248,height:CGFloat(files.count)*48))
             for (index,file) in files.enumerated() {
-                let row=PetPocketFileRow(file:file,palette:palette,onOpen:{onOpen(file)},onRemove:{onRemove(file)},onDragging:onDragging)
+                let row=PetPocketFileRow(file:file,palette:palette,onOpen:{onOpen(file)},onRemove:{onRemove(file)},onDragging:onDragging,onDragCompleted:{operation in onDragCompleted(file,operation)})
                 row.frame=CGRect(x:index.isMultiple(of:2) ? 0:3,y:CGFloat(index)*48,width:242,height:44);document.addSubview(row)
             }
             scroll.documentView=document;addSubview(scroll)
+            let clear=PetSoftButton(title:"Clear all",action:onClear);clear.palette=palette;clear.emphasis = .primary;clear.frame=CGRect(x:29,y:212,width:72,height:23);clear.setAccessibilityLabel("Clear all held files");clear.toolTip="Release every held file. Your originals stay untouched.";addSubview(clear)
         }
         setAccessibilityLabel("Companion file pocket")
     }
@@ -193,14 +195,17 @@ struct PetInboxFile:Identifiable,Codable,Equatable {
             PetChromeDrawing.label("I’ll catch it!",in:CGRect(x:35,y:139,width:230,height:22),size:16,color:palette.ink,weight:.semibold)
             PetChromeDrawing.label("Drop your file on me or my pocket.",in:CGRect(x:25,y:171,width:250,height:19),size:10,color:palette.ink)
         } else {
-            PetChromeDrawing.label("Drag a file out · Double-click to open",in:CGRect(x:25,y:211,width:250,height:16),size:9,color:palette.ink.withAlphaComponent(0.75))
+            PetChromeDrawing.label("Drag out to release",in:CGRect(x:112,y:209,width:159,height:15),size:9,color:palette.ink.withAlphaComponent(0.85),alignment:.left)
+            PetChromeDrawing.label("Temporary · originals stay put",in:CGRect(x:112,y:224,width:159,height:13),size:8,color:palette.ink.withAlphaComponent(0.75),alignment:.left)
         }
     }
     private func urls(_ info:any NSDraggingInfo)->[URL] { (info.draggingPasteboard.readObjects(forClasses:[NSURL.self],options:[.urlReadingFileURLsOnly:true]) as? [NSURL] ?? []).map{$0 as URL} }
-    override func draggingEntered(_ sender:any NSDraggingInfo)->NSDragOperation { guard canDrop(urls(sender)) else { return [] };onDragging(true);return .copy }
-    override func draggingExited(_ sender:(any NSDraggingInfo)?) { onDragging(false) }
+    override func draggingEntered(_ sender:any NSDraggingInfo)->NSDragOperation { guard canDrop(urls(sender)) else { return [] };onReceiving(true);return .copy }
+    override func draggingUpdated(_ sender:any NSDraggingInfo)->NSDragOperation { guard canDrop(urls(sender)) else { onReceiving(false);return [] };onReceiving(true);return .copy }
+    override func draggingExited(_ sender:(any NSDraggingInfo)?) { onReceiving(false) }
+    override func draggingEnded(_ sender:any NSDraggingInfo) { onReceiving(false) }
     override func prepareForDragOperation(_ sender:any NSDraggingInfo)->Bool { canDrop(urls(sender)) }
-    override func performDragOperation(_ sender:any NSDraggingInfo)->Bool { onDragging(false);return onDrop(urls(sender)) }
+    override func performDragOperation(_ sender:any NSDraggingInfo)->Bool { defer { onReceiving(false) };return onDrop(urls(sender)) }
 }
 
 @MainActor private final class PetPocketRowsView:NSView { override var isFlipped:Bool { true } }
@@ -210,10 +215,11 @@ struct PetInboxFile:Identifiable,Codable,Equatable {
     let palette:PetChromePalette
     private let onOpen:()->Void
     private let onDragging:(Bool)->Void
+    private let onDragCompleted:(NSDragOperation)->Void
     private var downPoint:CGPoint?
     private var dragging=false
-    init(file:PetInboxFile,palette:PetChromePalette,onOpen:@escaping ()->Void,onRemove:@escaping ()->Void,onDragging:@escaping (Bool)->Void) {
-        self.file=file;self.palette=palette;self.onOpen=onOpen;self.onDragging=onDragging;super.init(frame:CGRect(x:0,y:0,width:242,height:44))
+    init(file:PetInboxFile,palette:PetChromePalette,onOpen:@escaping ()->Void,onRemove:@escaping ()->Void,onDragging:@escaping (Bool)->Void,onDragCompleted:@escaping (NSDragOperation)->Void={_ in}) {
+        self.file=file;self.palette=palette;self.onOpen=onOpen;self.onDragging=onDragging;self.onDragCompleted=onDragCompleted;super.init(frame:CGRect(x:0,y:0,width:242,height:44))
         let remove=PetSoftButton(title:"",symbol:"xmark",action:onRemove);remove.palette=palette;remove.frame=CGRect(x:216,y:12,width:20,height:20);remove.setAccessibilityLabel("Remove \(file.name) from pocket");addSubview(remove)
         setAccessibilityElement(true);setAccessibilityRole(.group);setAccessibilityLabel("\(file.name), \(file.displaySize). Drag out or double-click to open.")
     }
@@ -239,5 +245,5 @@ struct PetInboxFile:Identifiable,Codable,Equatable {
     }
     override func mouseUp(with event:NSEvent) { downPoint=nil }
     func draggingSession(_ session:NSDraggingSession,sourceOperationMaskFor context:NSDraggingContext)->NSDragOperation { .copy }
-    func draggingSession(_ session:NSDraggingSession,endedAt screenPoint:NSPoint,operation:NSDragOperation) { dragging=false;downPoint=nil;onDragging(false) }
+    func draggingSession(_ session:NSDraggingSession,endedAt screenPoint:NSPoint,operation:NSDragOperation) { dragging=false;downPoint=nil;onDragging(false);onDragCompleted(operation) }
 }

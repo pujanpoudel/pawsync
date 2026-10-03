@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/season2-armadillo/season2-armadillo-both-up.webp",
+    "sha256": "650ef3e23c34b83be4f4832061f5c287c6d0a10fa952d588c581d9f4502032d4"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-armadillo/season2-armadillo-both-down.webp",
+    "sha256": "927d7e794b08bd03188f275940170d2fcc1a2be3f4455d6eadf9684427fb8693"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-armadillo/season2-armadillo-left-down.webp",
+    "sha256": "cebe02f08a57928ec26fd167161e21181362496e78684f6fa7d6bf103cce2ec7"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-armadillo/season2-armadillo-right-down.webp",
+    "sha256": "2c20367cf4e6a849d28ee8123f4f992e17ea50e3c13a254bfd231f06891d8105"
+  }
+}

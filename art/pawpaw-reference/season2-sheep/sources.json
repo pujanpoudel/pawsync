@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/season2-sheep/season2-sheep-both-up.webp",
+    "sha256": "2523dc4b511673362c0bf73fb97ad70d1821b566a91e3de0af8e4c67c20e421c"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-sheep/season2-sheep-both-down.webp",
+    "sha256": "a7420a1cc1347c411ad478b7eb2c5941f5d7be23929b6af8d21dd4af349a529f"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-sheep/season2-sheep-left-down.webp",
+    "sha256": "ec8e73be2a39a4635cf30b68597390397e9c139345f350ec1663187ba2794f99"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-sheep/season2-sheep-right-down.webp",
+    "sha256": "955fe3cc1074bfba67af88d6b7205162dc827695a990da3763a0f31f5c83c3f0"
+  }
+}

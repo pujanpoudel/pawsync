@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/season2-manatee/season2-manatee-both-up.webp",
+    "sha256": "d8168879de409dc94476088e16fb46ba0df04b8716c05fe71deaf0d095dc713e"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-manatee/season2-manatee-both-down.webp",
+    "sha256": "27d8ad26ea915fdc43101350789703546de6f61a84cb25cdf070d8584f8e922f"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-manatee/season2-manatee-left-down.webp",
+    "sha256": "802dbb0fb5f058464849a24ecc4bb4f0940d9acec8ad671db242d6394cd1e7ed"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-manatee/season2-manatee-right-down.webp",
+    "sha256": "8598fb0944abcda9511e484922fae322eda6bcef0cd88cc2a3738ac048682ef6"
+  }
+}

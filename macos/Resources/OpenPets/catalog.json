@@ -52,5 +52,315 @@
     "rows": 9,
     "source": "https://zip.openpets.dev/pets/dobby-3f6746e0/dobby.zip",
     "author": "OpenPets"
+  },
+  {
+    "id": "pawpaw-shiba",
+    "name": "Shiba Inu",
+    "folder": "pawpaw/shiba",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-fox",
+    "name": "Fox",
+    "folder": "pawpaw/fox",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-bear",
+    "name": "Bear",
+    "folder": "pawpaw/bear",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-hamster",
+    "name": "Hamster",
+    "folder": "pawpaw/hamster",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-koala",
+    "name": "Koala",
+    "folder": "pawpaw/koala",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-pig",
+    "name": "Pig",
+    "folder": "pawpaw/pig",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-corgi",
+    "name": "Corgi",
+    "folder": "pawpaw/corgi",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-wolf",
+    "name": "Wolf",
+    "folder": "pawpaw/wolf",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-capybara",
+    "name": "Capybara",
+    "folder": "pawpaw/capybara",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-raccoon",
+    "name": "Raccoon",
+    "folder": "pawpaw/raccoon",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-seal",
+    "name": "Seal",
+    "folder": "pawpaw/seal",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-season2-sheep",
+    "name": "Sheep",
+    "folder": "pawpaw/season2-sheep",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-season2-dolphin",
+    "name": "Dolphin",
+    "folder": "pawpaw/season2-dolphin",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-season2-squirrel",
+    "name": "Squirrel",
+    "folder": "pawpaw/season2-squirrel",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-season2-bat",
+    "name": "Bat",
+    "folder": "pawpaw/season2-bat",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-season2-penguin",
+    "name": "Penguin",
+    "folder": "pawpaw/season2-penguin",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-season2-giant-panda",
+    "name": "Giant Panda",
+    "folder": "pawpaw/season2-giant-panda",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-season2-frog",
+    "name": "Frog",
+    "folder": "pawpaw/season2-frog",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-season2-shetland-sheepdog",
+    "name": "Shetland Sheepdog",
+    "folder": "pawpaw/season2-shetland-sheepdog",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-season2-chameleon",
+    "name": "Chameleon",
+    "folder": "pawpaw/season2-chameleon",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-season2-otter",
+    "name": "Otter",
+    "folder": "pawpaw/season2-otter",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-season2-hedgehog",
+    "name": "Hedgehog",
+    "folder": "pawpaw/season2-hedgehog",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-season2-beluga",
+    "name": "Beluga",
+    "folder": "pawpaw/season2-beluga",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-season2-sloth",
+    "name": "Sloth",
+    "folder": "pawpaw/season2-sloth",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-season2-skunk",
+    "name": "Skunk",
+    "folder": "pawpaw/season2-skunk",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-season2-axolotl",
+    "name": "Axolotl",
+    "folder": "pawpaw/season2-axolotl",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-season2-tanuki",
+    "name": "Tanuki",
+    "folder": "pawpaw/season2-tanuki",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-season2-manatee",
+    "name": "Manatee",
+    "folder": "pawpaw/season2-manatee",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-season2-armadillo",
+    "name": "Armadillo",
+    "folder": "pawpaw/season2-armadillo",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-season2-platypus",
+    "name": "Platypus",
+    "folder": "pawpaw/season2-platypus",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "pawpaw-season2-opossum",
+    "name": "Opossum",
+    "folder": "pawpaw/season2-opossum",
+    "columns": 8,
+    "rows": 9,
+    "source": "https://paw-paw.pet/",
+    "author": "Paw-Paw",
+    "origin": "Paw-Paw preview"
   }
 ]

@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/season2-skunk/season2-skunk-both-up.webp",
+    "sha256": "3f907e81ab228f934eaf9ec64bd10f75da48f80bb44dc7a56421f9517b57dafd"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-skunk/season2-skunk-both-down.webp",
+    "sha256": "24d594897579158b4434e417427376ce2b367de928277cf4e836b2e3985d1c54"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-skunk/season2-skunk-left-down.webp",
+    "sha256": "0c27fa79fb75cce66aa45f0d758911086892287673bf51fad9fbcf1af5cffd69"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-skunk/season2-skunk-right-down.webp",
+    "sha256": "e818575f6b8fc21b132da68d62ab28684de9b48d2b22c3cb7b340276049690c9"
+  }
+}

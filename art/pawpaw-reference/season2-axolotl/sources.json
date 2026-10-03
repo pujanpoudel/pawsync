@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/season2-axolotl/season2-axolotl-both-up.webp",
+    "sha256": "082ecee5cf486fee1e4660bb43f89b89630920e4c02dbf92b42fb452e3cd976d"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-axolotl/season2-axolotl-both-down.webp",
+    "sha256": "e5189f48510ccdd3d18f613df8f8885a2e05caf73f653d8e14edb61964a6187d"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-axolotl/season2-axolotl-left-down.webp",
+    "sha256": "a2a10e6ed54d07c07c6ba8f64d61378efa39f26d1f940b2a33fc2cf42025abed"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-axolotl/season2-axolotl-right-down.webp",
+    "sha256": "b1d87058ef23a161afed55926cc1d806fb443ca5ea1639480a2be0291aff6c90"
+  }
+}

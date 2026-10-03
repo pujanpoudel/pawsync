@@ -21,6 +21,7 @@ import SpriteKit
     private var lastTap:TimeInterval = -1
     private var lastStroke:TimeInterval = -1
     private var clickMood=0
+    private(set) var receivingFiles=false
     private var accessorySKU="none"
     private var hatTransform=HatTransform()
 
@@ -140,7 +141,7 @@ import SpriteKit
         group.run(.sequence([.fadeIn(withDuration:0.2),.wait(forDuration:0.7),.fadeOut(withDuration:0.5),.removeFromParent()]))
     }
     func idle() {
-        guard !sleeping else { return }
+        guard !sleeping,!receivingFiles else { return }
         transition("idle")
         let breath = SKAction.sequence([eased(.scaleY(to:0.98,duration:1.1)),eased(.scaleY(to:1,duration:1.1))])
         joints["body"]?.run(breath, withKey: "breathing")
@@ -151,7 +152,7 @@ import SpriteKit
         typing(at:ProcessInfo.processInfo.systemUptime)
     }
     func typing(at now:TimeInterval) {
-        guard !sleeping else { return }
+        guard !sleeping,!receivingFiles else { return }
         guard now-lastTap >= 0.065 else { return }; lastTap=now
         transition("typing")
         let key = nextLeftPaw ? "left_paw" : "right_paw"
@@ -168,7 +169,7 @@ import SpriteKit
         joints["tail"]?.run(.sequence([eased(.rotate(toAngle:direction*0.12,duration:0.15)),eased(.rotate(toAngle:0,duration:0.25))]),withKey:"sway")
     }
     func click(toward point: CGPoint) {
-        guard !sleeping else { return }
+        guard !sleeping,!receivingFiles else { return }
         transition("click")
         let tilt:CGFloat = point.x < position.x ? 0.105 : -0.105
         let head=joints["head"],body=joints["body"]
@@ -186,7 +187,7 @@ import SpriteKit
         clickMood+=1
     }
     func pet(direction: CGFloat) {
-        guard !sleeping else { return }
+        guard !sleeping,!receivingFiles else { return }
         let now=ProcessInfo.processInfo.systemUptime; guard now-lastStroke >= 0.15 else { return }; lastStroke=now
         transition("petting"); blink(slow:true); cheeks()
         joints["head"]?.run(.sequence([eased(.group([.rotate(toAngle:max(-0.16,min(0.16,-direction*0.015)),duration:0.22),.scaleY(to:0.97,duration:0.22)])),eased(.group([.rotate(toAngle:0,duration:0.45),.scaleY(to:1,duration:0.45)]))]),withKey:"petting")
@@ -220,12 +221,12 @@ import SpriteKit
         return group
     }
     func celebrate() {
-        guard !sleeping else { return }; transition("celebration"); cheeks()
+        guard !sleeping,!receivingFiles else { return }; transition("celebration"); cheeks()
         guard let body=joints["body"] else { return }; let rest=restPositions["body"]!
         body.run(.sequence([eased(.scaleY(to:0.94,duration:0.12)),eased(.group([.moveTo(y:rest.y+28,duration:0.25),.scaleY(to:1.03,duration:0.25),.rotate(toAngle:-0.06,duration:0.25)]),.easeOut),eased(.group([.moveTo(y:rest.y,duration:0.28),.scaleY(to:0.95,duration:0.28),.rotate(toAngle:0,duration:0.28)]),.easeIn),eased(.scaleY(to:1,duration:0.2))]),withKey:"celebration")
     }
     func hideInBox() {
-        guard !sleeping else { return }; transition("shy"); blink(slow:true)
+        guard !sleeping,!receivingFiles else { return }; transition("shy"); blink(slow:true)
         childNode(withName: "box")?.removeFromParent()
         let box = SKShapeNode(rectOf: CGSize(width: 135, height: 92), cornerRadius: 5)
         box.name = "box"; box.position = CGPoint(x: 0, y: 43); box.zPosition = 15
@@ -253,13 +254,47 @@ import SpriteKit
     func setCaption(_ text: String) { if caption.text != text { caption.text = text } }
     func containsHeldFilesPoint(_ point:CGPoint)->Bool { heldFiles.containsScenePoint(point) }
     func setHeldFileCount(_ count:Int) { heldFiles.setCount(count);onNeedsRender?() }
+    func setReceivingFiles(_ active:Bool) {
+        guard active != receivingFiles else { return };receivingFiles=active
+        if active {
+            if sleeping { setSleeping(false) }
+            transition("receive");cheeks()
+            for (key,side) in [("left_paw",CGFloat(-1)),("right_paw",CGFloat(1))] {
+                guard let rest=restPositions[key] else { continue }
+                joints[key]?.run(eased(.group([.rotate(toAngle:side*0.95,duration:0.23),.move(to:CGPoint(x:rest.x+side*7,y:rest.y+7),duration:0.23)])),withKey:"reach-out")
+            }
+            joints["head"]?.run(eased(.scale(to:1.035,duration:0.2)))
+        } else { transition("idle");idle() }
+        onNeedsRender?()
+    }
+    func catchFiles() {
+        receivingFiles=false;transition("catch");cheeks();blink(slow:true);heldFiles.catchBounce()
+        for (key,side) in [("left_paw",CGFloat(-1)),("right_paw",CGFloat(1))] {
+            guard let rest=restPositions[key] else { continue }
+            joints[key]?.run(.sequence([eased(.group([.rotate(toAngle:-side*0.5,duration:0.2),.move(to:CGPoint(x:rest.x-side*9,y:rest.y-5),duration:0.2)])),.wait(forDuration:0.4),eased(.group([.rotate(toAngle:0,duration:0.25),.move(to:rest,duration:0.25)]))]),withKey:"catch")
+        }
+        onNeedsRender?()
+    }
+    func express(_ emotion:PetEmotion) {
+        guard !sleeping,!receivingFiles else { return };transition("emotion")
+        switch emotion {
+        case .happy,.affectionate,.proud: cheeks();blink(slow:true)
+        case .sleepy,.shy: blink(slow:true);joints["head"]?.run(.sequence([eased(.rotate(toAngle:-0.06,duration:0.25)),eased(.rotate(toAngle:0,duration:0.7))]))
+        case .curious: look(toward:CGPoint(x:position.x+80,y:position.y+150))
+        case .surprised: joints["head"]?.run(.sequence([eased(.scale(to:1.07,duration:0.12)),eased(.scale(to:1,duration:0.4))]))
+        case .sad: blink(slow:true);joints["head"]?.run(.sequence([eased(.moveBy(x:0,y:-5,duration:0.25)),eased(.move(to:restPositions["head"] ?? .zero,duration:0.7))]))
+        case .excited: celebrate()
+        case .focused: typing()
+        }
+        onNeedsRender?()
+    }
     func wave() {
-        guard !sleeping else { return }; transition("wave"); cheeks()
+        guard !sleeping,!receivingFiles else { return }; transition("wave"); cheeks()
         let node = joints["right_paw"]!
         node.run(.sequence([eased(.rotate(toAngle:-0.85,duration:0.22)),eased(.rotate(toAngle:-0.5,duration:0.16)),eased(.rotate(toAngle:-0.85,duration:0.16)),eased(.rotate(toAngle:0,duration:0.26))]),withKey:"wave")
     }
     func play(_ animation: PetAnimation, looping: Bool, relaxed: Bool) {
-        guard !sleeping else { return }
+        guard !sleeping,!receivingFiles else { return }
         removeAction(forKey: "mapped-reaction")
         let action = SKAction.run { [weak self] in
             guard let self else { return }
@@ -287,10 +322,11 @@ import SpriteKit
     }
     func face(_ direction: CGFloat) { joints["body"]?.xScale = direction < 0 ? -1 : 1 }
     func look(toward point: CGPoint) {
-        guard !sleeping else { return }
+        guard !sleeping,!receivingFiles else { return }
         joints["head"]?.run(.sequence([eased(.rotate(toAngle:point.x < position.x ? 0.09 : -0.09,duration:0.25)),.wait(forDuration:0.45),eased(.rotate(toAngle:0,duration:0.35))]),withKey:"look")
     }
     func setWalking(_ value: Bool) {
+        guard !receivingFiles else { return }
         guard let body = joints["body"] else { return }
         if value {
             transition("walking")
@@ -302,6 +338,7 @@ import SpriteKit
         } else if motionMode == "walking" { transition("idle") }
     }
     func setDancing(_ value: Bool, beat: TimeInterval) {
+        guard !value || !receivingFiles else { return }
         // This state indicator has no SKU and never consults accessory ownership.
         accessorySlot.childNode(withName: "free-headphones")?.removeFromParent()
         for key in ["body", "head", "left_paw", "right_paw"] { joints[key]?.removeAction(forKey: "dance") }

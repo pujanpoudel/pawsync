@@ -81,7 +81,14 @@ struct SettingsView: View {
                     case .general: general
                     case .appearance: advancedAppearance
                     case .gallery: builtInGallery; PetGalleryView(model: model, catalog: model.catalog, preferences: preferences); DisclosureGroup("Create a pet from a photo") { customUpload }
-                    case .features: NativeFeaturesView(model:model,features:model.features,countdown:model.countdown,daily:model.daily,care:model.care,resources:model.resources,practices:model.practices)
+                    case .features:
+                        NativeFeaturesView(model:model,features:model.features,countdown:model.countdown,daily:model.daily,care:model.care,resources:model.resources,practices:model.practices)
+                        if model.fileInbox.hasEarlierCopies {
+                            DisclosureGroup("Files saved by an earlier version") {
+                                Text("The pocket now holds temporary references. Earlier saved copies remain available here so none of your files are lost.").font(.caption).foregroundStyle(.secondary)
+                                Button("Show earlier copies in Finder") { model.fileInbox.showEarlierCopies() }
+                            }
+                        }
                     case .reminders: remindersContent
                     case .activity: activityContent
                     case .focus: focusContent
@@ -205,6 +212,11 @@ struct SettingsView: View {
                     Button("Recheck music access") { model.configureMusic(force:true) }
                 }
                 HStack { Button("Test typing") { model.overlay.previewTyping() }; Button("Test click") { model.overlay.previewClick() } }
+                DisclosureGroup("Pet expressions") {
+                    LazyVGrid(columns:[GridItem(.adaptive(minimum:95))],spacing:8) {
+                        ForEach(PetEmotion.allCases) { emotion in Button(emotion.title) { model.overlay.showEmotion(emotion) } }
+                    }.padding(.top,8)
+                }
                 if PetStore.rigIDs.contains(preferences.companion) {
                     Button("View character sheet") { if let url=Bundle.main.url(forResource:preferences.companion,withExtension:"png",subdirectory:"CharacterSheets") { NSWorkspace.shared.open(url) } }
                 }

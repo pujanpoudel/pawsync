@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/season2-otter/season2-otter-both-up.webp",
+    "sha256": "980d61dddf5c56974d41cfdb313c4b1e50988178b97a2fbb810c25246cf19095"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-otter/season2-otter-both-down.webp",
+    "sha256": "bae8384ba10e34953b78147f5e00466583d173568d42932633e7061359c395c0"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-otter/season2-otter-left-down.webp",
+    "sha256": "508366e61868b91d0c79e4def62f2dc29b066eb688212fde71c44fb5ff18b512"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-otter/season2-otter-right-down.webp",
+    "sha256": "9aa2f1db2d985fde836ba56e6d4b98f94a5c34f2dffd6ce1b6efdfeafb636f2d"
+  }
+}

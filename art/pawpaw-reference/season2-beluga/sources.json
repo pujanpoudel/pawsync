@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/season2-beluga/season2-beluga-both-up.webp",
+    "sha256": "3f84e2523118ce6085ec91cbebcbdcce685e0b47010ad387dd752b882dfc80c3"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-beluga/season2-beluga-both-down.webp",
+    "sha256": "cdb3515bdf077fc6aab7c38ccac7cb9176dcc89963a25bae76743ae8123a04b2"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-beluga/season2-beluga-left-down.webp",
+    "sha256": "cedfa66f1fd6fd632af6a469a69008ed029b27df9ca7af150d3dac06d063de66"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-beluga/season2-beluga-right-down.webp",
+    "sha256": "5f26dc927071555ee9a86e2ec4467cfac225d486ecc40219da8eb1b803e1e623"
+  }
+}

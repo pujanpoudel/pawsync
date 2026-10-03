@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/hamster/hamster-both-up.webp",
+    "sha256": "f750877c611741cfcef601143991a57b07dc17e10766bc58d48212f965356946"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/hamster/hamster-both-down.webp",
+    "sha256": "049b83d5cc90d45043cea7458be465ec53d44212579762ec36ea5a251745043b"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/hamster/hamster-left-down.webp",
+    "sha256": "b981c09b5dc5be55ccb65fc3d744f24d2b1ef094a27d2273dffefa8b9300a266"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/hamster/hamster-right-down.webp",
+    "sha256": "1d681f704b9583ec13f9805542c9fe1113c0d3829286cb097f50c25b1a7a6379"
+  }
+}

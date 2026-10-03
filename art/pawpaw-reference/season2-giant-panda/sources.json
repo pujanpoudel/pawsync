@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/season2-giant-panda/season2-giant-panda-both-up.webp",
+    "sha256": "e086545e8778ce9e4eb85401d7bbc93a8bdc95d4c9557ab0cfa18dd488143b78"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-giant-panda/season2-giant-panda-both-down.webp",
+    "sha256": "0e4fdc27462b7fa4f91fc59b98c017b1d275ca445a32df535d56fb0510bfaed7"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-giant-panda/season2-giant-panda-left-down.webp",
+    "sha256": "8887ba404efcb8be4e57ad558507b0c6b5121d291009b0ca786284b829b92d32"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-giant-panda/season2-giant-panda-right-down.webp",
+    "sha256": "4b719f9a94fa9ed39b55cd0013c48c0f012663ea88f27da3db5aa2741971b4bc"
+  }
+}

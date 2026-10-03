@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/season2-platypus/season2-platypus-both-up.webp",
+    "sha256": "c63d670ddba0dc955dfb5936214fa9d583392dd16c0197415c8b32e01a1b9f31"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-platypus/season2-platypus-both-down.webp",
+    "sha256": "ae3a2ff0d85766611d7e6fb7f7a504226123d652d117d68a99edb05260d9e03d"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-platypus/season2-platypus-left-down.webp",
+    "sha256": "6141f4e919ab51d4655d948b060e40dfe949847a27de0857e3115e21f00cb188"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-platypus/season2-platypus-right-down.webp",
+    "sha256": "aca58dcf469ba900f21f94506a8a02e1ccc799bbf6bd7a842dbbcc27407afcd7"
+  }
+}

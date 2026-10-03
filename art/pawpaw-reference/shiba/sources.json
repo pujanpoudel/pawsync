@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/shiba/shiba-both-up.webp",
+    "sha256": "f9f88d63f06fc70ad49fc64bdabc0ea86fd825e37f643180bfb76a58c7eaa27f"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/shiba/shiba-both-down.webp",
+    "sha256": "9314f0ec4e30ed249d6be7ea4f14053bb7b9e3794f46a28242f0103fb419d2d2"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/shiba/shiba-left-down.webp",
+    "sha256": "e247532f21240e81bd80c4eef7d779e1e9d4cccd35767a7a1a18e60619109587"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/shiba/shiba-right-down.webp",
+    "sha256": "3234f0c5ccdbe8f4fcbf1683a363e47aeb9bd1a20f1c0151484757a7d5dcb725"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/season2-frog/season2-frog-both-up.webp",
+    "sha256": "b866fa0ee9ab3cd6b1c561dd131629398aaf9c7eb0e2b2f3936ccc0a67c205fb"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-frog/season2-frog-both-down.webp",
+    "sha256": "6de7c20eedd7505724dcb9072c84dd27bf0468b4aa08e25c324c0efed65e9c1c"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-frog/season2-frog-left-down.webp",
+    "sha256": "03a75e9c7264c58f87ea762619e54cf94be7496352d238539b7aa3b6353a6374"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-frog/season2-frog-right-down.webp",
+    "sha256": "18a60890646fbfb76f08a357c8d3b125ae7760895f5cf627cf2980268e99078d"
+  }
+}

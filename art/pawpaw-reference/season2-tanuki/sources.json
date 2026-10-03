@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/season2-tanuki/season2-tanuki-both-up.webp",
+    "sha256": "08787944f373181d908d8b8f051506401d669213621a7e6e3c4dfe99688dbb6f"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-tanuki/season2-tanuki-both-down.webp",
+    "sha256": "75d717f105a7c365d7b4d9825dfe389511134305ccd676d5ae6ce00abe0368e2"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-tanuki/season2-tanuki-left-down.webp",
+    "sha256": "957b1bb64465711a3a28ac53a28782bccad0423c017324ee9f85d68bf223a604"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-tanuki/season2-tanuki-right-down.webp",
+    "sha256": "a1a0bcc76152cbfeaffc17e81d6a902419bf8f8c6a86568819af07c81b9f952e"
+  }
+}

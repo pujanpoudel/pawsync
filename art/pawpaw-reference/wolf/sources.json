@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/wolf/wolf-both-up.webp",
+    "sha256": "61a9d80aa931bd443435e70414b732d5e7e26f90c231e765e8fb7d0a36cea75a"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/wolf/wolf-both-down.webp",
+    "sha256": "654d70fbfda1082f8de8b3bad76823af2756b09c48e70ad1c5a66265b8e8cbc0"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/wolf/wolf-left-down.webp",
+    "sha256": "b8c01e2f75aaeb5d597fec059f40ab3a2e2c5fc4284675f896268228502892cc"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/wolf/wolf-right-down.webp",
+    "sha256": "669ce3f4fca38c47fdb33a01749eb3ec6bf9bbaf46539c4b8e3a91ecb480649d"
+  }
+}

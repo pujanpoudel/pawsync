@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/season2-chameleon/season2-chameleon-both-up.webp",
+    "sha256": "f6fba10e8b66a4c6261b33f4b5e5d4f3ab967830faadbc0615711bb5da278ab6"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-chameleon/season2-chameleon-both-down.webp",
+    "sha256": "4ae58478ca38d15be72859750a52c2b7bff654b94e74ca6534fab9ce8f083e21"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-chameleon/season2-chameleon-left-down.webp",
+    "sha256": "e75cde2b1cf02e709c03b1be4c01d51134fa58c030b0878ec5711a65d9f96d4b"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/season2-chameleon/season2-chameleon-right-down.webp",
+    "sha256": "46051035a8d2825126bcb851712674dc2972daec2baa8fa9b487d9195f7f71a6"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "pawpaw-season2-sloth",
+  "displayName": "Sloth",
+  "description": "Public Paw-Paw website preview, adapted for local PawSync development.",
+  "spritesheetPath": "spritesheet.webp",
+  "spriteVersionNumber": 1,
+  "author": "Paw-Paw"
+}

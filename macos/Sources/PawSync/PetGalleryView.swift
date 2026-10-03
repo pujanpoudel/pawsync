@@ -25,7 +25,7 @@ struct PetGalleryView: View {
     }
     var body: some View {
         VStack(alignment:.leading,spacing:18) {
-            GroupBox("OpenPets companions") {
+            GroupBox("More little friends") {
                 LazyVStack(alignment:.leading,spacing:12) {
                     LazyVGrid(columns:[GridItem(.adaptive(minimum:140),spacing:12)],spacing:12) {
                         ForEach(catalog.installed) { pet in
@@ -36,6 +36,7 @@ struct PetGalleryView: View {
                                             Image(nsImage:image).resizable().scaledToFit().frame(height:100)
                                         } else { Image(systemName:"pawprint.fill").font(.title2).foregroundStyle(.purple).frame(height:100) }
                                         Text(pet.name).font(.system(size:13,weight:.semibold)).lineLimit(1)
+                                        Text(pet.origin == "Paw-Paw preview" ? "Paw-Paw preview":"OpenPets").font(.caption2).foregroundStyle(.secondary)
                                     }.frame(maxWidth:.infinity).contentShape(Rectangle())
                                 }.buttonStyle(.plain).accessibilityLabel("Preview \(pet.name)")
                                 Button(preferences.companion == pet.id ? "Selected" : "Use pet") { preferences.companion=pet.id }.disabled(preferences.companion == pet.id)
@@ -103,8 +104,19 @@ struct PetGalleryView: View {
                 }.frame(maxWidth:.infinity).frame(height:218)
                 Text("By \(pet.author)").foregroundStyle(.secondary)
                 Text(pet.source).font(.caption).textSelection(.enabled)
+                DisclosureGroup("Expressions") {
+                    LazyVGrid(columns:[GridItem(.adaptive(minimum:90))],spacing:8) {
+                        ForEach(PetEmotion.allCases) { emotion in
+                            Button(emotion.title) {
+                                preferences.companion=pet.id
+                                DispatchQueue.main.async { model.overlay.showEmotion(emotion) }
+                            }
+                        }
+                    }.padding(.top,8)
+                }
                 HStack { Button("Use & wave") { preferences.companion=pet.id; model.overlay.wave() }; Button("Preview jump") { preferences.companion=pet.id; model.overlay.celebrate() }; Spacer(); Button("Done") { preview=nil } }
                 if pet.local == true { Button("Remove from my pets") { catalog.remove(pet); preview=nil }.font(.caption).help("Move this imported companion to the system Trash") }
+                if pet.origin == "Paw-Paw preview" { Button("View character sheet") { NSWorkspace.shared.open(pet.directory.appendingPathComponent("character-sheet.png")) } }
             }.padding(24).frame(width:470).onAppear { catalog.loadInstalledPreview(pet) }
         case .catalog(let pet):
             VStack(alignment:.leading,spacing:14) {

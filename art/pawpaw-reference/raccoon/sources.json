@@ -1,0 +1,18 @@
+{
+  "both-up": {
+    "url": "https://paw-paw.pet/public/sprites/raccoon/raccoon-both-up.webp",
+    "sha256": "6ee1a5a3503c54ed0ae6eea60aa8eaa7f82f37a64a8bcd66dd8437a1d5654de7"
+  },
+  "both-down": {
+    "url": "https://paw-paw.pet/public/sprites/raccoon/raccoon-both-down.webp",
+    "sha256": "1be559ae3e6d78cf5f32253b4c174be3cd63ffe4028d3f2941ba137a0a83dec8"
+  },
+  "left-down": {
+    "url": "https://paw-paw.pet/public/sprites/raccoon/raccoon-left-down.webp",
+    "sha256": "225404cbf83e126dc6587cc00b22bcc60e798ff7eab461399b3f6149c4f66fb0"
+  },
+  "right-down": {
+    "url": "https://paw-paw.pet/public/sprites/raccoon/raccoon-right-down.webp",
+    "sha256": "99c1b29c25c4b4b7fe3c63935b46b20afabd706b5e3c2d64e584d4c4a2e93f28"
+  }
+}

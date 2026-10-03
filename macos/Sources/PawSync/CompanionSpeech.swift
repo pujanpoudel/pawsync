@@ -65,14 +65,17 @@ struct SpeechAction:Identifiable { let id:String;let title:String;let icon:Strin
     private var bubblePath:NSBezierPath { PetChromeDrawing.cloud(in:bounds) }
     init(title:String,text:String,reminder:Bool,actions:[SpeechAction],palette:PetChromePalette,height:CGFloat,onDismiss:@escaping ()->Void,onSnooze:@escaping ()->Void) {
         self.palette=palette;self.onDismiss=onDismiss;super.init(frame:CGRect(x:0,y:0,width:310,height:height))
-        let heading=PetSpeechLabel(labelWithString:title);heading.font = .systemFont(ofSize:13,weight:.semibold);heading.textColor=palette.ink;heading.lineBreakMode = .byTruncatingTail;heading.frame=CGRect(x:39,y:35,width:220,height:19);addSubview(heading)
-        let message=PetSpeechLabel(wrappingLabelWithString:text);message.font = .systemFont(ofSize:12,weight:.medium);message.textColor=palette.ink;message.maximumNumberOfLines=3;message.lineBreakMode = .byWordWrapping;message.frame=CGRect(x:39,y:62,width:230,height:53);message.isSelectable=false;addSubview(message)
-        let close=PetSoftButton(title:"",symbol:"xmark",action:onDismiss);close.palette=palette;close.setAccessibilityLabel("Dismiss thought bubble");close.frame=CGRect(x:265,y:32,width:23,height:23);addSubview(close)
+        let heading=PetSpeechLabel(labelWithString:title);heading.font = .systemFont(ofSize:13,weight:.bold);heading.textColor=palette.ink;heading.lineBreakMode = .byTruncatingTail;heading.frame=CGRect(x:40,y:39,width:212,height:19);addSubview(heading)
+        let message=PetSpeechLabel(wrappingLabelWithString:text);message.font = .systemFont(ofSize:12,weight:.regular);message.textColor=palette.ink;message.maximumNumberOfLines=3;message.lineBreakMode = .byWordWrapping;message.frame=CGRect(x:40,y:65,width:230,height:53);message.isSelectable=false;addSubview(message)
+        let close=PetSoftButton(title:"",symbol:"xmark",action:onDismiss);close.palette=palette;close.emphasis = .secondary;close.setAccessibilityLabel("Dismiss thought bubble");close.frame=CGRect(x:264,y:39,width:23,height:23);addSubview(close)
         let buttons: [(String,()->Void)] = !actions.isEmpty ? actions.map{($0.title,$0.action)} : reminder ? [(title.localizedCaseInsensitiveContains("water") ? "I had a sip!":"All done",onDismiss),("Snooze 10 min",onSnooze)]:[]
         var x:CGFloat=39
-        for (title,action) in buttons {
-            let width=min(110,max(65,CGFloat(title.count)*5.8+20))
-            let button=PetSoftButton(title:title,action:action);button.palette=palette;button.frame=CGRect(x:x,y:height-89,width:width,height:27);addSubview(button);x+=width+7
+        let maxWidth=(232-CGFloat(max(0,buttons.count-1))*8)/CGFloat(max(1,buttons.count))
+        for (index,pair) in buttons.enumerated() {
+            let (title,action)=pair
+            let measured=(title as NSString).size(withAttributes:[.font:NSFont.systemFont(ofSize:10,weight:.semibold)]).width
+            let width=min(maxWidth,max(65,measured+24))
+            let button=PetSoftButton(title:title,action:action);button.palette=palette;button.emphasis=index == 0 ? .primary:.secondary;button.toolTip=title;button.frame=CGRect(x:x,y:height-84,width:width,height:30);addSubview(button);x+=width+8
         }
         if reminder {
             let menu=NSMenu();let snooze=NSMenuItem(title:"Snooze 10 min",action:#selector(snoozeMenu),keyEquivalent:"");snooze.target=self;menu.addItem(snooze);self.menu=menu;self.snoozeAction=onSnooze
@@ -84,12 +87,18 @@ struct SpeechAction:Identifiable { let id:String;let title:String;let icon:Strin
     override var isFlipped:Bool { true }
     override func acceptsFirstMouse(for event:NSEvent?)->Bool { true }
     override func draw(_ dirtyRect:NSRect) {
-        PetChromeDrawing.paint(bubblePath,fill:palette.fur,ink:palette.ink,width:1.6)
+        PetChromeDrawing.paint(bubblePath,fill:palette.cloth,ink:palette.ink,width:1.7)
+        // A soft stitched cushion, held by the same fur-colored paws as the
+        // pocket. The center stays fully opaque on light or dark wallpaper.
+        let seam=NSBezierPath(roundedRect:CGRect(x:29,y:28,width:252,height:bounds.height-77),xRadius:32,yRadius:32)
+        seam.setLineDash([2,4],count:2,phase:0);seam.lineWidth=0.8;palette.ink.withAlphaComponent(0.27).setStroke();seam.stroke()
+        PetChromeDrawing.mitten(in:CGRect(x:51,y:bounds.height-48,width:28,height:22),palette:palette)
+        PetChromeDrawing.mitten(in:CGRect(x:214,y:bounds.height-48,width:28,height:22),palette:palette)
         for (x,y,r) in [(CGFloat(254),bounds.height-27,CGFloat(7)),(CGFloat(273),bounds.height-13,CGFloat(4.5)),(CGFloat(286),bounds.height-4,CGFloat(2.5))] {
-            PetChromeDrawing.paint(NSBezierPath(ovalIn:CGRect(x:x-r,y:y-r,width:r*2,height:r*2)),fill:palette.fur,ink:palette.ink,width:1.2)
+            PetChromeDrawing.paint(NSBezierPath(ovalIn:CGRect(x:x-r,y:y-r,width:r*2,height:r*2)),fill:palette.cloth,ink:palette.ink,width:1.2)
         }
-        // A little blush sits in a lobe of the cloud, keeping the text itself clean.
-        palette.blush.withAlphaComponent(0.32).setFill();NSBezierPath(ovalIn:CGRect(x:22,y:58,width:9,height:4)).fill()
+        palette.blush.withAlphaComponent(0.5).setFill()
+        for x in [CGFloat(18),CGFloat(285)] { NSBezierPath(ovalIn:CGRect(x:x,y:86,width:7,height:4)).fill() }
     }
     override func hitTest(_ point:NSPoint)->NSView? {
         let local=convert(point,from:superview)

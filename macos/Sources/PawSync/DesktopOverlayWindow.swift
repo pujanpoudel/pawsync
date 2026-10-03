@@ -33,6 +33,12 @@ import QuartzCore
         controller.showDropTarget?()
         return .copy
     }
+    override func draggingUpdated(_ sender:any NSDraggingInfo)->NSDragOperation {
+        if let id=sender.draggingPasteboard.string(forType:.string),id.hasPrefix("free."),id.count<=80 { return .copy }
+        guard let controller,controller.canAcceptFiles(fileURLs(sender.draggingPasteboard)) else { controller?.setDropHighlight(false);return [] }
+        controller.setDropHighlight(true);return .copy
+    }
+    override func draggingEnded(_ sender:any NSDraggingInfo) { controller?.setDropHighlight(false);controller?.hideDropTarget?() }
     override func performDragOperation(_ sender:any NSDraggingInfo) -> Bool {
         if let id=sender.draggingPasteboard.string(forType:.string),id.count<=80,let scene {
             defer { controller?.endHatDrag() }
@@ -149,6 +155,7 @@ import QuartzCore
     private var renderPauseWork:DispatchWorkItem?
     private var nextBreath = Date()
     private var lastPettingSound = Date.distantPast
+    private(set) var receivingFiles=false
     private var tick: Timer?
     private var pointerFallback: Timer?
     private var workspaceObservers: [NSObjectProtocol] = []
@@ -425,13 +432,23 @@ import QuartzCore
     func catchFiles(count:Int) {
         guard count>0 else { return }
         stopWalking();stopDance();interruptReaction();didReceiveInput();statusLabel.text="Caught it!"
-        animate(for:1.5);pet?.play(.jumping,looping:false,relaxed:false)
+        receivingFiles=false;pet?.setHeldFileCount(storedFileCount?() ?? count);pet?.catchFiles();animate(for:1.5)
         DispatchQueue.main.asyncAfter(deadline:.now()+2.5){[weak self] in if self?.statusLabel.text=="Caught it!" { self?.statusLabel.text=nil } }
     }
     func setHeldFileCount(_ count:Int) { pet?.setHeldFileCount(count) }
     func setDropHighlight(_ active:Bool) {
+        guard active != receivingFiles else { return };receivingFiles=active
         statusLabel.text=active ? "Drop to catch!" : nil
-        if active { animate(for:1) }
+        if active {
+            stopWalking();stopDance();interruptReaction();didReceiveInput()
+            if careSleeping { onPetWake?() }
+            pet?.setReceivingFiles(true)
+        } else { pet?.setReceivingFiles(false);updateSleep() }
+        animate(for:0.5)
+    }
+    func showEmotion(_ emotion:PetEmotion) {
+        guard !isHidden,!screenSleeping,!focusSleeping,!careSleeping else { return }
+        stopWalking();stopDance();interruptReaction();didReceiveInput();pet?.express(emotion);animate(for:2)
     }
     func wave() { stopWalking(); stopDance(); animate(for: 1.5); pet?.wave() }
     func jumpNow() {
@@ -564,7 +581,7 @@ import QuartzCore
     }
     private func heartbeat() {
         guard !screenSleeping, !isHidden, !preferences.reactionsPaused else { stopWalking(); stopDance(); view.isPaused = true; return }
-        if Date().timeIntervalSince(lastInput) >= 15, !idleSleeping { idleSleeping = true; updateSleep() }
+        if Date().timeIntervalSince(lastInput) >= 15, !idleSleeping,!receivingFiles { idleSleeping = true; updateSleep() }
         if currentReaction == .idle, musicAudible, canRoam, !focusSleeping, !careSleeping, !idleSleeping, !isInteracting, Date().timeIntervalSince(lastInput) > 1.5 {
             stopWalking()
             if !dancing { dancing = true; pet?.setDancing(true, beat: musicBeat) }
