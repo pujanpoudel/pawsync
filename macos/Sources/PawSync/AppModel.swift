@@ -89,10 +89,17 @@ import Combine
         overlay.restorePresentation = { [weak self] in self?.applyPresentation() }
         shortcuts.onToggle = { [weak self] in self?.preferences.hidden.toggle() }
         overlay.makeContextMenu = { [weak self] in self?.petContextMenu() ?? NSMenu() }
-        overlay.showQuickActions = { [weak self] in guard let self,!self.speech.isVisible,!self.fileShelf.isVisible else { return };if !self.quickActions.isVisible { self.overlay.stopWalking() };self.quickActions.show(near:self.overlay.window) }
-        overlay.hideQuickActions = { [weak self] in self?.quickActions.scheduleDismiss() }
+        overlay.showQuickActions = { [weak self] in
+            guard let self else { return }
+            if self.quickActions.isVisible { self.quickActions.dismiss();return }
+            self.fileShelf.dismiss()
+            if self.speech.isReminder { self.speech.onAutoDismiss?() }
+            self.speech.dismiss()
+            self.overlay.stopWalking()
+            self.quickActions.show(near:self.overlay.window)
+        }
         fileShelf.attach(to:overlay.window)
-        overlay.showFileShelf = { [weak self] in guard let self,!self.speech.isVisible,!self.fileInbox.files.isEmpty else { return };self.quickActions.dismiss();self.overlay.stopWalking();self.fileShelf.show(near:self.overlay.window) }
+        overlay.showFileShelf = { [weak self] in guard let self,!self.speech.isVisible,!self.quickActions.isVisible,!self.fileInbox.files.isEmpty else { return };self.overlay.stopWalking();self.fileShelf.show(near:self.overlay.window) }
         overlay.companionUIActive = { [weak self] in self?.quickActions.isVisible == true || self?.fileShelf.isVisible == true || self?.speech.isVisible == true }
         overlay.storedFileCount = { [weak self] in self?.fileInbox.files.count ?? 0 }
         overlay.showDropTarget = { [weak self] in guard let self else { return };self.quickActions.dismiss();self.fileShelf.showDropTarget(near:self.overlay.window) }

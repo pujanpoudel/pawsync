@@ -14,9 +14,25 @@ import SpriteKit
                 guard menu.hitTest(menu.convert(point,to:menu.superview)) === button else { throw PawError.message("Quick-action hit testing missed \(button.title).") }
             }
             guard button.acceptsFirstMouse(for:nil),!button.needsPanelToBecomeKey else { throw PawError.message("A quick action requires a second activating click.") }
+            guard !button.caption.isHidden,button.caption.stringValue == button.title,button.caption.font?.pointSize == 11,button.caption.fittingSize.width <= button.caption.frame.width,button.bounds.contains(button.caption.frame) else { throw PawError.message("Quick-action label is hidden or clipped: \(button.title).") }
+            guard menu.hitTest(menu.convert(CGPoint(x:button.frame.midX,y:button.frame.minY+65),to:menu.superview)) === button else { throw PawError.message("The action caption does not click the whole paw.") }
             button.performClick(nil)
         }
         guard Set(calls) == ["hello","water","reminder","focus","walk","files"],calls.count == 6,menu.hitTest(menu.convert(CGPoint(x:150,y:155),to:menu.superview)) == nil else { throw PawError.message("Pet actions or transparent menu center failed.") }
+        let overlay=OverlayController(preferences:Preferences())
+        defer { overlay.stop() }
+        try overlay.loadPet("bunny")
+        var opened=0;overlay.showQuickActions={opened+=1}
+        func pointer(_ type:NSEvent.EventType,clicks:Int=0)->NSEvent {
+            NSEvent.mouseEvent(with:type,location:CGPoint(x:140,y:100),modifierFlags:[],timestamp:0,windowNumber:overlay.window.windowNumber,context:nil,eventNumber:0,clickCount:clicks,pressure:0)!
+        }
+        let movement=pointer(.mouseMoved)
+        overlay.view.mouseEntered(with:movement);overlay.view.mouseMoved(with:movement)
+        overlay.view.mouseDown(with:pointer(.leftMouseDown,clicks:1));overlay.view.mouseUp(with:pointer(.leftMouseUp,clicks:1))
+        guard opened == 0,overlay.view.acceptsFirstMouse(for:nil) else { throw PawError.message("Hover or a single click opened the menu, or the first tap was ignored.") }
+        overlay.view.mouseDown(with:pointer(.leftMouseDown,clicks:2));overlay.view.mouseUp(with:pointer(.leftMouseUp,clicks:2))
+        overlay.view.mouseDown(with:pointer(.leftMouseDown,clicks:3))
+        guard opened == 1,!overlay.isInteracting else { throw PawError.message("Double tap did not open the menu exactly once.") }
         var dismissed=0,snoozed=0
         let speech=PetSpeechNativeView(title:"A little sip?",text:"Your water bottle misses you. Let’s have a drink together!",reminder:true,actions:[],palette:.companion("bunny"),height:208,onDismiss:{dismissed+=1},onSnooze:{snoozed+=1})
         for button in speech.subviews.compactMap({$0 as? PetSoftButton}) {
@@ -34,12 +50,13 @@ import SpriteKit
             guard let cell=source.image.cropping(to:CGRect(x:column*w,y:0,width:w,height:h)) else { throw PawError.message("Could not preview companion.") }
             let petImage=NSImage(cgImage:cell,size:CGSize(width:192,height:208))
             let palette=PetChromePalette.companion(id)
-            for mode in ["actions","thought","pocket","drop"] {
+            for mode in ["actions","actions-dark","thought","pocket","drop"] {
                 let root=PetChromePreviewView(frame:CGRect(x:0,y:0,width:640,height:470))
+                if mode == "actions-dark" { root.background=NSColor(calibratedRed:0.12,green:0.10,blue:0.18,alpha:1) }
                 let pet=NSImageView(frame:CGRect(x:396,y:252,width:192,height:208));pet.image=petImage;pet.imageScaling = .scaleAxesIndependently;root.addSubview(pet)
                 let content:NSView
                 switch mode {
-                case "actions": content=PetQuickActionsNativeView(palette:palette,action:{_ in});content.frame.origin=CGPoint(x:342,y:147)
+                case "actions","actions-dark": content=PetQuickActionsNativeView(palette:palette,action:{_ in});content.frame.origin=CGPoint(x:291,y:125)
                 case "thought": content=PetSpeechNativeView(title:"A little sip?",text:"Your water bottle misses you. Let’s have a drink together!",reminder:true,actions:[],palette:palette,height:208,onDismiss:{},onSnooze:{});content.frame.origin=CGPoint(x:210,y:43)
                 default:
                     content=PetPocketNativeView(files:mode == "drop" ? []:fixtures,dropTarget:mode == "drop",palette:palette,name:id == "bunny" ? "Clover":id == "fox" ? "Maple":"Buddy",onOpen:{_ in},onRemove:{_ in},onFolder:{},onClose:{},onDrop:{_ in false},canDrop:{_ in true},onDragging:{_ in})
@@ -64,13 +81,14 @@ import SpriteKit
             guard !node.containsHeldFilesPoint(CGPoint(x:140,y:68)) else { throw PawError.message("Empty held pocket stayed interactive.") }
             node.setRenderingSuspended(true)
         }
-        print("Companion UI checks passed: six whole-paw/first-click targets dispatch; empty menu center passes through; thought dismiss/done/snooze dispatch; held-pocket hit region disappears when empty. Rendered 12 native previews at \(directory.path).")
+        print("Companion UI checks passed: double tap opens once; hover/single tap do not open; six readable whole-paw/first-click targets dispatch; empty menu center passes through; thought dismiss/done/snooze dispatch; held-pocket hit region disappears when empty. Rendered 15 native previews at \(directory.path).")
     }
 }
 
 @MainActor private final class PetChromePreviewView:NSView {
+    var background=NSColor(calibratedRed:0.97,green:0.95,blue:0.92,alpha:1)
     override var isFlipped:Bool { true }
     override func draw(_ dirtyRect:NSRect) {
-        NSColor(calibratedRed:0.97,green:0.95,blue:0.92,alpha:1).setFill();bounds.fill()
+        background.setFill();bounds.fill()
     }
 }

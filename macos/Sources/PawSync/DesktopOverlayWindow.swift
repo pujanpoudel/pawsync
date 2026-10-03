@@ -21,6 +21,7 @@ import QuartzCore
 
 @MainActor final class PetInteractionView: SKView {
     override var needsPanelToBecomeKey: Bool { false }
+    override func acceptsFirstMouse(for event:NSEvent?)->Bool { true }
     weak var controller: OverlayController?
     private var previous: CGPoint?
     private var moving = false
@@ -53,16 +54,11 @@ import QuartzCore
         petTracking=NSTrackingArea(rect:bounds,options:[.mouseEnteredAndExited,.mouseMoved,.activeAlways,.inVisibleRect],owner:self,userInfo:nil)
         if let petTracking { addTrackingArea(petTracking) }
     }
-    override func mouseEntered(with event:NSEvent) { revealPocketIfPet(event.locationInWindow);revealQuickActionsIfPet(event.locationInWindow) }
-    override func mouseMoved(with event:NSEvent) { revealPocketIfPet(event.locationInWindow);revealQuickActionsIfPet(event.locationInWindow) }
-    override func mouseExited(with event:NSEvent) { controller?.hideQuickActions?() }
+    override func mouseEntered(with event:NSEvent) { revealPocketIfPet(event.locationInWindow) }
+    override func mouseMoved(with event:NSEvent) { revealPocketIfPet(event.locationInWindow) }
     private func revealPocketIfPet(_ point:NSPoint) {
         guard let controller,controller.hitPet(fromView:point) else { return }
         if controller.hitHeldFiles(fromView:point) { controller.showFileShelf?() }
-    }
-    private func revealQuickActionsIfPet(_ point:NSPoint) {
-        guard let controller,controller.hitPet(fromView:point),!controller.hitHeldFiles(fromView:point) else { return }
-        controller.showQuickActions?()
     }
     override func hitTest(_ point: NSPoint) -> NSView? {
         let local = convert(point, from: superview)
@@ -73,6 +69,7 @@ import QuartzCore
     override func mouseDown(with event: NSEvent) {
         if event.clickCount>=2 {
             previous=nil;controller?.isInteracting=false
+            if event.clickCount == 2 { controller?.showQuickActions?() }
             return
         }
         previous = NSEvent.mouseLocation
@@ -116,7 +113,6 @@ import QuartzCore
     var showDropTarget:(()->Void)?
     var hideDropTarget:(()->Void)?
     var showQuickActions:(()->Void)?
-    var hideQuickActions:(()->Void)?
     var canAcceptFiles:(([URL])->Bool)?
     var onFileDrop:(([URL])->Bool)?
     var onHatDrop: ((String,CGPoint)->Bool)?

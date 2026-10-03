@@ -8,10 +8,34 @@ import shutil
 import subprocess
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+LSREGISTER = pathlib.Path("/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister")
 
 
 def run(*args, cwd=ROOT):
     subprocess.run([str(a) for a in args], cwd=cwd, check=True)
+
+
+def retire_legacy_export():
+    """An old asset-export app must never shadow the real app in LaunchServices."""
+    duplicate = ROOT / "build/PawSync-export.app"
+    info = duplicate / "Contents/Info.plist"
+    if not info.exists():
+        return
+    bundle_id = plistlib.loads((ROOT / "macos/Info.plist").read_bytes())["CFBundleIdentifier"]
+    if plistlib.loads(info.read_bytes()).get("CFBundleIdentifier") != bundle_id:
+        return
+    if LSREGISTER.exists():
+        subprocess.run([str(LSREGISTER), "-u", str(duplicate)], check=False,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    archive = ROOT / "build/LegacyExports"
+    archive.mkdir(exist_ok=True)
+    destination = archive / "PawSync-export.bundle"
+    suffix = 1
+    while destination.exists():
+        destination = archive / f"PawSync-export-{suffix}.bundle"
+        suffix += 1
+    shutil.move(str(duplicate), destination)
+    print(f"Archived obsolete duplicate app to {destination}")
 
 
 def main():
@@ -19,6 +43,7 @@ def main():
     parser.add_argument("--universal", action="store_true")
     parser.add_argument("--release", action="store_true")
     args = parser.parse_args()
+    retire_legacy_export()
     app = ROOT / "build/PawSync.app"
     macos = app / "Contents/MacOS"
     macos.mkdir(parents=True, exist_ok=True)
@@ -71,6 +96,9 @@ def main():
     # notarize_release.py enables runtime on every executable with one Team ID.
     run("codesign", "--force", "--sign", "-", "--options", "0", "--entitlements", ROOT / "macos/PawSync.entitlements", app)
     run("codesign", "--verify", "--strict", app)
+    if LSREGISTER.exists():
+        subprocess.run([str(LSREGISTER), "-f", str(app)], check=False,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     print(f"Built {app} ({'release dependencies' if args.release else 'offline development preview'})")
 
 
