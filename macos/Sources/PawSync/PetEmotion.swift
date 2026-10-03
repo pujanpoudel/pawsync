@@ -57,8 +57,10 @@ struct PetExpressionProfile:Decodable {
                 case .sleepy,.shy:
                     line(CGPoint(x:-r,y:0),CGPoint(x:r,y:0),CGPoint(x:0,y:-r*0.75))
                 case .surprised:
-                    let white=SKShapeNode(ellipseOf:CGSize(width:r*2.5,height:r*2.7));white.fillColor = .white;white.strokeColor=palette.ink;white.lineWidth=1.2;group.addChild(white)
-                    let pupil=SKShapeNode(ellipseOf:CGSize(width:r*0.95,height:r*1.5));pupil.fillColor=palette.ink;pupil.strokeColor = .clear;group.addChild(pupil)
+                    // Keep the companion's soft, dark bead eyes when surprised.
+                    // Large white sclera made everyday clicks/file catches look alarmed.
+                    let pupil=SKShapeNode(ellipseOf:CGSize(width:r*1.65,height:r*2.05));pupil.fillColor=palette.ink;pupil.strokeColor = .clear;group.addChild(pupil)
+                    let glint=SKShapeNode(circleOfRadius:max(0.45,r*0.16));glint.position=CGPoint(x:-r*0.25,y:r*0.38);glint.fillColor=NSColor(calibratedRed:1,green:0.94,blue:0.83,alpha:0.8);glint.strokeColor = .clear;group.addChild(glint)
                 case .curious:
                     if index == 0 {
                         let pupil=SKShapeNode(ellipseOf:CGSize(width:r*1.8,height:r*2));pupil.fillColor=palette.ink;pupil.strokeColor = .clear;group.addChild(pupil)

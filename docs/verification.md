@@ -110,3 +110,9 @@ Resource implementation references Apple’s public [Mach statistics API](https:
 - The contact-sheet/resource bundle is `build/PawSync-expressive-pets.zip`. Generated sources, precise prompts, baked PNGs, landmarks, native procedural renderer and asset provenance are documented in `docs/expressive-pet-packs.md`.
 - These checks are native offscreen render/dispatch and file-lifecycle checks. They do not prove operating-system drag-out acceptance, physical cross-app input or Instruments CPU/RAM acceptance; those remain separate live checks.
 - The final universal development build reports `x86_64 arm64` and passes strict signature verification. The updated `--check-companion-ui` passes Clear all hit testing/dispatch and renders 36 previews, including the stitched chat cushion on dark backgrounds and pet-specific palettes. The former large satchel indicator is replaced by a small heart-sealed note; Clear all releases session references and never deletes originals.
+
+## Softer eye expressions — 4 October 2026
+
+- Removed the oversized white sclera rings from the shared surprise/file-receive expression. Dark bead eyes with small warm highlights now retain the companion's soft appearance during clicks and catching files.
+- Rebuilt the universal app and reran `--check-emotions build/emotion-character-sheets`: all 46 pets × ten expressions and file interaction transitions pass. Visually reviewed the refreshed Capybara and Hamster sheets, including surprise and arms-open states. Regenerated the complete character-sheet/resource ZIP.
+- Input Monitoring refresh remains unfinished at the second macOS authentication prompt; native expression checks do not establish physical global-input acceptance.

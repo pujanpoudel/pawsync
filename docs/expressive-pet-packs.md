@@ -6,6 +6,8 @@ The native development build contains 46 frame companions: nine PawSync original
 
 PawSync originals and the reference previews have measured facial landmarks for happy, curious, surprised, affectionate, shy, sad, sleepy, excited, proud and focused expressions. The renderer preserves fur patterns and draws lids, pupils, blush and occasional hearts/sparkles over the real face. Existing OpenPets characters without measured facial landmarks keep their authored reaction frames, with limited accent overlays.
 
+Surprise and file receiving use gently enlarged dark bead eyes with tiny warm highlights, without white sclera rings, to keep everyday reactions soft rather than startled.
+
 Typing alternates left/right paws; rapid typing adds enthusiasm. Ordinary mouse clicks cycle through short boop, curiosity, happy, shy and proud reactions. Petting shows affection. These are finite reactions, independent of the double-tap quick-action menu.
 
 The nine original pets have newly generated, transparent arms-open and cupped-hand poses. An incoming file drag shows the receive pose, cancellation restores the previous resting/holding pose, and a successful catch closes the arms around the small heart-sealed note. The small note disappears when empty. Other frame pets use their existing artwork with local paw motion; segmented custom pets move their actual arm joints.
