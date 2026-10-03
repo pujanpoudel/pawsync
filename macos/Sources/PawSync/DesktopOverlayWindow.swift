@@ -53,11 +53,16 @@ import QuartzCore
         petTracking=NSTrackingArea(rect:bounds,options:[.mouseEnteredAndExited,.mouseMoved,.activeAlways,.inVisibleRect],owner:self,userInfo:nil)
         if let petTracking { addTrackingArea(petTracking) }
     }
-    override func mouseEntered(with event:NSEvent) { revealPocketIfPet(event.locationInWindow) }
-    override func mouseMoved(with event:NSEvent) { revealPocketIfPet(event.locationInWindow) }
+    override func mouseEntered(with event:NSEvent) { revealPocketIfPet(event.locationInWindow);revealQuickActionsIfPet(event.locationInWindow) }
+    override func mouseMoved(with event:NSEvent) { revealPocketIfPet(event.locationInWindow);revealQuickActionsIfPet(event.locationInWindow) }
+    override func mouseExited(with event:NSEvent) { controller?.hideQuickActions?() }
     private func revealPocketIfPet(_ point:NSPoint) {
         guard let controller,controller.hitPet(fromView:point) else { return }
         controller.showFileShelf?()
+    }
+    private func revealQuickActionsIfPet(_ point:NSPoint) {
+        guard let controller,controller.hitPet(fromView:point) else { return }
+        controller.showQuickActions?()
     }
     override func hitTest(_ point: NSPoint) -> NSView? {
         let local = convert(point, from: superview)
@@ -68,14 +73,6 @@ import QuartzCore
     override func mouseDown(with event: NSEvent) {
         if event.clickCount>=2 {
             previous=nil;controller?.isInteracting=false
-            if let controller,let scene {
-                let petPoint=controller.pet?.position ?? CGPoint(x:scene.size.width/2,y:scene.size.height/2)
-                let viewPoint=scene.convertPoint(toView:petPoint)
-                let position=CGPoint(x:viewPoint.x,y:min(bounds.maxY-4,viewPoint.y+95))
-                if let show=controller.showQuickActions { show() }
-                else { (controller.makeContextMenu?() ?? NSMenu()).popUp(positioning:nil,at:position,in:self) }
-                controller.updatePassThrough()
-            }
             return
         }
         previous = NSEvent.mouseLocation
@@ -95,8 +92,7 @@ import QuartzCore
         previous = nil; controller?.isInteracting = false; controller?.updatePassThrough()
     }
     override func rightMouseDown(with event: NSEvent) {
-        if let controller,let show=controller.showQuickActions { show() }
-        else { let menu = controller?.makeContextMenu?() ?? NSMenu();NSMenu.popUpContextMenu(menu, with: event, for: self) }
+        controller?.reactToPetClick()
     }
 }
 
@@ -119,6 +115,7 @@ import QuartzCore
     var showDropTarget:(()->Void)?
     var hideDropTarget:(()->Void)?
     var showQuickActions:(()->Void)?
+    var hideQuickActions:(()->Void)?
     var canAcceptFiles:(([URL])->Bool)?
     var onFileDrop:(([URL])->Bool)?
     var onHatDrop: ((String,CGPoint)->Bool)?

@@ -5,7 +5,8 @@ import SwiftUI
     private var panel:NSPanel?
     private weak var anchor:NSWindow?
     private let action:(String)->Void
-    private var clickMonitor:Any?
+    private var pointerTimer:Timer?
+    private var lastInBounds=Date()
     init(action:@escaping (String)->Void) { self.action=action }
     func show(near window:NSWindow) {
         anchor=window
@@ -23,13 +24,20 @@ import SwiftUI
         // Float over the pet's head so the actions feel attached to its body.
         let y=max(visible.minY,min(visible.maxY-size.height,pet.maxY-100))
         panel?.setFrame(CGRect(origin:CGPoint(x:x,y:y),size:size),display:true);panel?.orderFrontRegardless()
-        if clickMonitor == nil {
-            clickMonitor=NSEvent.addGlobalMonitorForEvents(matching:.leftMouseDown) { [weak self] _ in
-                DispatchQueue.main.async { guard let self,let panel=self.panel,panel.isVisible else { return };let p=NSEvent.mouseLocation;if !panel.frame.contains(p) && !(self.anchor?.frame.insetBy(dx:-8,dy:-8).contains(p) ?? false) { self.dismiss() } }
+        lastInBounds=Date()
+        if pointerTimer == nil {
+            pointerTimer=Timer.scheduledTimer(withTimeInterval:0.12,repeats:true){[weak self] _ in
+                MainActor.assumeIsolated {
+                    guard let self,let panel=self.panel,panel.isVisible else { return }
+                    let cursor=NSEvent.mouseLocation
+                    if panel.frame.contains(cursor) || (self.anchor?.frame.insetBy(dx:-14,dy:-14).contains(cursor) ?? false) { self.lastInBounds=Date() }
+                    else if Date().timeIntervalSince(self.lastInBounds)>0.38 { self.dismiss() }
+                }
             }
         }
     }
-    private func dismiss() { panel?.orderOut(nil) }
+    func scheduleDismiss() { lastInBounds=Date().addingTimeInterval(-0.12) }
+    private func dismiss() { panel?.orderOut(nil);pointerTimer?.invalidate();pointerTimer=nil }
 }
 
 @MainActor private final class PetQuickActionsHostingView:NSHostingView<PetQuickActionsView> {

@@ -85,6 +85,7 @@ import Combine
         shortcuts.onToggle = { [weak self] in self?.preferences.hidden.toggle() }
         overlay.makeContextMenu = { [weak self] in self?.petContextMenu() ?? NSMenu() }
         overlay.showQuickActions = { [weak self] in guard let self else { return };self.quickActions.show(near:self.overlay.window) }
+        overlay.hideQuickActions = { [weak self] in self?.quickActions.scheduleDismiss() }
         fileShelf.attach(to:overlay.window)
         overlay.showFileShelf = { [weak self] in guard let self, !self.fileInbox.files.isEmpty else { return };self.fileShelf.show(near:self.overlay.window) }
         overlay.storedFileCount = { [weak self] in self?.fileInbox.files.count ?? 0 }

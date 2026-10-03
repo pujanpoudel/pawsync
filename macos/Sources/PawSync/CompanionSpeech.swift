@@ -98,13 +98,14 @@ private struct CompanionSpeechView: View {
     private let ink = Color(red: 0.34, green: 0.25, blue: 0.31)
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
-                Image(systemName: speech.isReminder ? "sparkles" : "heart.fill").foregroundStyle(Color.pink.opacity(0.8))
+            HStack(spacing: 7) {
+                Image(systemName: speech.isReminder && speech.title.localizedCaseInsensitiveContains("water") ? "drop.fill" : speech.isReminder ? "sparkles" : "heart.fill").foregroundStyle(speech.isReminder && speech.title.localizedCaseInsensitiveContains("water") ? Color(red:0.32,green:0.65,blue:0.78) : Color.pink.opacity(0.82))
+                    .frame(width:25,height:25).background(Color.white.opacity(0.76),in:Circle())
                 Text(speech.title).font(.system(size: 12, weight: .semibold, design: .rounded)).lineLimit(1)
                 Spacer(minLength: 2)
                 Button { if speech.isReminder { speech.onDone?() } else { speech.dismiss() } } label: { Image(systemName: "xmark").font(.system(size: 9, weight: .bold)).frame(width:23,height:23).background(Color(red:1,green:0.89,blue:0.93),in:Circle()) }.buttonStyle(.plain).accessibilityLabel("Dismiss bubble")
             }
-            Text(speech.text).font(.system(size: 12, weight: .medium, design: .rounded)).lineSpacing(2).lineLimit(3).frame(maxWidth: .infinity, alignment: .leading)
+            Text(speech.text).font(.system(size: 12, weight: .medium, design: .rounded)).lineSpacing(2).lineLimit(3).frame(maxWidth: .infinity, alignment: .leading).padding(.leading,3)
                 .onTapGesture { if speech.isReminder { speech.onDone?() } else { speech.dismiss() } }
             if !speech.actions.isEmpty || speech.isReminder {
                 HStack(spacing:8) {
@@ -115,11 +116,9 @@ private struct CompanionSpeechView: View {
                     }
                 }
             }
-        }.foregroundStyle(ink).padding(.horizontal, 24).padding(.top, 23).padding(.bottom, 28)
+        }.foregroundStyle(ink).padding(.horizontal, 22).padding(.top, 20).padding(.bottom, 26)
             .frame(width: 290, height: speech.bubbleHeight, alignment: .topLeading)
-            .background(BubbleShape().fill(.ultraThinMaterial))
-            .overlay(BubbleShape().fill(LinearGradient(colors:[Color(red:1,green:0.93,blue:0.90).opacity(0.55),Color(red:0.95,green:0.89,blue:0.98).opacity(0.40)],startPoint:.topLeading,endPoint:.bottomTrailing)))
-            .overlay(BubbleShape().stroke(Color.white.opacity(0.90), lineWidth: 1.4))
+            .background { ZStack { BubbleShape().fill(.ultraThinMaterial);BubbleShape().fill(LinearGradient(colors:[Color(red:1,green:0.93,blue:0.90).opacity(0.60),Color(red:0.95,green:0.89,blue:0.98).opacity(0.44)],startPoint:.topLeading,endPoint:.bottomTrailing));BubbleShape().stroke(Color.white.opacity(0.92),lineWidth:1.35) } }
             .shadow(color: Color(red:0.44,green:0.31,blue:0.39).opacity(0.15), radius: 13, y: 5)
             .contextMenu { if speech.isReminder { Button("Snooze 10 min") { speech.onSnooze?() }; Button("Dismiss") { speech.onDone?() } } }
     }
