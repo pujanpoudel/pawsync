@@ -148,7 +148,10 @@ import SwiftUI
 }
 
 MainActor.assumeIsolated {
-    if CommandLine.arguments.contains("--check-input-status") {
+    if let index=CommandLine.arguments.firstIndex(of:"--check-companion-ui"),CommandLine.arguments.indices.contains(index+1) {
+        do { try PetChromeChecks.run(directory:URL(fileURLWithPath:CommandLine.arguments[index+1])) }
+        catch { fputs("Companion UI check failed: \(error.localizedDescription)\n",stderr);exit(1) }
+    } else if CommandLine.arguments.contains("--check-input-status") {
         SelfChecks.inputStatus()
     } else if let index=CommandLine.arguments.firstIndex(of:"--export-original-frames"),CommandLine.arguments.indices.contains(index+1) {
         do { try OriginalFrameExporter.run(directory:URL(fileURLWithPath:CommandLine.arguments[index+1])) }

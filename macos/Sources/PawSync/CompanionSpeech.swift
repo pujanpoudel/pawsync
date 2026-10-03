@@ -1,129 +1,105 @@
 import AppKit
-import SwiftUI
+import Combine
 
-struct SpeechAction:Identifiable { let id:String; let title:String; let icon:String; let action:()->Void }
+struct SpeechAction:Identifiable { let id:String;let title:String;let icon:String;let action:()->Void }
 
-@MainActor final class CompanionSpeech: ObservableObject {
-    @Published private(set) var title = ""
-    @Published private(set) var text = ""
-    @Published private(set) var isReminder = false
+@MainActor final class CompanionSpeech:ObservableObject {
+    @Published private(set) var title=""
+    @Published private(set) var text=""
+    @Published private(set) var isReminder=false
     @Published private(set) var actions:[SpeechAction]=[]
+    @Published private(set) var bubbleHeight:CGFloat=170
     var isVisible:Bool { panel?.isVisible == true }
     var onVisibility:((Bool)->Void)?
-    var onDone: (() -> Void)?
-    var onAutoDismiss: (() -> Void)?
-    var onSnooze: (() -> Void)?
-    private var panel: NSPanel?
-    private var dismissTimer: Timer?
-    private weak var petWindow: NSWindow?
-    private var moveObserver: NSObjectProtocol?
+    var onDone:(()->Void)?
+    var onAutoDismiss:(()->Void)?
+    var onSnooze:(()->Void)?
+    var attachment:(()->PetChromeAnchor)?
+    private var panel:PawPopupPanel?
+    private var dismissTimer:Timer?
+    private weak var petWindow:NSWindow?
+    private var moveObserver:NSObjectProtocol?
     private var scale:CGFloat=1
-    @Published private(set) var bubbleHeight:CGFloat=152
-    func setScale(_ value:Double) {
-        scale=CGFloat(max(0.7,min(1.5,value)))
-        refreshPanelContent()
-        reposition()
-    }
+    func setScale(_ value:Double) { scale=CGFloat(max(0.7,min(1.5,value)));refreshPanelContent();reposition() }
     private func refreshPanelContent() {
-        panel?.setContentSize(CGSize(width:290*scale,height:bubbleHeight*scale))
-        panel?.contentView=NSHostingView(rootView:CompanionSpeechView(speech:self).scaleEffect(scale,anchor:.topLeading).frame(width:290*scale,height:bubbleHeight*scale,alignment:.topLeading))
+        guard let panel else { return }
+        panel.setContentSize(CGSize(width:310*scale,height:bubbleHeight*scale))
+        let context=petWindow.map{attachment?() ?? .fallback($0)}
+        let view=PetSpeechNativeView(title:title,text:text,reminder:isReminder,actions:actions,palette:context?.palette ?? .companion("bunny"),height:bubbleHeight,onDismiss:{[weak self] in self?.complete()},onSnooze:{[weak self] in self?.onSnooze?()})
+        view.frame=CGRect(x:0,y:0,width:310*scale,height:bubbleHeight*scale);view.setBoundsSize(CGSize(width:310,height:bubbleHeight));panel.contentView=view
     }
-    func attach(to window: NSWindow) {
-        petWindow = window
-        moveObserver = NotificationCenter.default.addObserver(forName: NSWindow.didMoveNotification, object: window, queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated { self?.reposition() }
-        }
+    func attach(to window:NSWindow) {
+        petWindow=window
+        moveObserver=NotificationCenter.default.addObserver(forName:NSWindow.didMoveNotification,object:window,queue:.main) { [weak self] _ in MainActor.assumeIsolated { self?.reposition() } }
     }
-    @discardableResult func show(title: String, text: String, reminder: Bool = false, actions:[SpeechAction]=[]) -> Bool {
-        // Actionable reminders keep presentation priority over greetings/rewards.
+    @discardableResult func show(title:String,text:String,reminder:Bool=false,actions:[SpeechAction]=[])->Bool {
         guard reminder || !isReminder || panel?.isVisible != true else { return false }
-        dismissTimer?.invalidate(); dismissTimer = nil
-        self.title = String(title.prefix(120)); self.text = String(text.prefix(1000)); isReminder = reminder; self.actions=Array(actions.prefix(3))
-        bubbleHeight = reminder || !self.actions.isEmpty ? 190 : 152
+        dismissTimer?.invalidate();dismissTimer=nil
+        self.title=String(title.prefix(120));self.text=String(text.prefix(1000));isReminder=reminder;self.actions=Array(actions.prefix(3))
+        bubbleHeight=reminder || !self.actions.isEmpty ? 208:170
         if panel == nil {
-            let panel = PawPopupPanel(contentRect: CGRect(x: 0, y: 0, width: 290, height: bubbleHeight), styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
-            panel.title = "PawSync Message"; panel.isOpaque = false; panel.backgroundColor = .clear
-            panel.hasShadow = false; panel.hidesOnDeactivate = false; panel.isReleasedWhenClosed = false
-            panel.becomesKeyOnlyIfNeeded=true;panel.ignoresMouseEvents=false;panel.worksWhenModal=true
-            panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .ignoresCycle]
-            self.panel = panel
+            let p=PawPopupPanel(contentRect:CGRect(x:0,y:0,width:310,height:bubbleHeight),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
+            p.title="PawSync Thought Bubble";p.isOpaque=false;p.backgroundColor = .clear;p.hasShadow=false;p.hidesOnDeactivate=false;p.isReleasedWhenClosed=false
+            p.becomesKeyOnlyIfNeeded=true;p.ignoresMouseEvents=false;p.worksWhenModal=true;p.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary,.ignoresCycle]
+            p.level=NSWindow.Level(rawValue:NSWindow.Level.mainMenu.rawValue-1);panel=p
         }
-        refreshPanelContent()
-        panel?.level = NSWindow.Level(rawValue: NSWindow.Level.mainMenu.rawValue - 1)
-        reposition(); panel?.orderFrontRegardless(); onVisibility?(true)
-        dismissTimer = Timer.scheduledTimer(withTimeInterval: reminder ? 12 : 8, repeats: false) { [weak self] _ in
-            MainActor.assumeIsolated {
-                guard let self else { return }
-                if self.isReminder { self.onAutoDismiss?() }
-                self.dismiss()
-            }
-        }
-        return true
+        refreshPanelContent();reposition();panel?.orderFrontRegardless();onVisibility?(true)
+        let timer=Timer(timeInterval:reminder ? 12:8,repeats:false) { [weak self] _ in MainActor.assumeIsolated { guard let self else { return };if self.isReminder { self.onAutoDismiss?() };self.dismiss() } }
+        RunLoop.main.add(timer,forMode:.common);dismissTimer=timer;return true
     }
+    private func complete() { if isReminder { onDone?() } else { dismiss() } }
     func reposition() {
-        guard let panel, let petWindow else { return }
-        let visible = petWindow.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? petWindow.frame
-        let x = max(visible.minX, min(visible.maxX - panel.frame.width, petWindow.frame.midX - panel.frame.width/2))
-        let y = max(visible.minY, min(visible.maxY - panel.frame.height, petWindow.frame.maxY - 28))
-        panel.setFrameOrigin(CGPoint(x: x, y: y))
+        guard let panel,let petWindow else { return }
+        let context=attachment?() ?? .fallback(petWindow)
+        // Three thought dots descend toward the companion's head, rather than
+        // centering a floating card above the whole transparent window.
+        panel.setFrame(context.clamp(CGRect(x:context.pet.midX-284*scale,y:context.pet.maxY-10,width:panel.frame.width,height:panel.frame.height)),display:true)
     }
-    func dismiss() { dismissTimer?.invalidate(); dismissTimer = nil; panel?.orderOut(nil); isReminder=false; onVisibility?(false) }
-    func stop() {
-        dismiss()
-        if let moveObserver { NotificationCenter.default.removeObserver(moveObserver) }
-        moveObserver = nil; panel?.contentView = nil; panel = nil
-    }
+    func dismiss() { dismissTimer?.invalidate();dismissTimer=nil;panel?.orderOut(nil);isReminder=false;onVisibility?(false) }
+    func stop() { dismiss();if let moveObserver { NotificationCenter.default.removeObserver(moveObserver) };moveObserver=nil;panel?.contentView=nil;panel=nil }
 }
 
-private struct BubbleShape: Shape {
-    func path(in rect: CGRect) -> Path {
-        let radius:CGFloat=25, tailHeight:CGFloat=17, bottom=rect.maxY-tailHeight
-        var path=Path()
-        path.move(to:CGPoint(x:rect.minX+radius,y:rect.minY))
-        path.addLine(to:CGPoint(x:rect.maxX-radius,y:rect.minY))
-        path.addQuadCurve(to:CGPoint(x:rect.maxX,y:rect.minY+radius),control:CGPoint(x:rect.maxX,y:rect.minY))
-        path.addLine(to:CGPoint(x:rect.maxX,y:bottom-radius))
-        path.addQuadCurve(to:CGPoint(x:rect.maxX-radius,y:bottom),control:CGPoint(x:rect.maxX,y:bottom))
-        path.addLine(to:CGPoint(x:rect.midX+17,y:bottom))
-        path.addQuadCurve(to:CGPoint(x:rect.midX,y:rect.maxY),control:CGPoint(x:rect.midX+9,y:bottom+12))
-        path.addQuadCurve(to:CGPoint(x:rect.midX-17,y:bottom),control:CGPoint(x:rect.midX-9,y:bottom+12))
-        path.addLine(to:CGPoint(x:rect.minX+radius,y:bottom))
-        path.addQuadCurve(to:CGPoint(x:rect.minX,y:bottom-radius),control:CGPoint(x:rect.minX,y:bottom))
-        path.addLine(to:CGPoint(x:rect.minX,y:rect.minY+radius))
-        path.addQuadCurve(to:CGPoint(x:rect.minX+radius,y:rect.minY),control:CGPoint(x:rect.minX,y:rect.minY))
-        path.closeSubpath();return path
+@MainActor final class PetSpeechNativeView:NSView {
+    let palette:PetChromePalette
+    let onDismiss:()->Void
+    private var bubblePath:NSBezierPath { PetChromeDrawing.cloud(in:bounds) }
+    init(title:String,text:String,reminder:Bool,actions:[SpeechAction],palette:PetChromePalette,height:CGFloat,onDismiss:@escaping ()->Void,onSnooze:@escaping ()->Void) {
+        self.palette=palette;self.onDismiss=onDismiss;super.init(frame:CGRect(x:0,y:0,width:310,height:height))
+        let heading=PetSpeechLabel(labelWithString:title);heading.font = .systemFont(ofSize:13,weight:.semibold);heading.textColor=palette.ink;heading.lineBreakMode = .byTruncatingTail;heading.frame=CGRect(x:39,y:35,width:220,height:19);addSubview(heading)
+        let message=PetSpeechLabel(wrappingLabelWithString:text);message.font = .systemFont(ofSize:12,weight:.medium);message.textColor=palette.ink;message.maximumNumberOfLines=3;message.lineBreakMode = .byWordWrapping;message.frame=CGRect(x:39,y:62,width:230,height:53);message.isSelectable=false;addSubview(message)
+        let close=PetSoftButton(title:"",symbol:"xmark",action:onDismiss);close.palette=palette;close.setAccessibilityLabel("Dismiss thought bubble");close.frame=CGRect(x:265,y:32,width:23,height:23);addSubview(close)
+        let buttons: [(String,()->Void)] = !actions.isEmpty ? actions.map{($0.title,$0.action)} : reminder ? [(title.localizedCaseInsensitiveContains("water") ? "I had a sip!":"All done",onDismiss),("Snooze 10 min",onSnooze)]:[]
+        var x:CGFloat=39
+        for (title,action) in buttons {
+            let width=min(110,max(65,CGFloat(title.count)*5.8+20))
+            let button=PetSoftButton(title:title,action:action);button.palette=palette;button.frame=CGRect(x:x,y:height-89,width:width,height:27);addSubview(button);x+=width+7
+        }
+        if reminder {
+            let menu=NSMenu();let snooze=NSMenuItem(title:"Snooze 10 min",action:#selector(snoozeMenu),keyEquivalent:"");snooze.target=self;menu.addItem(snooze);self.menu=menu;self.snoozeAction=onSnooze
+        }
+        setAccessibilityLabel(reminder ? "Pet reminder":"Pet thought bubble")
     }
+    private var snoozeAction:(()->Void)?
+    required init?(coder:NSCoder) { fatalError("Unsupported") }
+    override var isFlipped:Bool { true }
+    override func acceptsFirstMouse(for event:NSEvent?)->Bool { true }
+    override func draw(_ dirtyRect:NSRect) {
+        PetChromeDrawing.paint(bubblePath,fill:palette.fur,ink:palette.ink,width:1.6)
+        for (x,y,r) in [(CGFloat(254),bounds.height-27,CGFloat(7)),(CGFloat(273),bounds.height-13,CGFloat(4.5)),(CGFloat(286),bounds.height-4,CGFloat(2.5))] {
+            PetChromeDrawing.paint(NSBezierPath(ovalIn:CGRect(x:x-r,y:y-r,width:r*2,height:r*2)),fill:palette.fur,ink:palette.ink,width:1.2)
+        }
+        // A little blush sits in a lobe of the cloud, keeping the text itself clean.
+        palette.blush.withAlphaComponent(0.32).setFill();NSBezierPath(ovalIn:CGRect(x:22,y:58,width:9,height:4)).fill()
+    }
+    override func hitTest(_ point:NSPoint)->NSView? {
+        let local=convert(point,from:superview)
+        guard bubblePath.contains(local) else { return nil }
+        return super.hitTest(point)
+    }
+    override func mouseUp(with event:NSEvent) { onDismiss() }
+    @objc private func snoozeMenu() { snoozeAction?() }
 }
-private struct CompanionSpeechView: View {
-    @ObservedObject var speech: CompanionSpeech
-    private let ink = Color(red: 0.34, green: 0.25, blue: 0.31)
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 7) {
-                Image(systemName: speech.isReminder && speech.title.localizedCaseInsensitiveContains("water") ? "drop.fill" : speech.isReminder ? "sparkles" : "heart.fill").foregroundStyle(speech.isReminder && speech.title.localizedCaseInsensitiveContains("water") ? Color(red:0.32,green:0.65,blue:0.78) : Color.pink.opacity(0.82))
-                    .frame(width:25,height:25).background(Color.white.opacity(0.76),in:Circle())
-                Text(speech.title).font(.system(size: 12, weight: .semibold, design: .rounded)).lineLimit(1)
-                Spacer(minLength: 2)
-                Button { if speech.isReminder { speech.onDone?() } else { speech.dismiss() } } label: { Image(systemName: "xmark").font(.system(size: 9, weight: .bold)).frame(width:23,height:23).background(Color(red:1,green:0.89,blue:0.93),in:Circle()) }.buttonStyle(.plain).accessibilityLabel("Dismiss bubble")
-            }
-            Text(speech.text).font(.system(size: 12, weight: .medium, design: .rounded)).lineSpacing(2).lineLimit(3).frame(maxWidth: .infinity, alignment: .leading).padding(.leading,3)
-                .onTapGesture { if speech.isReminder { speech.onDone?() } else { speech.dismiss() } }
-            if !speech.actions.isEmpty || speech.isReminder {
-                HStack(spacing:8) {
-                    if !speech.actions.isEmpty { ForEach(speech.actions) { action in pill(action.title,icon:action.icon,action:action.action) } }
-                    else {
-                        pill(speech.title.localizedCaseInsensitiveContains("water") ? "I had a sip!" : "Got it!",icon:speech.title.localizedCaseInsensitiveContains("water") ? "drop.fill" : "heart") { speech.onDone?() }
-                        pill("10 min",icon:"moon.fill") { speech.onSnooze?() }
-                    }
-                }
-            }
-        }.foregroundStyle(ink).padding(.horizontal, 22).padding(.top, 20).padding(.bottom, 26)
-            .frame(width: 290, height: speech.bubbleHeight, alignment: .topLeading)
-            .background { ZStack { BubbleShape().fill(Color(red:1,green:0.96,blue:0.91));BubbleShape().fill(LinearGradient(colors:[Color(red:1,green:0.91,blue:0.88).opacity(0.18),Color(red:0.92,green:0.87,blue:0.96).opacity(0.10)],startPoint:.topLeading,endPoint:.bottomTrailing));BubbleShape().stroke(Color(red:0.84,green:0.71,blue:0.70),lineWidth:1.35) } }
-            .shadow(color: Color(red:0.44,green:0.31,blue:0.39).opacity(0.15), radius: 13, y: 5)
-            .contextMenu { if speech.isReminder { Button("Snooze 10 min") { speech.onSnooze?() }; Button("Dismiss") { speech.onDone?() } } }
-    }
-    private func pill(_ title: String, icon: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) { Label(title, systemImage: icon).font(.system(size: 11, weight: .semibold, design: .rounded)).padding(.horizontal, 11).padding(.vertical, 6).foregroundStyle(Color(red:0.34,green:0.25,blue:0.31)).background(Color.white, in: Capsule()).overlay(Capsule().stroke(Color(red:0.89,green:0.79,blue:0.77),lineWidth:0.8) ) }.buttonStyle(.plain)
-    }
+
+@MainActor private final class PetSpeechLabel:NSTextField {
+    override func hitTest(_ point:NSPoint)->NSView? { nil }
 }

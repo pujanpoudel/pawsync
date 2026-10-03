@@ -36,7 +36,7 @@ import Combine
         localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .flagsChanged, .leftMouseDown, .rightMouseDown, .otherMouseDown, .mouseMoved, .leftMouseDragged]) { [weak self] event in
             MainActor.assumeIsolated {
                 if event.type == .keyDown || event.type == .flagsChanged {
-                    if self?.running != true { self?.typingTrigger() }
+                    if self?.tap == nil || self?.running != true { self?.typingTrigger() }
                 } else { self?.receiveMouse(event.type) }
             }
             return event

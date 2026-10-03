@@ -23,9 +23,27 @@ import SpriteKit
     private let caption=SKLabelNode(fontNamed:NSFont.systemFont(ofSize:10,weight:.semibold).fontName)
     private let accessories=SKNode()
     private let sleepLabel=SKLabelNode(fontNamed:NSFont.systemFont(ofSize:17,weight:.semibold).fontName)
-    private let reactionLabel=SKLabelNode(fontNamed:"AppleColorEmoji")
     private let heldFiles=PetHeldFilesIndicator()
+    private var visualRect:CGRect = .zero
     private var clickMood=0
+    private var nextTypingLeft=true
+    private var lastTapAt:TimeInterval=0
+    private var inputMotionUntil:TimeInterval=0
+    private(set) var lastTappedPaw:String?
+    private let restingWarp=SKWarpGeometryGrid(columns:12,rows:16)
+    private lazy var pawWarps:[SKWarpGeometryGrid]=[Self.pawWarp(left:true),Self.pawWarp(left:false)]
+    var requiresContinuousRendering:Bool { ProcessInfo.processInfo.systemUptime < inputMotionUntil }
+    private static func pawWarp(left:Bool)->SKWarpGeometryGrid {
+        var source:[SIMD2<Float>]=[],destination:[SIMD2<Float>]=[]
+        for row in 0...16 { for column in 0...12 {
+            let x=Float(column)/12,y=Float(row)/16
+            source.append(SIMD2<Float>(x,y))
+            let dx=(x-(left ? 0.37:0.63))/0.10,dy=(y-0.32)/0.085
+            let influence=exp(-(dx*dx+dy*dy)*0.5)
+            destination.append(SIMD2<Float>(x+(left ? -0.004:0.004)*influence,y-0.029*influence))
+        } }
+        return SKWarpGeometryGrid(columns:12,rows:16,sourcePositions:source,destinationPositions:destination)
+    }
     private(set) var sleeping=false
     var onNeedsRender:(()->Void)?
 
@@ -46,9 +64,10 @@ import SpriteKit
         addChild(sprite); accessories.name="head-accessories"; accessories.zPosition=10; sprite.addChild(accessories)
         caption.fontSize=10; caption.fontColor = .brown; caption.position.y = -25; addChild(caption)
         sleepLabel.text="z z"; sleepLabel.fontSize=17; sleepLabel.fontColor = .systemPurple; sleepLabel.position=CGPoint(x:63,y:154); sleepLabel.isHidden=true; addChild(sleepLabel)
-        reactionLabel.fontSize=23;reactionLabel.position=CGPoint(x:58,y:202);reactionLabel.alpha=0;addChild(reactionLabel)
-        heldFiles.position=CGPoint(x:0,y:22);addChild(heldFiles)
+        heldFiles.setTheme(spec.id);heldFiles.position=CGPoint(x:0,y:36);sprite.addChild(heldFiles)
         show(row:0,column:spec.rows == 11 ? 6 : 0)
+        let pixelBounds=mask.opaqueBounds(in:CGRect(x:currentColumn*Int(cell.width),y:0,width:Int(cell.width),height:Int(cell.height)))
+        visualRect=CGRect(x:(pixelBounds.minX/cell.width-0.5)*192,y:(1-pixelBounds.maxY/cell.height)*208,width:pixelBounds.width/cell.width*192,height:pixelBounds.height/cell.height*208)
     }
     required init?(coder:NSCoder) { fatalError("Unsupported") }
     deinit { frameTimer?.invalidate(); gazeReset?.cancel() }
@@ -57,7 +76,7 @@ import SpriteKit
         guard currentRow != row || currentColumn != column || sprite.texture == nil else { return }
         currentRow=row; currentColumn=column; sprite.texture=frames[row][column]; updateAccessoryFit(); onNeedsRender?()
     }
-    private func stopFrames() { frameTimer?.invalidate(); frameTimer=nil; sequence=nil; typingUntil=nil; gazeReset?.cancel(); gazeReset=nil }
+    private func stopFrames() { frameTimer?.invalidate();frameTimer=nil;sequence=nil;typingUntil=nil;gazeReset?.cancel();gazeReset=nil;sprite.removeAction(forKey:"paw-tap");sprite.removeAction(forKey:"click-perk");sprite.warpGeometry=nil;inputMotionUntil=0;sprite.zRotation=0;sprite.yScale=1 }
     private func begin(_ clip:PetFrameSequence) {
         gazeReset?.cancel(); gazeReset=nil
         if sequence == clip,frameTimer != nil { return }
@@ -90,22 +109,41 @@ import SpriteKit
         if frames.count == 11 { neutral() }
         else { begin(PetFrameSequence(row:0,frames:6,duration:5.5,iterations:nil)) }
     }
-    func typing() {
+    func typing() { typing(at:ProcessInfo.processInfo.systemUptime) }
+    func typing(at now:TimeInterval) {
         guard !sleeping else { return }
         animationState = .running
-        // Extend activity without restarting the authored work cycle on each key.
+        // Imported OpenPets keep their authored work cycle. PawSync originals
+        // additionally move the actual illustrated paw pixels on alternate keys.
         begin(PetFrameSequence(row:7,frames:6,duration:0.82,iterations:nil))
-        typingUntil=ProcessInfo.processInfo.systemUptime+0.5
+        typingUntil=now+0.5
+        guard PetStore.rigIDs.contains(petID),now-lastTapAt >= 0.055 else { return }
+        lastTapAt=now;lastTappedPaw=nextTypingLeft ? "left":"right"
+        let warp=pawWarps[nextTypingLeft ? 0:1];nextTypingLeft.toggle();inputMotionUntil=now+0.25
+        if sprite.warpGeometry == nil { sprite.warpGeometry=restingWarp }
+        if let down=SKAction.warp(to:warp,duration:0.065),let up=SKAction.warp(to:restingWarp,duration:0.13) {
+            down.timingMode = .easeOut;up.timingMode = .easeInEaseOut
+            sprite.run(.sequence([down,up]),withKey:"paw-tap");onNeedsRender?()
+        }
     }
     func click(toward point:CGPoint) {
         guard !sleeping else { return }
-        let moods:[(PetAnimation,String)]=[(.review,"❔"),(.waiting,"✨"),(.jumping,"💛"),(.waving,"♡"),(.running,"❕")]
-        let mood=moods[clickMood % moods.count];clickMood+=1
-        play(mood.0,looping:false,relaxed:true)
-        reactionLabel.removeAllActions();reactionLabel.text=mood.1;reactionLabel.alpha=0;reactionLabel.setScale(0.65)
-        reactionLabel.run(.sequence([.group([.fadeIn(withDuration:0.12),.scale(to:1,duration:0.18)]),.wait(forDuration:0.48),.group([.fadeOut(withDuration:0.24),.moveBy(x:0,y:16,duration:0.24)]),.run{[weak self] in self?.reactionLabel.position.y=202}]))
+        // Ambient clicks are a quick look/blink, rather than a hello or a flip.
+        play(clickMood.isMultiple(of:2) ? .review:.waiting,looping:false,relaxed:false);clickMood+=1
+        let direction:CGFloat=point.x < position.x ? 1:-1
+        inputMotionUntil=ProcessInfo.processInfo.systemUptime+0.35
+        let perk=SKAction.group([.rotate(toAngle:direction*0.05,duration:0.09),.scaleY(to:1.035,duration:0.09)])
+        let settle=SKAction.group([.rotate(toAngle:0,duration:0.22),.scaleY(to:1,duration:0.22)])
+        perk.timingMode = .easeOut;settle.timingMode = .easeInEaseOut
+        sprite.run(.sequence([perk,settle]),withKey:"click-perk");onNeedsRender?()
     }
     func pet(direction:CGFloat) { play(.review,looping:false,relaxed:true) }
+    var companionBoundsInScene:CGRect {
+        guard let scene else { return .zero }
+        let a=sprite.convert(visualRect.origin,to:scene),b=sprite.convert(CGPoint(x:visualRect.maxX,y:visualRect.maxY),to:scene)
+        return CGRect(x:min(a.x,b.x),y:min(a.y,b.y),width:abs(b.x-a.x),height:abs(b.y-a.y))
+    }
+    func containsHeldFilesPoint(_ point:CGPoint)->Bool { heldFiles.containsScenePoint(point) }
     func setHeldFileCount(_ count:Int) { heldFiles.setCount(count);onNeedsRender?() }
     func setSleeping(_ value:Bool) {
         guard value != sleeping else { return }; sleeping=value; stopFrames(); sprite.removeAllActions(); sprite.position = .zero; sprite.zRotation=0; sprite.setScale(1); sprite.xScale=flipped ? -1 : 1
@@ -151,6 +189,8 @@ import SpriteKit
     private func updateAccessoryFit() {
         let fit=PetAccessoryFit.frame(id:petID,row:currentRow,column:currentColumn)
         accessories.position=fit.crown
+        heldFiles.position=CGPoint(x:fit.crown.x*0.55,y:[1,2].contains(currentRow) ? 42:36)
+        heldFiles.setScale([1,2].contains(currentRow) ? 0.85:1)
         if let node=accessories.childNode(withName:"cosmetic") {
             let earInset:CGFloat = petID == "bunny" && ["free.beanie","free.crown","accessory.hat"].contains(accessorySKU) ? -17 : 0
             node.position=CGPoint(x:hatTransform.x,y:hatTransform.y + earInset - (accessorySKU == "accessory.glasses" ? fit.glassesDrop : 0))

@@ -7,6 +7,16 @@ struct PetAlphaMask {
     let width:Int
     let height:Int
     let bits:Data
+    func opaqueBounds(in rect:CGRect)->CGRect {
+        var minX=Int(rect.width),minY=Int(rect.height),maxX=0,maxY=0
+        for y in stride(from:0,to:Int(rect.height),by:2) {
+            for x in stride(from:0,to:Int(rect.width),by:2) where contains(x:Int(rect.minX)+x,y:Int(rect.minY)+y) {
+                minX=min(minX,x);minY=min(minY,y);maxX=max(maxX,x+2);maxY=max(maxY,y+2)
+            }
+        }
+        guard minX<maxX,minY<maxY else { return CGRect(origin:.zero,size:rect.size) }
+        return CGRect(x:minX,y:minY,width:maxX-minX,height:maxY-minY)
+    }
     func contains(x:Int,y:Int)->Bool {
         guard x >= 0,y >= 0,x < width,y < height else { return false }
         let offset=y*width+x

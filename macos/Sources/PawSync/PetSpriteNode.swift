@@ -83,7 +83,7 @@ import SpriteKit
         let body = joints["body"]!
         addChild(body)
         for key in PetManifest.required where key != "body" { body.addChild(joints[key]!) }
-        heldFiles.position=CGPoint(x:0,y:joints["body"]!.size.height*0.14);body.addChild(heldFiles)
+        heldFiles.setTheme(manifest.id);heldFiles.position=CGPoint(x:0,y:joints["body"]!.size.height*0.28);body.addChild(heldFiles)
         accessorySlot.position = CGPoint(x: 0, y: joints["head"]!.size.height * (1-joints["head"]!.anchorPoint.y) - 5)
         accessorySlot.zPosition = 30
         joints["head"]!.addChild(accessorySlot)
@@ -251,6 +251,7 @@ import SpriteKit
     }
     func setAccessoryVisibility(_ visible: Bool) { accessorySlot.isHidden = !visible }
     func setCaption(_ text: String) { if caption.text != text { caption.text = text } }
+    func containsHeldFilesPoint(_ point:CGPoint)->Bool { heldFiles.containsScenePoint(point) }
     func setHeldFileCount(_ count:Int) { heldFiles.setCount(count);onNeedsRender?() }
     func wave() {
         guard !sleeping else { return }; transition("wave"); cheeks()

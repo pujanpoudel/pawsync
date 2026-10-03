@@ -1,6 +1,6 @@
 import AppKit
 import Combine
-import SwiftUI
+import UniformTypeIdentifiers
 
 struct PetInboxFile:Identifiable,Codable,Equatable {
     var id:String
@@ -95,128 +95,149 @@ struct PetInboxFile:Identifiable,Codable,Equatable {
 @MainActor final class PetFileShelfController {
     private let inbox:PetFileInbox
     private weak var petWindow:NSWindow?
-    private var panel:NSPanel?
+    private var panel:PawPopupPanel?
     private var dropTargetActive=false
-    private var closeTimer:Timer?
+    private var draggingOut=false
     private var pointerTimer:Timer?
+    private var lastInside=Date()
+    private var cancellables=Set<AnyCancellable>()
+    var isVisible:Bool { panel?.isVisible == true }
+    var attachment:(()->PetChromeAnchor)?
+    var onFileDrop:(([URL])->Bool)?
     init(inbox:PetFileInbox) {
         self.inbox=inbox
         inbox.objectWillChange.sink { [weak self] _ in DispatchQueue.main.async { self?.refresh() } }.store(in:&cancellables)
     }
-    private var cancellables=Set<AnyCancellable>()
-    func attach(to window:NSWindow) {
-        petWindow=window
-    }
-    func show(near window:NSWindow?=nil) {
-        guard !inbox.files.isEmpty else { return }
-        present(near:window)
-    }
-    func showDropTarget(near window:NSWindow?=nil) {
-        dropTargetActive=true
-        present(near:window)
-    }
-    func hideDropTarget() {
-        dropTargetActive=false
-        if inbox.files.isEmpty { closeTimer?.invalidate(); panel?.orderOut(nil) }
-        else { refresh() }
-    }
+    func attach(to window:NSWindow) { petWindow=window }
+    func show(near window:NSWindow?=nil) { guard !inbox.files.isEmpty else { return };if isVisible { holdOpen();return };present(near:window) }
+    func showDropTarget(near window:NSWindow?=nil) { dropTargetActive=true;present(near:window) }
+    func hideDropTarget() { dropTargetActive=false;if inbox.files.isEmpty { if !(panel?.frame.contains(NSEvent.mouseLocation) ?? false) { dismiss() } } else { refresh() } }
     private func present(near window:NSWindow?=nil) {
         if let window { petWindow=window }
-        guard let petWindow,let screen=petWindow.screen ?? NSScreen.main else { return }
-        closeTimer?.invalidate()
-        if panel==nil {
-            let created=PawPopupPanel(contentRect:CGRect(x:0,y:0,width:320,height:242),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
-            created.isOpaque=false;created.backgroundColor = .clear;created.hasShadow=false;created.hidesOnDeactivate=false
-            created.isReleasedWhenClosed=false;created.becomesKeyOnlyIfNeeded=true;created.ignoresMouseEvents=false;created.worksWhenModal=true;created.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary,.ignoresCycle]
-            created.level = .floating
-            let host=NSHostingView(rootView:PetFileShelfView(inbox:inbox,dropTarget:dropTargetActive,onClose:{[weak self] in self?.dismiss()},onInteraction:{[weak self] in self?.holdOpen()}))
-            created.contentView=host
-            panel=created
+        guard let petWindow else { return }
+        if panel == nil {
+            let p=PawPopupPanel(contentRect:CGRect(x:0,y:0,width:300,height:250),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
+            p.title="PawSync Pet Pocket";p.isOpaque=false;p.backgroundColor = .clear;p.hasShadow=false;p.hidesOnDeactivate=false;p.isReleasedWhenClosed=false
+            p.becomesKeyOnlyIfNeeded=true;p.ignoresMouseEvents=false;p.worksWhenModal=true;p.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary,.ignoresCycle];p.level=NSWindow.Level(rawValue:NSWindow.Level.mainMenu.rawValue-1);panel=p
         }
-        let visible=screen.visibleFrame,frame=petWindow.frame
-        let x=max(visible.minX,min(visible.maxX-320,frame.midX-160))
-        let y=max(visible.minY,min(visible.maxY-242,frame.maxY-12))
-        panel?.setFrame(CGRect(x:x,y:y,width:320,height:242),display:true)
-        panel?.ignoresMouseEvents=dropTargetActive && inbox.files.isEmpty
-        if let panel,let host=panel.contentView as? NSHostingView<PetFileShelfView> {
-            host.rootView=PetFileShelfView(inbox:inbox,dropTarget:dropTargetActive,onClose:{[weak self] in self?.dismiss()},onInteraction:{[weak self] in self?.holdOpen()})
+        let context=attachment?() ?? .fallback(petWindow)
+        // A little pouch hangs beside the companion's paws, not over its face.
+        let roomOnLeft=context.pet.minX-context.visible.minX
+        let x=roomOnLeft >= 292 ? context.pet.minX-300+8 : context.pet.maxX-8
+        panel?.setFrame(context.clamp(CGRect(x:x,y:context.pet.minY-12,width:300,height:250)),display:true)
+        refreshContent(context:context);panel?.ignoresMouseEvents=false;panel?.orderFrontRegardless();holdOpen()
+        if pointerTimer == nil {
+            let timer=Timer(timeInterval:0.12,repeats:true) { [weak self] _ in MainActor.assumeIsolated { self?.checkPointer() } }
+            timer.tolerance=0.03;RunLoop.main.add(timer,forMode:.common);pointerTimer=timer
         }
-        panel?.orderFrontRegardless();holdOpen()
-        if pointerTimer == nil { pointerTimer=Timer.scheduledTimer(withTimeInterval:0.22,repeats:true){[weak self] _ in MainActor.assumeIsolated { guard let self else { return };self.checkPointer(NSEvent.mouseLocation) } } }
     }
-    func holdOpen() { closeTimer?.invalidate();closeTimer=nil }
-    func dismiss() { closeTimer?.invalidate();closeTimer=nil;pointerTimer?.invalidate();pointerTimer=nil;panel?.orderOut(nil) }
+    private func refreshContent(context:PetChromeAnchor) {
+        panel?.contentView=PetPocketNativeView(files:inbox.files,dropTarget:dropTargetActive,palette:context.palette,name:context.name,onOpen:{[weak self] file in self?.inbox.open(file);self?.holdOpen()},onRemove:{[weak self] file in self?.inbox.remove(file);self?.holdOpen()},onFolder:{[weak self] in self?.inbox.openFolder()},onClose:{[weak self] in self?.dismiss()},onDrop:{[weak self] urls in self?.onFileDrop?(urls) ?? false},canDrop:{[weak self] urls in self?.inbox.canAccept(urls) ?? false},onDragging:{[weak self] active in self?.draggingOut=active;self?.holdOpen()})
+    }
+    func holdOpen() { lastInside=Date() }
+    func dismiss() { guard !draggingOut else { return };pointerTimer?.invalidate();pointerTimer=nil;panel?.orderOut(nil) }
     private func refresh() {
-        guard panel?.isVisible == true else { return }
+        guard let panel,panel.isVisible,let petWindow else { return }
         guard !inbox.files.isEmpty || dropTargetActive else { dismiss();return }
-        if let panel,let host=panel.contentView as? NSHostingView<PetFileShelfView> {
-            host.rootView=PetFileShelfView(inbox:inbox,dropTarget:dropTargetActive,onClose:{[weak self] in self?.dismiss()},onInteraction:{[weak self] in self?.holdOpen()})
-        }
-        panel?.ignoresMouseEvents=dropTargetActive && inbox.files.isEmpty
+        guard !draggingOut else { return }
+        refreshContent(context:attachment?() ?? .fallback(petWindow))
     }
-    private func checkPointer(_ point:CGPoint) {
+    private func checkPointer() {
         guard let panel,panel.isVisible else { return }
-        if panel.frame.insetBy(dx:-12,dy:-12).contains(point) { holdOpen();return }
-        if let petWindow,petWindow.frame.insetBy(dx:-20,dy:-20).contains(point) { holdOpen();return }
-        guard closeTimer==nil else { return }
-        closeTimer=Timer.scheduledTimer(withTimeInterval:0.72,repeats:false) { [weak self] _ in MainActor.assumeIsolated { guard let self,self.panel?.isVisible == true else { return };self.closeTimer=nil;let current=NSEvent.mouseLocation;if !(self.panel?.frame.insetBy(dx:-8,dy:-8).contains(current) ?? false) && !(self.petWindow?.frame.insetBy(dx:-18,dy:-18).contains(current) ?? false) { self.dismiss() } } }
+        guard !draggingOut,!dropTargetActive else { holdOpen();return }
+        if inbox.files.isEmpty { dismiss();return }
+        let cursor=NSEvent.mouseLocation
+        let pet=attachment?().pet ?? petWindow?.frame ?? .zero
+        if panel.frame.insetBy(dx:-10,dy:-10).contains(cursor) || pet.insetBy(dx:-14,dy:-14).contains(cursor) { holdOpen() }
+        else if Date().timeIntervalSince(lastInside)>0.65 { dismiss() }
     }
-    func stop() { closeTimer?.invalidate();closeTimer=nil;pointerTimer?.invalidate();pointerTimer=nil;panel?.orderOut(nil);panel?.contentView=nil;panel=nil }
+    func stop() { draggingOut=false;dismiss();panel?.contentView=nil;panel=nil }
 }
 
-private struct PetFileShelfView:View {
-    @ObservedObject var inbox:PetFileInbox
-    var dropTarget:Bool
-    var onClose:()->Void
-    var onInteraction:()->Void
-    var body:some View {
-        VStack(alignment:.leading,spacing:10) {
-            if dropTarget && inbox.files.isEmpty {
-                Spacer(minLength:12)
-                VStack(spacing:10) {
-                    ZStack { Circle().fill(Color(red:0.98,green:0.83,blue:0.75)).frame(width:54,height:54);Image(systemName:"tray.and.arrow.down.fill").font(.system(size:22,weight:.semibold)).foregroundStyle(Color(red:0.63,green:0.38,blue:0.38)) }
-                    Text("A little something for me?").font(.system(size:15,weight:.bold,design:.rounded))
-                    Text("Drop your file here and I’ll tuck it away.").font(.system(size:11,weight:.medium,design:.rounded)).foregroundStyle(Color(red:0.48,green:0.40,blue:0.40))
-                }.frame(maxWidth:.infinity)
-                Spacer(minLength:12)
-            } else {
-            HStack(spacing:10) {
-                ZStack { Circle().fill(Color(red:0.98,green:0.85,blue:0.78)).frame(width:36,height:36);Image(systemName:"pawprint.fill").font(.system(size:16,weight:.semibold)).foregroundStyle(Color(red:0.73,green:0.42,blue:0.48)) }
-                VStack(alignment:.leading,spacing:2) { Text("My little stash").font(.system(size:15,weight:.bold,design:.rounded));Text("\(inbox.files.count) saved \(inbox.files.count==1 ? "file":"files")").font(.system(size:10,weight:.medium,design:.rounded)).foregroundStyle(Color(red:0.48,green:0.40,blue:0.40)) }
-                Spacer()
-                Button { inbox.openFolder();onInteraction() } label:{Image(systemName:"folder")}.buttonStyle(PouchIconButtonStyle()).help("Open saved files")
-                Button(action:onClose){Image(systemName:"xmark").font(.system(size:10,weight:.bold))}.buttonStyle(PouchIconButtonStyle()).help("Close pocket")
-            }.padding(.bottom,3)
-                ScrollView {
-                    VStack(spacing:7) { ForEach(inbox.files.prefix(6)) { file in fileRow(file) } }
-                }
-                if inbox.files.count>6 { Text("+\(inbox.files.count-6) more in your folder").font(.system(size:9,design:.rounded)).foregroundStyle(.secondary).padding(.leading,8) }
+@MainActor final class PetPocketNativeView:NSView {
+    let palette:PetChromePalette
+    private let files:[PetInboxFile]
+    private let dropTarget:Bool
+    private let onDrop:([URL])->Bool
+    private let canDrop:([URL])->Bool
+    private let onDragging:(Bool)->Void
+    init(files:[PetInboxFile],dropTarget:Bool,palette:PetChromePalette,name:String,onOpen:@escaping (PetInboxFile)->Void,onRemove:@escaping (PetInboxFile)->Void,onFolder:@escaping ()->Void,onClose:@escaping ()->Void,onDrop:@escaping ([URL])->Bool,canDrop:@escaping ([URL])->Bool,onDragging:@escaping (Bool)->Void) {
+        self.files=files;self.dropTarget=dropTarget;self.palette=palette;self.onDrop=onDrop;self.canDrop=canDrop;self.onDragging=onDragging
+        super.init(frame:CGRect(x:0,y:0,width:300,height:250));registerForDraggedTypes([.fileURL])
+        if !files.isEmpty {
+            let heading=NSTextField(labelWithString:"\(name)’s pocket");heading.font = .systemFont(ofSize:14,weight:.semibold);heading.textColor=palette.ink;heading.frame=CGRect(x:29,y:58,width:195,height:20);addSubview(heading)
+            for (title,symbol,x,action) in [("Open pocket folder","folder",CGFloat(224),onFolder),("Close pocket","xmark",CGFloat(253),onClose)] {
+                let b=PetSoftButton(title:"",symbol:symbol,action:action);b.palette=palette;b.frame=CGRect(x:x,y:56,width:24,height:24);b.setAccessibilityLabel(title);addSubview(b)
             }
-        }.padding(.horizontal,15).padding(.top,24).padding(.bottom,14).frame(width:320,height:242)
-            .background { ZStack(alignment:.top) {
-                Capsule().stroke(Color(red:0.73,green:0.53,blue:0.48),lineWidth:5).frame(width:78,height:35).offset(y:1)
-                RoundedRectangle(cornerRadius:25,style:.continuous).fill(Color(red:1,green:0.95,blue:0.86)).padding(.top,17)
-                RoundedRectangle(cornerRadius:25,style:.continuous).stroke(dropTarget ? Color(red:0.82,green:0.40,blue:0.57) : Color(red:0.79,green:0.64,blue:0.56),style:StrokeStyle(lineWidth:dropTarget ? 2.2 : 1.4,dash:dropTarget ? [6,4] : [])).padding(.top,17)
-                Capsule().fill(Color(red:0.96,green:0.84,blue:0.71)).frame(width:92,height:18).overlay(Circle().fill(Color(red:0.77,green:0.53,blue:0.48)).frame(width:7,height:7)).padding(.top,20)
-            }}.shadow(color:Color(red:0.43,green:0.31,blue:0.28).opacity(0.20),radius:12,y:6).onHover{inside in if inside { onInteraction() }}
-    }
-    private func fileRow(_ file:PetInboxFile)->some View {
-        HStack(spacing:8) {
-            Image(systemName:"doc.text.fill").font(.system(size:14)).foregroundStyle(Color(red:0.63,green:0.47,blue:0.63)).frame(width:29,height:32).background(Color(red:1,green:0.94,blue:0.87),in:RoundedRectangle(cornerRadius:9))
-            VStack(alignment:.leading,spacing:2) {
-                Text(file.name).font(.system(size:10,weight:.semibold,design:.rounded)).lineLimit(1)
-                Text(file.displaySize).font(.system(size:9,design:.rounded)).foregroundStyle(.secondary)
+            let scroll=NSScrollView(frame:CGRect(x:26,y:89,width:250,height:121));scroll.drawsBackground=false;scroll.hasVerticalScroller=true;scroll.autohidesScrollers=true;scroll.scrollerStyle = .overlay;scroll.borderType = .noBorder;scroll.contentView.drawsBackground=false
+            let document=PetPocketRowsView(frame:CGRect(x:0,y:0,width:248,height:CGFloat(files.count)*48))
+            for (index,file) in files.enumerated() {
+                let row=PetPocketFileRow(file:file,palette:palette,onOpen:{onOpen(file)},onRemove:{onRemove(file)},onDragging:onDragging)
+                row.frame=CGRect(x:index.isMultiple(of:2) ? 0:3,y:CGFloat(index)*48,width:242,height:44);document.addSubview(row)
             }
-            Spacer(minLength:2)
-            Button { inbox.open(file);onInteraction() } label:{Image(systemName:"arrow.up.right")}.buttonStyle(.plain).help("Open file")
-            Button { inbox.reveal(file);onInteraction() } label:{Image(systemName:"folder")}.buttonStyle(.plain).help("Show in Finder")
-            Button { inbox.remove(file);onInteraction() } label:{Image(systemName:"xmark").foregroundStyle(.secondary)}.buttonStyle(.plain).help("Remove from pocket")
+            scroll.documentView=document;addSubview(scroll)
         }
-        .padding(.horizontal,9).padding(.vertical,7).background(Color.white,in:RoundedRectangle(cornerRadius:15,style:.continuous)).overlay(RoundedRectangle(cornerRadius:15,style:.continuous).stroke(Color(red:0.92,green:0.85,blue:0.79),lineWidth:0.8)).contentShape(RoundedRectangle(cornerRadius:15,style:.continuous))
-        .onDrag { NSItemProvider(contentsOf:file.url) ?? NSItemProvider(object:file.url as NSURL) }
+        setAccessibilityLabel("Companion file pocket")
     }
+    required init?(coder:NSCoder) { fatalError("Unsupported") }
+    override var isFlipped:Bool { true }
+    override func acceptsFirstMouse(for event:NSEvent?)->Bool { true }
+    override func draw(_ dirtyRect:NSRect) {
+        // Two curved straps and fur-colored paws clutch an open, stitched pouch.
+        let strap=NSBezierPath();strap.move(to:CGPoint(x:72,y:46));strap.curve(to:CGPoint(x:228,y:46),controlPoint1:CGPoint(x:100,y:4),controlPoint2:CGPoint(x:200,y:4));strap.lineWidth=5;palette.ink.withAlphaComponent(0.65).setStroke();strap.stroke()
+        PetChromeDrawing.pocket(in:CGRect(x:13,y:39,width:274,height:203),palette:palette)
+        PetChromeDrawing.mitten(in:CGRect(x:57,y:26,width:34,height:29),palette:palette)
+        PetChromeDrawing.mitten(in:CGRect(x:209,y:26,width:34,height:29),palette:palette)
+        if files.isEmpty {
+            PetChromeDrawing.paw(in:CGRect(x:125,y:76,width:50,height:50),palette:palette,pressed:true)
+            PetChromeDrawing.label("I’ll catch it!",in:CGRect(x:35,y:139,width:230,height:22),size:16,color:palette.ink,weight:.semibold)
+            PetChromeDrawing.label("Drop your file on me or my pocket.",in:CGRect(x:25,y:171,width:250,height:19),size:10,color:palette.ink)
+        } else {
+            PetChromeDrawing.label("Drag a file out · Double-click to open",in:CGRect(x:25,y:211,width:250,height:16),size:9,color:palette.ink.withAlphaComponent(0.75))
+        }
+    }
+    private func urls(_ info:any NSDraggingInfo)->[URL] { (info.draggingPasteboard.readObjects(forClasses:[NSURL.self],options:[.urlReadingFileURLsOnly:true]) as? [NSURL] ?? []).map{$0 as URL} }
+    override func draggingEntered(_ sender:any NSDraggingInfo)->NSDragOperation { guard canDrop(urls(sender)) else { return [] };onDragging(true);return .copy }
+    override func draggingExited(_ sender:(any NSDraggingInfo)?) { onDragging(false) }
+    override func prepareForDragOperation(_ sender:any NSDraggingInfo)->Bool { canDrop(urls(sender)) }
+    override func performDragOperation(_ sender:any NSDraggingInfo)->Bool { onDragging(false);return onDrop(urls(sender)) }
 }
 
-private struct PouchIconButtonStyle:ButtonStyle {
-    func makeBody(configuration:Configuration)->some View { configuration.label.font(.system(size:11,weight:.semibold)).foregroundStyle(Color(red:0.49,green:0.37,blue:0.38)).frame(width:27,height:27).background(Color.white,in:Circle()).overlay(Circle().stroke(Color(red:0.90,green:0.82,blue:0.77),lineWidth:0.8)).scaleEffect(configuration.isPressed ? 0.92:1) }
+@MainActor private final class PetPocketRowsView:NSView { override var isFlipped:Bool { true } }
+
+@MainActor final class PetPocketFileRow:NSView,NSDraggingSource {
+    let file:PetInboxFile
+    let palette:PetChromePalette
+    private let onOpen:()->Void
+    private let onDragging:(Bool)->Void
+    private var downPoint:CGPoint?
+    private var dragging=false
+    init(file:PetInboxFile,palette:PetChromePalette,onOpen:@escaping ()->Void,onRemove:@escaping ()->Void,onDragging:@escaping (Bool)->Void) {
+        self.file=file;self.palette=palette;self.onOpen=onOpen;self.onDragging=onDragging;super.init(frame:CGRect(x:0,y:0,width:242,height:44))
+        let remove=PetSoftButton(title:"",symbol:"xmark",action:onRemove);remove.palette=palette;remove.frame=CGRect(x:216,y:12,width:20,height:20);remove.setAccessibilityLabel("Remove \(file.name) from pocket");addSubview(remove)
+        setAccessibilityElement(true);setAccessibilityRole(.group);setAccessibilityLabel("\(file.name), \(file.displaySize). Drag out or double-click to open.")
+    }
+    required init?(coder:NSCoder) { fatalError("Unsupported") }
+    override var isFlipped:Bool { true }
+    override var needsPanelToBecomeKey:Bool { false }
+    override func acceptsFirstMouse(for event:NSEvent?)->Bool { true }
+    override func draw(_ dirtyRect:NSRect) {
+        let paper=NSBezierPath(roundedRect:bounds.insetBy(dx:1,dy:1),xRadius:5,yRadius:5)
+        PetChromeDrawing.paint(paper,fill:NSColor(calibratedRed:1,green:0.98,blue:0.92,alpha:1),ink:palette.ink.withAlphaComponent(0.25),width:0.8)
+        NSWorkspace.shared.icon(forFile:file.url.path).draw(in:CGRect(x:9,y:9,width:24,height:26))
+        PetChromeDrawing.label(file.name,in:CGRect(x:41,y:8,width:168,height:16),size:10,color:palette.ink,weight:.semibold,alignment:.left)
+        PetChromeDrawing.label(file.displaySize,in:CGRect(x:41,y:25,width:162,height:12),size:9,color:palette.ink.withAlphaComponent(0.64),alignment:.left)
+    }
+    override func mouseDown(with event:NSEvent) { downPoint=convert(event.locationInWindow,from:nil);dragging=false;if event.clickCount == 2 { onOpen();downPoint=nil } }
+    override func mouseDragged(with event:NSEvent) {
+        let point=convert(event.locationInWindow,from:nil)
+        guard let downPoint,!dragging,hypot(point.x-downPoint.x,point.y-downPoint.y)>4,FileManager.default.fileExists(atPath:file.url.path) else { return }
+        dragging=true;onDragging(true)
+        let item=NSDraggingItem(pasteboardWriter:file.url as NSURL)
+        item.setDraggingFrame(CGRect(x:point.x-16,y:point.y-16,width:32,height:32),contents:NSWorkspace.shared.icon(forFile:file.url.path))
+        beginDraggingSession(with:[item],event:event,source:self)
+    }
+    override func mouseUp(with event:NSEvent) { downPoint=nil }
+    func draggingSession(_ session:NSDraggingSession,sourceOperationMaskFor context:NSDraggingContext)->NSDragOperation { .copy }
+    func draggingSession(_ session:NSDraggingSession,endedAt screenPoint:NSPoint,operation:NSDragOperation) { dragging=false;downPoint=nil;onDragging(false) }
 }

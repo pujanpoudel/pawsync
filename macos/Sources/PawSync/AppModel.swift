@@ -69,11 +69,16 @@ import Combine
             case "reminder": self.menuAddReminder()
             case "focus": self.focus.phase == .ready ? self.menuFocus() : self.menuStopFocus()
             case "walk": self.menuWalk()
-            case "files": self.fileInbox.files.isEmpty ? self.fileInbox.openFolder() : self.fileShelf.show(near:self.overlay.window)
+            case "files":
+                if self.fileInbox.files.isEmpty { self.speech.show(title:"My paws are free!",text:"Drop a file on me and I’ll keep it safe. Hover over my little pocket to get it back.") }
+                else { self.overlay.stopWalking();self.fileShelf.show(near:self.overlay.window) }
             case "hello": self.menuHello()
             default: break
             }
         }
+        quickActions.attachment = { [weak self] in self?.overlay.chromeAnchor ?? .unattached }
+        fileShelf.attachment = { [weak self] in self?.overlay.chromeAnchor ?? .unattached }
+        speech.attachment = { [weak self] in self?.overlay.chromeAnchor ?? .unattached }
         overlay.showSettings = { [weak self] in self?.openSettings?() }
         overlay.shouldTemporarilyHide = { [weak self] in
             guard let self,let id=NSWorkspace.shared.frontmostApplication?.bundleIdentifier else { return false }
@@ -84,12 +89,13 @@ import Combine
         overlay.restorePresentation = { [weak self] in self?.applyPresentation() }
         shortcuts.onToggle = { [weak self] in self?.preferences.hidden.toggle() }
         overlay.makeContextMenu = { [weak self] in self?.petContextMenu() ?? NSMenu() }
-        overlay.showQuickActions = { [weak self] in guard let self else { return };self.quickActions.show(near:self.overlay.window) }
+        overlay.showQuickActions = { [weak self] in guard let self,!self.speech.isVisible,!self.fileShelf.isVisible else { return };if !self.quickActions.isVisible { self.overlay.stopWalking() };self.quickActions.show(near:self.overlay.window) }
         overlay.hideQuickActions = { [weak self] in self?.quickActions.scheduleDismiss() }
         fileShelf.attach(to:overlay.window)
-        overlay.showFileShelf = { [weak self] in guard let self, !self.fileInbox.files.isEmpty else { return };self.fileShelf.show(near:self.overlay.window) }
+        overlay.showFileShelf = { [weak self] in guard let self,!self.speech.isVisible,!self.fileInbox.files.isEmpty else { return };self.quickActions.dismiss();self.overlay.stopWalking();self.fileShelf.show(near:self.overlay.window) }
+        overlay.companionUIActive = { [weak self] in self?.quickActions.isVisible == true || self?.fileShelf.isVisible == true || self?.speech.isVisible == true }
         overlay.storedFileCount = { [weak self] in self?.fileInbox.files.count ?? 0 }
-        overlay.showDropTarget = { [weak self] in guard let self else { return };self.fileShelf.showDropTarget(near:self.overlay.window) }
+        overlay.showDropTarget = { [weak self] in guard let self else { return };self.quickActions.dismiss();self.fileShelf.showDropTarget(near:self.overlay.window) }
         overlay.hideDropTarget = { [weak self] in self?.fileShelf.hideDropTarget() }
         overlay.canAcceptFiles = { [weak self] urls in self?.fileInbox.canAccept(urls) ?? false }
         overlay.onFileDrop = { [weak self] urls in
@@ -101,6 +107,7 @@ import Combine
                 return true
             } catch { self.notice=error.localizedDescription;return false }
         }
+        fileShelf.onFileDrop = { [weak self] urls in self?.overlay.onFileDrop?(urls) ?? false }
         daily.canDeliver = { [weak self] in self?.canDeliverCompanionMessage ?? false }
         daily.greetingsEnabled = { [weak self] in self?.preferences.greetings ?? false }
         daily.onMessage = { [weak self] _,title,text,reaction in
@@ -137,7 +144,7 @@ import Combine
         }
         speech.attach(to: overlay.window)
         hud.attach(to:overlay.window)
-        speech.onVisibility = { [weak self] visible in self?.hud.setSuspended(visible || self?.overlay.isHidden == true || self?.overlay.isScreenSleeping == true) }
+        speech.onVisibility = { [weak self] visible in if visible { self?.quickActions.dismiss();self?.fileShelf.dismiss();self?.overlay.stopWalking() };self?.hud.setSuspended(visible || self?.overlay.isHidden == true || self?.overlay.isScreenSleeping == true) }
         speech.onDone = { [weak self] in self?.completeReminder() }
         speech.onAutoDismiss = { [weak self] in self?.reminders.complete() }
         speech.onSnooze = { [weak self] in self?.reminders.snooze() }

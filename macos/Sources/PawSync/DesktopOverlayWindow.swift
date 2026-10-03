@@ -58,16 +58,16 @@ import QuartzCore
     override func mouseExited(with event:NSEvent) { controller?.hideQuickActions?() }
     private func revealPocketIfPet(_ point:NSPoint) {
         guard let controller,controller.hitPet(fromView:point) else { return }
-        controller.showFileShelf?()
+        if controller.hitHeldFiles(fromView:point) { controller.showFileShelf?() }
     }
     private func revealQuickActionsIfPet(_ point:NSPoint) {
-        guard let controller,controller.hitPet(fromView:point) else { return }
+        guard let controller,controller.hitPet(fromView:point),!controller.hitHeldFiles(fromView:point) else { return }
         controller.showQuickActions?()
     }
     override func hitTest(_ point: NSPoint) -> NSView? {
         let local = convert(point, from: superview)
         guard bounds.contains(local), let scene, let pet = controller?.pet,
-              pet.containsOpaquePoint(scene.convertPoint(fromView: local)) else { return nil }
+              (pet.containsOpaquePoint(scene.convertPoint(fromView: local)) || pet.containsHeldFilesPoint(scene.convertPoint(fromView:local))) else { return nil }
         return self
     }
     override func mouseDown(with event: NSEvent) {
@@ -112,6 +112,7 @@ import QuartzCore
     var makeContextMenu: (() -> NSMenu)?
     var showFileShelf:(()->Void)?
     var storedFileCount:(()->Int)?
+    var companionUIActive:(()->Bool)?
     var showDropTarget:(()->Void)?
     var hideDropTarget:(()->Void)?
     var showQuickActions:(()->Void)?
@@ -251,7 +252,7 @@ import QuartzCore
         animationDeadline=Date()
         statusLabel.fontSize = 11; statusLabel.fontColor = .systemPurple; statusLabel.zPosition = 80; scene.addChild(statusLabel); currentReaction = .idle; statusLabel.text = nil; pet = node; node.position = CGPoint(x: 140, y: 32); scene.addChild(node)
         view.preferredFramesPerSecond=node is FramePetNode ? 30 : 60
-        node.onNeedsRender = { [weak self] in self?.animate(for:0.08) }
+        node.onNeedsRender = { [weak self,weak node] in self?.animate(for:node?.requiresContinuousRendering == true ? 0.35:0.08) }
         node.setRenderingSuspended(screenSleeping || isHidden || preferences.reactionsPaused)
         setScale(preferences.petScale)
         node.setAccessory(preferences.accessory)
@@ -315,7 +316,7 @@ import QuartzCore
         }
         let local = window.convertPoint(fromScreen: NSEvent.mouseLocation)
         let viewPoint = view.convert(local, from: window.contentView)
-        let hit = view.bounds.contains(viewPoint) && (pet?.containsOpaquePoint(scene.convertPoint(fromView: viewPoint)) ?? false)
+        let hit = view.bounds.contains(viewPoint) && ((pet?.containsOpaquePoint(scene.convertPoint(fromView: viewPoint)) ?? false) || (pet?.containsHeldFilesPoint(scene.convertPoint(fromView:viewPoint)) ?? false))
         if window.ignoresMouseEvents == hit { window.ignoresMouseEvents = !hit }
         let scenePoint = scene.convertPoint(fromView: viewPoint)
         let near = hypot(local.x-scene.size.width/2, local.y-scene.size.height*0.45) < 130
@@ -411,9 +412,18 @@ import QuartzCore
         pet?.setScale(scale); pet?.position = CGPoint(x: size.width/2, y: 32*scale)
         animate(for: 0.3); updatePassThrough()
     }
+    var chromeAnchor:PetChromeAnchor {
+        let bounds=pet?.companionBoundsInScene ?? CGRect(x:65,y:32,width:150,height:200)
+        let a=view.convert(scene.convertPoint(toView:bounds.origin),to:nil)
+        let b=view.convert(scene.convertPoint(toView:CGPoint(x:bounds.maxX,y:bounds.maxY)),to:nil)
+        let frame=window.convertToScreen(CGRect(x:min(a.x,b.x),y:min(a.y,b.y),width:abs(b.x-a.x),height:abs(b.y-a.y)))
+        let name=(PetStore.builtInNames[preferences.companion] ?? "Buddy").components(separatedBy:" the ").first ?? "Buddy"
+        return PetChromeAnchor(pet:frame,visible:window.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? window.frame,palette:.companion(preferences.companion),name:name)
+    }
+    func hitHeldFiles(fromView point:CGPoint)->Bool { pet?.containsHeldFilesPoint(scene.convertPoint(fromView:point)) ?? false }
     func hitPet(fromView point:CGPoint)->Bool {
         guard view.bounds.contains(point),let pet else { return false }
-        return pet.containsOpaquePoint(scene.convertPoint(fromView:point))
+        return pet.containsOpaquePoint(scene.convertPoint(fromView:point)) || pet.containsHeldFilesPoint(scene.convertPoint(fromView:point))
     }
     func canAcceptFiles(_ urls:[URL])->Bool { canAcceptFiles?(urls) ?? false }
     func catchFiles(count:Int) {
@@ -469,7 +479,7 @@ import QuartzCore
         }]), withKey: "travel")
     }
     private func wanderIfNeeded(force: Bool = false) {
-        guard currentReaction == .idle, canRoam, !walking, !dancing, !screenSleeping, (force || !settingsVisible), !isHidden, !focusSleeping, !careSleeping, !idleSleeping, !isInteracting, !preferences.reactionsPaused,
+        guard currentReaction == .idle, canRoam, !walking, !dancing, !screenSleeping, (force || companionUIActive?() != true), (force || !settingsVisible), !isHidden, !focusSleeping, !careSleeping, !idleSleeping, !isInteracting, !preferences.reactionsPaused,
               force || (preferences.movement != .stay && Date().timeIntervalSince(lastInput) > 3), Date() >= nextWander,
               let visible = screen?.visibleFrame else { return }
         var y = window.frame.minY
@@ -546,7 +556,7 @@ import QuartzCore
     }
     func animate(for seconds: TimeInterval) {
         guard !screenSleeping, !isHidden else { return }
-        let duration=pet is FramePetNode && !walking && !dancing ? min(0.08,seconds) : seconds
+        let duration=pet is FramePetNode && pet?.requiresContinuousRendering != true && !walking && !dancing ? min(0.08,seconds):seconds
         animationDeadline = max(animationDeadline, Date().addingTimeInterval(duration))
         view.isPaused = false
         renderPauseWork?.cancel()
