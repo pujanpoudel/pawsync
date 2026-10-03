@@ -1,5 +1,4 @@
 import AppKit
-import SwiftUI
 
 @MainActor final class PetQuickActionsController {
     private var panel:NSPanel?
@@ -7,23 +6,27 @@ import SwiftUI
     private let action:(String)->Void
     private var pointerTimer:Timer?
     private var lastInBounds=Date()
+
     init(action:@escaping (String)->Void) { self.action=action }
+
     func show(near window:NSWindow) {
         anchor=window
         if panel == nil {
-            let p=PawPopupPanel(contentRect:CGRect(x:0,y:0,width:340,height:150),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
-            p.isOpaque=false;p.backgroundColor = .clear;p.hasShadow=false;p.hidesOnDeactivate=false;p.isReleasedWhenClosed=false;p.becomesKeyOnlyIfNeeded=true;p.ignoresMouseEvents=false;p.worksWhenModal=true
-            p.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary,.ignoresCycle];p.level=NSWindow.Level(rawValue:NSWindow.Level.mainMenu.rawValue-1)
-            let host=PetQuickActionsHostingView(rootView:PetQuickActionsView { [weak self] id in self?.action(id);self?.dismiss() })
-            p.contentView=host
+            let size=CGSize(width:360,height:184)
+            let p=PawPopupPanel(contentRect:CGRect(origin:.zero,size:size),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
+            p.isOpaque=false;p.backgroundColor = .clear;p.hasShadow=false;p.hidesOnDeactivate=false;p.isReleasedWhenClosed=false
+            p.becomesKeyOnlyIfNeeded=true;p.ignoresMouseEvents=false;p.worksWhenModal=true
+            p.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary,.ignoresCycle]
+            p.level=NSWindow.Level(rawValue:NSWindow.Level.mainMenu.rawValue-1)
+            p.contentView=PetQuickActionsNativeView(action:action)
             panel=p
         }
         let screen=window.screen ?? NSScreen.main,visible=screen?.visibleFrame ?? .zero
-        let size=CGSize(width:340,height:150),pet=window.frame
+        let size=CGSize(width:360,height:184),pet=window.frame
         let x=max(visible.minX,min(visible.maxX-size.width,pet.midX-size.width/2))
-        // Float over the pet's head so the actions feel attached to its body.
-        let y=max(visible.minY,min(visible.maxY-size.height,pet.maxY-100))
-        panel?.setFrame(CGRect(origin:CGPoint(x:x,y:y),size:size),display:true);panel?.orderFrontRegardless()
+        let y=max(visible.minY,min(visible.maxY-size.height,pet.maxY-76))
+        panel?.setFrame(CGRect(origin:CGPoint(x:x,y:y),size:size),display:true)
+        panel?.orderFrontRegardless()
         lastInBounds=Date()
         if pointerTimer == nil {
             pointerTimer=Timer.scheduledTimer(withTimeInterval:0.12,repeats:true){[weak self] _ in
@@ -36,53 +39,67 @@ import SwiftUI
             }
         }
     }
+
     func scheduleDismiss() { lastInBounds=Date().addingTimeInterval(-0.12) }
     private func dismiss() { panel?.orderOut(nil);pointerTimer?.invalidate();pointerTimer=nil }
 }
 
-@MainActor private final class PetQuickActionsHostingView:NSHostingView<PetQuickActionsView> {
-    private let centers:[CGPoint]=[CGPoint(x:37,y:41),CGPoint(x:91,y:87),CGPoint(x:146,y:111),CGPoint(x:201,y:111),CGPoint(x:256,y:87),CGPoint(x:310,y:41)]
-    required init(rootView:PetQuickActionsView) { super.init(rootView:rootView) }
+@MainActor private final class PetQuickActionsNativeView:NSView {
+    private let action:(String)->Void
+    private var buttons:[NSButton]=[]
+    private let items:[(String,String,String,NSColor)]=[
+        ("water","Water","drop.fill",NSColor(calibratedRed:0.35,green:0.67,blue:0.78,alpha:1)),
+        ("reminder","Reminder","bell.badge.fill",NSColor(calibratedRed:0.83,green:0.43,blue:0.56,alpha:1)),
+        ("focus","Focus","timer",NSColor(calibratedRed:0.57,green:0.45,blue:0.72,alpha:1)),
+        ("walk","Walk","figure.walk",NSColor(calibratedRed:0.39,green:0.62,blue:0.48,alpha:1)),
+        ("files","Pocket","tray.full.fill",NSColor(calibratedRed:0.77,green:0.52,blue:0.34,alpha:1)),
+        ("hello","Say hi","face.smiling",NSColor(calibratedRed:0.82,green:0.48,blue:0.57,alpha:1))
+    ]
+
+    init(action:@escaping (String)->Void) {
+        self.action=action
+        super.init(frame:CGRect(x:0,y:0,width:360,height:184))
+        for (index,item) in items.enumerated() {
+            let button=NSButton(title:item.1,target:self,action:#selector(activate(_:)))
+            button.identifier=NSUserInterfaceItemIdentifier(item.0)
+            button.isBordered=false
+            button.image=NSImage(systemSymbolName:item.2,accessibilityDescription:item.1)?.withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize:17,weight:.semibold))
+            button.imagePosition = .imageAbove
+            button.imageScaling = .scaleProportionallyDown
+            button.contentTintColor=item.3
+            button.attributedTitle=NSAttributedString(string:item.1,attributes:[.font:NSFont.systemFont(ofSize:10,weight:.semibold),.foregroundColor:NSColor(calibratedRed:0.33,green:0.27,blue:0.29,alpha:1)])
+            button.wantsLayer=true
+            button.layer?.cornerRadius=18
+            button.layer?.backgroundColor=NSColor(calibratedRed:1,green:0.97,blue:0.92,alpha:1).cgColor
+            button.layer?.borderColor=NSColor(calibratedRed:0.91,green:0.84,blue:0.78,alpha:1).cgColor
+            button.layer?.borderWidth=1
+            button.layer?.shadowColor=NSColor(calibratedRed:0.33,green:0.25,blue:0.23,alpha:1).withAlphaComponent(0.12).cgColor
+            button.layer?.shadowOpacity=1;button.layer?.shadowRadius=5;button.layer?.shadowOffset=CGSize(width:0,height:-2)
+            button.setButtonType(.momentaryChange)
+            button.frame=Self.buttonFrame(index)
+            button.setAccessibilityLabel(item.1)
+            addSubview(button);buttons.append(button)
+        }
+    }
+
     required init?(coder:NSCoder) { fatalError("Unsupported") }
+    override var isFlipped:Bool { false }
+
     override func hitTest(_ point:NSPoint)->NSView? {
-        let swiftPoint=CGPoint(x:point.x,y:bounds.height-point.y)
-        guard centers.contains(where:{abs($0.x-swiftPoint.x)<=34 && abs($0.y-swiftPoint.y)<=36}) else { return nil }
+        guard buttons.contains(where:{$0.frame.insetBy(dx:-3,dy:-3).contains(point)}) else { return nil }
         return super.hitTest(point)
     }
-}
 
-private struct PetQuickActionsView:View {
-    var perform:(String)->Void
-    private let actions:[(String,String,String,Color)]=[
-        ("water","Water break","drop.fill",Color(red:0.35,green:0.68,blue:0.79)),
-        ("reminder","Reminder","bell.badge.fill",Color(red:0.88,green:0.49,blue:0.59)),
-        ("focus","Focus","timer",Color(red:0.60,green:0.48,blue:0.75)),
-        ("walk","Take a walk","figure.walk",Color(red:0.42,green:0.66,blue:0.53)),
-        ("files","Pocket","tray.full.fill",Color(red:0.83,green:0.59,blue:0.39)),
-        ("hello","Say hi","face.smiling",Color(red:0.85,green:0.53,blue:0.62))
-    ]
-    var body:some View {
-        ZStack {
-            ForEach(Array(actions.enumerated()),id:\.element.0) { index,item in
-                let locations:[CGPoint]=[CGPoint(x:37,y:41),CGPoint(x:91,y:87),CGPoint(x:146,y:111),CGPoint(x:201,y:111),CGPoint(x:256,y:87),CGPoint(x:310,y:41)]
-                OrbitActionButton(title:item.1,icon:item.2,color:item.3) { perform(item.0) }
-                    .position(locations[index])
-            }
-        }.frame(width:340,height:150)
+    @objc private func activate(_ sender:NSButton) {
+        guard let id=sender.identifier?.rawValue else { return }
+        action(id)
     }
-}
 
-private struct OrbitActionButton:View {
-    let title:String;let icon:String;let color:Color;let action:()->Void
-    var body:some View {
-        Button(action:action) {
-            VStack(spacing:3) {
-                Image(systemName:icon).font(.system(size:17,weight:.semibold)).foregroundStyle(color)
-                    .frame(width:46,height:46).background(Color(red:0.99,green:0.96,blue:0.92),in:Circle())
-                Text(title).font(.system(size:8,weight:.bold,design:.rounded)).foregroundStyle(Color(red:0.32,green:0.26,blue:0.29)).lineLimit(1).fixedSize()
-            }
-                .overlay(Circle().stroke(.white.opacity(0.92),lineWidth:1.35))
-                .shadow(color:color.opacity(0.22),radius:7,y:4)
-        }.buttonStyle(.plain).help(title).accessibilityLabel(title)
+    private static func buttonFrame(_ index:Int)->CGRect {
+        let frames=[
+            CGRect(x:7,y:117,width:92,height:58),CGRect(x:134,y:132,width:92,height:58),CGRect(x:261,y:117,width:92,height:58),
+            CGRect(x:34,y:8,width:92,height:58),CGRect(x:134,y:0,width:92,height:58),CGRect(x:234,y:8,width:92,height:58)
+        ]
+        return frames[index]
     }
 }
