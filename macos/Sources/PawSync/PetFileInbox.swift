@@ -125,17 +125,22 @@ struct PetInboxFile:Identifiable,Codable,Equatable {
         guard let petWindow,let screen=petWindow.screen ?? NSScreen.main else { return }
         closeTimer?.invalidate()
         if panel==nil {
-            let created=PawPopupPanel(contentRect:CGRect(x:0,y:0,width:304,height:232),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
+            let created=PawPopupPanel(contentRect:CGRect(x:0,y:0,width:320,height:242),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
             created.isOpaque=false;created.backgroundColor = .clear;created.hasShadow=false;created.hidesOnDeactivate=false
             created.isReleasedWhenClosed=false;created.becomesKeyOnlyIfNeeded=true;created.ignoresMouseEvents=false;created.worksWhenModal=true;created.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary,.ignoresCycle]
-            created.level = NSWindow.Level(rawValue:NSWindow.Level.mainMenu.rawValue-2)
-            created.contentView=NSHostingView(rootView:PetFileShelfView(inbox:inbox,dropTarget:dropTargetActive,onClose:{[weak self] in self?.dismiss()},onInteraction:{[weak self] in self?.holdOpen()}))
+            created.level = .floating
+            let host=NSHostingView(rootView:PetFileShelfView(inbox:inbox,dropTarget:dropTargetActive,onClose:{[weak self] in self?.dismiss()},onInteraction:{[weak self] in self?.holdOpen()}))
+            created.contentView=host
             panel=created
         }
         let visible=screen.visibleFrame,frame=petWindow.frame
-        let x=max(visible.minX,min(visible.maxX-304,frame.midX-152))
-        let y=max(visible.minY,min(visible.maxY-232,frame.maxY-10))
-        panel?.setFrame(CGRect(x:x,y:y,width:304,height:232),display:true)
+        let x=max(visible.minX,min(visible.maxX-320,frame.midX-160))
+        let y=max(visible.minY,min(visible.maxY-242,frame.maxY-12))
+        panel?.setFrame(CGRect(x:x,y:y,width:320,height:242),display:true)
+        panel?.ignoresMouseEvents=dropTargetActive && inbox.files.isEmpty
+        if let panel,let host=panel.contentView as? NSHostingView<PetFileShelfView> {
+            host.rootView=PetFileShelfView(inbox:inbox,dropTarget:dropTargetActive,onClose:{[weak self] in self?.dismiss()},onInteraction:{[weak self] in self?.holdOpen()})
+        }
         panel?.orderFrontRegardless();holdOpen()
         if pointerTimer == nil { pointerTimer=Timer.scheduledTimer(withTimeInterval:0.22,repeats:true){[weak self] _ in MainActor.assumeIsolated { guard let self else { return };self.checkPointer(NSEvent.mouseLocation) } } }
     }
@@ -144,7 +149,10 @@ struct PetInboxFile:Identifiable,Codable,Equatable {
     private func refresh() {
         guard panel?.isVisible == true else { return }
         guard !inbox.files.isEmpty || dropTargetActive else { dismiss();return }
-        panel?.contentView=NSHostingView(rootView:PetFileShelfView(inbox:inbox,dropTarget:dropTargetActive,onClose:{[weak self] in self?.dismiss()},onInteraction:{[weak self] in self?.holdOpen()}))
+        if let panel,let host=panel.contentView as? NSHostingView<PetFileShelfView> {
+            host.rootView=PetFileShelfView(inbox:inbox,dropTarget:dropTargetActive,onClose:{[weak self] in self?.dismiss()},onInteraction:{[weak self] in self?.holdOpen()})
+        }
+        panel?.ignoresMouseEvents=dropTargetActive && inbox.files.isEmpty
     }
     private func checkPointer(_ point:CGPoint) {
         guard let panel,panel.isVisible else { return }
@@ -164,25 +172,37 @@ private struct PetFileShelfView:View {
     var body:some View {
         VStack(alignment:.leading,spacing:10) {
             if dropTarget && inbox.files.isEmpty {
-                Spacer(minLength:8)
-                VStack(spacing:9) { Image(systemName:"pawprint.circle.fill").font(.system(size:34)).foregroundStyle(Color(red:0.85,green:0.51,blue:0.63));Text("Catch this for me?").font(.system(size:14,weight:.bold,design:.rounded));Text("Drop it here and I’ll keep it safe.").font(.system(size:11,design:.rounded)).foregroundStyle(.secondary) }.frame(maxWidth:.infinity)
-                Spacer(minLength:8)
+                Spacer(minLength:12)
+                VStack(spacing:10) {
+                    ZStack { Circle().fill(Color(red:0.98,green:0.83,blue:0.75)).frame(width:54,height:54);Image(systemName:"tray.and.arrow.down.fill").font(.system(size:22,weight:.semibold)).foregroundStyle(Color(red:0.63,green:0.38,blue:0.38)) }
+                    Text("A little something for me?").font(.system(size:15,weight:.bold,design:.rounded))
+                    Text("Drop your file here and I’ll tuck it away.").font(.system(size:11,weight:.medium,design:.rounded)).foregroundStyle(Color(red:0.48,green:0.40,blue:0.40))
+                }.frame(maxWidth:.infinity)
+                Spacer(minLength:12)
             } else {
-            HStack(spacing:9) {
-                Image(systemName:"pawprint.fill").font(.system(size:15,weight:.semibold)).foregroundStyle(Color(red:0.83,green:0.43,blue:0.57))
-                VStack(alignment:.leading,spacing:1) { Text("I caught these!").font(.system(size:14,weight:.bold,design:.rounded));Text("\(inbox.files.count) little \(inbox.files.count==1 ? "treasure":"treasures")").font(.system(size:10,weight:.medium,design:.rounded)).foregroundStyle(.secondary) }
-                Spacer();Button { inbox.openFolder();onInteraction() } label:{Image(systemName:"folder")}.buttonStyle(.plain).help("Open saved files");Button(action:onClose){Image(systemName:"xmark").font(.system(size:10,weight:.bold)).foregroundStyle(.secondary).frame(width:25,height:25).background(.white.opacity(0.68),in:Circle())}.buttonStyle(.plain).help("Close")
-            }
+            HStack(spacing:10) {
+                ZStack { Circle().fill(Color(red:0.98,green:0.85,blue:0.78)).frame(width:36,height:36);Image(systemName:"pawprint.fill").font(.system(size:16,weight:.semibold)).foregroundStyle(Color(red:0.73,green:0.42,blue:0.48)) }
+                VStack(alignment:.leading,spacing:2) { Text("My little stash").font(.system(size:15,weight:.bold,design:.rounded));Text("\(inbox.files.count) saved \(inbox.files.count==1 ? "file":"files")").font(.system(size:10,weight:.medium,design:.rounded)).foregroundStyle(Color(red:0.48,green:0.40,blue:0.40)) }
+                Spacer()
+                Button { inbox.openFolder();onInteraction() } label:{Image(systemName:"folder")}.buttonStyle(PouchIconButtonStyle()).help("Open saved files")
+                Button(action:onClose){Image(systemName:"xmark").font(.system(size:10,weight:.bold))}.buttonStyle(PouchIconButtonStyle()).help("Close pocket")
+            }.padding(.bottom,3)
                 ScrollView {
-                    VStack(spacing:6) { ForEach(inbox.files.prefix(6)) { file in fileRow(file) } }
+                    VStack(spacing:7) { ForEach(inbox.files.prefix(6)) { file in fileRow(file) } }
                 }
-                if inbox.files.count>6 { Text("+\(inbox.files.count-6) more in the folder").font(.system(size:9,design:.rounded)).foregroundStyle(.secondary) }
+                if inbox.files.count>6 { Text("+\(inbox.files.count-6) more in your folder").font(.system(size:9,design:.rounded)).foregroundStyle(.secondary).padding(.leading,8) }
             }
-        }.padding(13).frame(width:304,height:232).background { ZStack { PetBubbleShape().fill(Color(red:1,green:0.96,blue:0.91));PetBubbleShape().fill(LinearGradient(colors:[Color(red:1,green:0.91,blue:0.88).opacity(dropTarget ? 0.36 : 0.16),Color(red:0.91,green:0.87,blue:0.96).opacity(0.12)],startPoint:.topLeading,endPoint:.bottomTrailing));PetBubbleShape().stroke(dropTarget ? Color(red:0.82,green:0.40,blue:0.57) : Color(red:0.84,green:0.72,blue:0.69),style:StrokeStyle(lineWidth:dropTarget ? 2 : 1.2,dash:dropTarget ? [6,4] : [])) } }.shadow(color:Color(red:0.53,green:0.36,blue:0.43).opacity(0.16),radius:13,y:5).onHover{inside in if inside { onInteraction() }}
+        }.padding(.horizontal,15).padding(.top,24).padding(.bottom,14).frame(width:320,height:242)
+            .background { ZStack(alignment:.top) {
+                Capsule().stroke(Color(red:0.73,green:0.53,blue:0.48),lineWidth:5).frame(width:78,height:35).offset(y:1)
+                RoundedRectangle(cornerRadius:25,style:.continuous).fill(Color(red:1,green:0.95,blue:0.86)).padding(.top,17)
+                RoundedRectangle(cornerRadius:25,style:.continuous).stroke(dropTarget ? Color(red:0.82,green:0.40,blue:0.57) : Color(red:0.79,green:0.64,blue:0.56),style:StrokeStyle(lineWidth:dropTarget ? 2.2 : 1.4,dash:dropTarget ? [6,4] : [])).padding(.top,17)
+                Capsule().fill(Color(red:0.96,green:0.84,blue:0.71)).frame(width:92,height:18).overlay(Circle().fill(Color(red:0.77,green:0.53,blue:0.48)).frame(width:7,height:7)).padding(.top,20)
+            }}.shadow(color:Color(red:0.43,green:0.31,blue:0.28).opacity(0.20),radius:12,y:6).onHover{inside in if inside { onInteraction() }}
     }
     private func fileRow(_ file:PetInboxFile)->some View {
         HStack(spacing:8) {
-            Image(systemName:"doc.text.fill").font(.system(size:14)).foregroundStyle(Color(red:0.62,green:0.49,blue:0.70)).frame(width:23,height:26).background(Color.white.opacity(0.75),in:RoundedRectangle(cornerRadius:8))
+            Image(systemName:"doc.text.fill").font(.system(size:14)).foregroundStyle(Color(red:0.63,green:0.47,blue:0.63)).frame(width:29,height:32).background(Color(red:1,green:0.94,blue:0.87),in:RoundedRectangle(cornerRadius:9))
             VStack(alignment:.leading,spacing:2) {
                 Text(file.name).font(.system(size:10,weight:.semibold,design:.rounded)).lineLimit(1)
                 Text(file.displaySize).font(.system(size:9,design:.rounded)).foregroundStyle(.secondary)
@@ -192,14 +212,11 @@ private struct PetFileShelfView:View {
             Button { inbox.reveal(file);onInteraction() } label:{Image(systemName:"folder")}.buttonStyle(.plain).help("Show in Finder")
             Button { inbox.remove(file);onInteraction() } label:{Image(systemName:"xmark").foregroundStyle(.secondary)}.buttonStyle(.plain).help("Remove from pocket")
         }
-        .padding(.horizontal,8).padding(.vertical,6).background(Color.white.opacity(0.92),in:Capsule()).contentShape(Capsule())
-        .draggable(file.url)
+        .padding(.horizontal,9).padding(.vertical,7).background(Color.white,in:RoundedRectangle(cornerRadius:15,style:.continuous)).overlay(RoundedRectangle(cornerRadius:15,style:.continuous).stroke(Color(red:0.92,green:0.85,blue:0.79),lineWidth:0.8)).contentShape(RoundedRectangle(cornerRadius:15,style:.continuous))
+        .onDrag { NSItemProvider(contentsOf:file.url) ?? NSItemProvider(object:file.url as NSURL) }
     }
 }
 
-struct PetBubbleShape:Shape {
-    func path(in rect:CGRect)->Path {
-        let r:CGFloat=24,tail:CGFloat=11,c=rect.midX
-        var p=Path();p.move(to:CGPoint(x:rect.minX+r,y:rect.minY));p.addLine(to:CGPoint(x:rect.maxX-r,y:rect.minY));p.addQuadCurve(to:CGPoint(x:rect.maxX,y:rect.minY+r),control:CGPoint(x:rect.maxX,y:rect.minY));p.addLine(to:CGPoint(x:rect.maxX,y:rect.maxY-r-tail));p.addQuadCurve(to:CGPoint(x:rect.maxX-r,y:rect.maxY-tail),control:CGPoint(x:rect.maxX,y:rect.maxY-tail));p.addLine(to:CGPoint(x:c+14,y:rect.maxY-tail));p.addLine(to:CGPoint(x:c,y:rect.maxY));p.addLine(to:CGPoint(x:c-14,y:rect.maxY-tail));p.addLine(to:CGPoint(x:rect.minX+r,y:rect.maxY-tail));p.addQuadCurve(to:CGPoint(x:rect.minX,y:rect.maxY-r-tail),control:CGPoint(x:rect.minX,y:rect.maxY-tail));p.addLine(to:CGPoint(x:rect.minX,y:rect.minY+r));p.addQuadCurve(to:CGPoint(x:rect.minX+r,y:rect.minY),control:CGPoint(x:rect.minX,y:rect.minY));p.closeSubpath();return p
-    }
+private struct PouchIconButtonStyle:ButtonStyle {
+    func makeBody(configuration:Configuration)->some View { configuration.label.font(.system(size:11,weight:.semibold)).foregroundStyle(Color(red:0.49,green:0.37,blue:0.38)).frame(width:27,height:27).background(Color.white,in:Circle()).overlay(Circle().stroke(Color(red:0.90,green:0.82,blue:0.77),lineWidth:0.8)).scaleEffect(configuration.isPressed ? 0.92:1) }
 }
