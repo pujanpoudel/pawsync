@@ -6,6 +6,8 @@ import SwiftUI
     private var item: NSStatusItem!
     private var settingsWindow: NSWindow?
     private var reopenObserver:NSObjectProtocol?
+    private var companionMenu:NSMenu?
+    private var accessoryMenu:NSMenu?
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         reopenObserver=DistributedNotificationCenter.default().addObserver(forName:SingleInstance.showSettings,object:nil,queue:.main) { [weak self] _ in MainActor.assumeIsolated { self?.showSettings() } }
@@ -22,10 +24,14 @@ import SwiftUI
             let entry=NSMenuItem(title:title,action:selector,keyEquivalent:key); entry.target=self; menu.addItem(entry)
         }
         add("Open Settings…",#selector(showSettings),",")
+        let companions=NSMenuItem(title:"Choose a Companion",action:nil,keyEquivalent:"");let companionSubmenu=NSMenu();companions.submenu=companionSubmenu;menu.addItem(companions);companionMenu=companionSubmenu
+        let wardrobe=NSMenuItem(title:"Wear an Accessory",action:nil,keyEquivalent:"");let accessorySubmenu=NSMenu();wardrobe.submenu=accessorySubmenu;menu.addItem(wardrobe);accessoryMenu=accessorySubmenu
+        add("Open Wardrobe…",#selector(openWardrobe))
         menu.addItem(.separator())
         add("Hide Pet",#selector(toggleHidden))
         add("Mute Sounds",#selector(toggleMute))
         add("Pause Reactions",#selector(togglePaused))
+        add("Let Pet Sleep",#selector(toggleSleep))
         add("Next Companion",#selector(nextCompanion))
         add("Say Hello",#selector(sayHello))
         menu.addItem(.separator())
@@ -85,7 +91,7 @@ import SwiftUI
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         showSettings(); return true
     }
-    func menuWillOpen(_ menu: NSMenu) { refreshMenu() }
+    func menuWillOpen(_ menu: NSMenu) { refreshMenu();refreshCompanionSubmenu();refreshAccessorySubmenu() }
     private func refreshMenu() {
         guard let menu=item?.menu else { return }
         for entry in menu.items where !entry.isSeparatorItem { _ = validateMenuItem(entry) }
@@ -102,6 +108,7 @@ import SwiftUI
         case #selector(togglePaused):
             entry.title=model.preferences.reactionsPaused ? "Resume Reactions" : "Pause Reactions"
             entry.state=model.preferences.reactionsPaused ? .on : .off
+        case #selector(toggleSleep): entry.title=model.overlay.isMenuSleeping ? "Wake Pet" : "Let Pet Sleep"
         case #selector(toggleFocus): entry.title=model.focus.phase == .ready ? "Start Pomodoro" : "Stop Pomodoro"
         case #selector(nextCompanion):
             enabled=PetStore.builtInIDs.filter { model.wardrobe.canSelectPet($0) }.count > 1
@@ -109,6 +116,33 @@ import SwiftUI
         }
         entry.isEnabled=enabled
         return enabled
+    }
+    @objc private func chooseCompanion(_ sender:NSMenuItem) {
+        guard let id=sender.representedObject as? String,model.wardrobe.canSelectPet(id) else { return }
+        model.preferences.companion=id;model.preferences.hidden=false
+    }
+    @objc private func chooseAccessory(_ sender:NSMenuItem) {
+        guard let sku=sender.representedObject as? String else { return }
+        model.preferences.accessory=sku;model.preferences.headAccessoriesVisible=sku != "none"
+    }
+    @objc private func openWardrobe() { model.settingsSection = .gallery;showSettings() }
+    @objc private func toggleSleep() { model.overlay.setMenuSleeping(!model.overlay.isMenuSleeping);refreshMenu() }
+    private func refreshCompanionSubmenu() {
+        guard let menu=companionMenu else { return };menu.removeAllItems()
+        let ids=(PetStore.builtInIDs+PetStore.customPets().map(\.id)).filter{model.wardrobe.canSelectPet($0)}
+        for id in ids {
+            let entry=NSMenuItem(title:PetStore.builtInNames[id] ?? id,action:#selector(chooseCompanion(_:)),keyEquivalent:"")
+            entry.target=self;entry.representedObject=id;entry.state=model.preferences.companion == id ? .on:.off;menu.addItem(entry)
+        }
+    }
+    private func refreshAccessorySubmenu() {
+        guard let menu=accessoryMenu else { return };menu.removeAllItems()
+        let owned=FreeHat.all.filter{model.wardrobe.ownedHats.contains($0.id)}.map{($0.id,$0.name)}
+        let paid=model.wallet.accessories.map{($0,$0 == "accessory.glasses" ? "Glasses" : "Top hat")}
+        for (sku,name) in [("none","No accessory")]+owned+paid {
+            let entry=NSMenuItem(title:name,action:#selector(chooseAccessory(_:)),keyEquivalent:"")
+            entry.target=self;entry.representedObject=sku;entry.state=model.preferences.accessory == sku ? .on:.off;menu.addItem(entry)
+        }
     }
     func applicationWillTerminate(_ notification: Notification) { model.stop() }
 }

@@ -1,6 +1,11 @@
 import AppKit
 import SpriteKit
 
+@MainActor final class PawPopupPanel:NSPanel {
+    override var canBecomeKey:Bool { true }
+    override var canBecomeMain:Bool { false }
+}
+
 @MainActor protocol CompanionAnimating: AnyObject {
     var sleeping: Bool { get }
     var onNeedsRender:(()->Void)? { get set }

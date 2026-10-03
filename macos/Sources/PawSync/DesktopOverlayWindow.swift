@@ -145,6 +145,8 @@ import QuartzCore
     var careSleeping = false { didSet { if careSleeping != oldValue { updateSleep() } } }
     private var screenSleeping = false
     private var idleSleeping = false
+    private var menuSleeping = false
+    var isMenuSleeping:Bool { menuSleeping }
     private var lastInput = Date()
     private var animationDeadline = Date()
     private var renderPauseWork:DispatchWorkItem?
@@ -536,9 +538,11 @@ import QuartzCore
         if preferences.reactionsPaused { stopWalking(); stopDance(); view.isPaused = true }
         else { didReceiveInput(); animate(for: 0.4) }
     }
+    func setMenuSleeping(_ value:Bool) { menuSleeping=value;updateSleep() }
     private func updateSleep() {
-        if focusSleeping || careSleeping || idleSleeping { stopWalking(); stopDance() }
-        animate(for: 1); pet?.setSleeping(focusSleeping || careSleeping || idleSleeping); restorePresentation?()
+        let asleep=focusSleeping || careSleeping || idleSleeping || menuSleeping
+        if asleep { stopWalking(); stopDance() }
+        animate(for: 1); pet?.setSleeping(asleep); restorePresentation?()
     }
     func animate(for seconds: TimeInterval) {
         guard !screenSleeping, !isHidden else { return }
@@ -554,7 +558,7 @@ import QuartzCore
     }
     private func heartbeat() {
         guard !screenSleeping, !isHidden, !preferences.reactionsPaused else { stopWalking(); stopDance(); view.isPaused = true; return }
-        if Date().timeIntervalSince(lastInput) >= 300, !idleSleeping { idleSleeping = true; updateSleep() }
+        if Date().timeIntervalSince(lastInput) >= 15, !idleSleeping { idleSleeping = true; updateSleep() }
         if currentReaction == .idle, musicAudible, canRoam, !focusSleeping, !careSleeping, !idleSleeping, !isInteracting, Date().timeIntervalSince(lastInput) > 1.5 {
             stopWalking()
             if !dancing { dancing = true; pet?.setDancing(true, beat: musicBeat) }

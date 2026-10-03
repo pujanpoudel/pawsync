@@ -1,7 +1,6 @@
 import AppKit
 import Combine
 import SwiftUI
-import UniformTypeIdentifiers
 
 struct PetInboxFile:Identifiable,Codable,Equatable {
     var id:String
@@ -126,9 +125,9 @@ struct PetInboxFile:Identifiable,Codable,Equatable {
         guard let petWindow,let screen=petWindow.screen ?? NSScreen.main else { return }
         closeTimer?.invalidate()
         if panel==nil {
-            let created=NSPanel(contentRect:CGRect(x:0,y:0,width:304,height:232),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
+            let created=PawPopupPanel(contentRect:CGRect(x:0,y:0,width:304,height:232),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
             created.isOpaque=false;created.backgroundColor = .clear;created.hasShadow=false;created.hidesOnDeactivate=false
-            created.isReleasedWhenClosed=false;created.becomesKeyOnlyIfNeeded=true;created.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary,.ignoresCycle]
+            created.isReleasedWhenClosed=false;created.becomesKeyOnlyIfNeeded=true;created.ignoresMouseEvents=false;created.worksWhenModal=true;created.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary,.ignoresCycle]
             created.level = NSWindow.Level(rawValue:NSWindow.Level.mainMenu.rawValue-2)
             created.contentView=NSHostingView(rootView:PetFileShelfView(inbox:inbox,dropTarget:dropTargetActive,onClose:{[weak self] in self?.dismiss()},onInteraction:{[weak self] in self?.holdOpen()}))
             panel=created
@@ -179,7 +178,7 @@ private struct PetFileShelfView:View {
                 }
                 if inbox.files.count>6 { Text("+\(inbox.files.count-6) more in the folder").font(.system(size:9,design:.rounded)).foregroundStyle(.secondary) }
             }
-        }.padding(13).frame(width:304,height:232).background { ZStack { PetBubbleShape().fill(.ultraThinMaterial);PetBubbleShape().fill(LinearGradient(colors:[Color(red:1,green:0.93,blue:0.91).opacity(dropTarget ? 0.58 : 0.35),Color(red:0.91,green:0.88,blue:0.98).opacity(0.30)],startPoint:.topLeading,endPoint:.bottomTrailing));PetBubbleShape().stroke(dropTarget ? Color.pink.opacity(0.84) : Color.white.opacity(0.86),style:StrokeStyle(lineWidth:dropTarget ? 2 : 1.2,dash:dropTarget ? [6,4] : [])) } }.shadow(color:Color(red:0.53,green:0.36,blue:0.43).opacity(0.16),radius:13,y:5).onHover{inside in if inside { onInteraction() }}
+        }.padding(13).frame(width:304,height:232).background { ZStack { PetBubbleShape().fill(Color(red:1,green:0.96,blue:0.91));PetBubbleShape().fill(LinearGradient(colors:[Color(red:1,green:0.91,blue:0.88).opacity(dropTarget ? 0.36 : 0.16),Color(red:0.91,green:0.87,blue:0.96).opacity(0.12)],startPoint:.topLeading,endPoint:.bottomTrailing));PetBubbleShape().stroke(dropTarget ? Color(red:0.82,green:0.40,blue:0.57) : Color(red:0.84,green:0.72,blue:0.69),style:StrokeStyle(lineWidth:dropTarget ? 2 : 1.2,dash:dropTarget ? [6,4] : [])) } }.shadow(color:Color(red:0.53,green:0.36,blue:0.43).opacity(0.16),radius:13,y:5).onHover{inside in if inside { onInteraction() }}
     }
     private func fileRow(_ file:PetInboxFile)->some View {
         HStack(spacing:8) {
@@ -193,12 +192,8 @@ private struct PetFileShelfView:View {
             Button { inbox.reveal(file);onInteraction() } label:{Image(systemName:"folder")}.buttonStyle(.plain).help("Show in Finder")
             Button { inbox.remove(file);onInteraction() } label:{Image(systemName:"xmark").foregroundStyle(.secondary)}.buttonStyle(.plain).help("Remove from pocket")
         }
-        .padding(.horizontal,8).padding(.vertical,6).background(.white.opacity(0.56),in:Capsule()).contentShape(Capsule())
-        .onDrag {
-            let provider=NSItemProvider()
-            provider.registerFileRepresentation(forTypeIdentifier:UTType.fileURL.identifier,fileOptions:[],visibility:.all) { completion in completion(file.url,false,nil);return nil }
-            return provider
-        }
+        .padding(.horizontal,8).padding(.vertical,6).background(Color.white.opacity(0.92),in:Capsule()).contentShape(Capsule())
+        .draggable(file.url)
     }
 }
 

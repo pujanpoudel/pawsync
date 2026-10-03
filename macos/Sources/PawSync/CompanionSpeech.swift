@@ -41,9 +41,10 @@ struct SpeechAction:Identifiable { let id:String; let title:String; let icon:Str
         self.title = String(title.prefix(120)); self.text = String(text.prefix(1000)); isReminder = reminder; self.actions=Array(actions.prefix(3))
         bubbleHeight = reminder || !self.actions.isEmpty ? 190 : 152
         if panel == nil {
-            let panel = NSPanel(contentRect: CGRect(x: 0, y: 0, width: 290, height: bubbleHeight), styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+            let panel = PawPopupPanel(contentRect: CGRect(x: 0, y: 0, width: 290, height: bubbleHeight), styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
             panel.title = "PawSync Message"; panel.isOpaque = false; panel.backgroundColor = .clear
             panel.hasShadow = false; panel.hidesOnDeactivate = false; panel.isReleasedWhenClosed = false
+            panel.becomesKeyOnlyIfNeeded=true;panel.ignoresMouseEvents=false;panel.worksWhenModal=true
             panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .ignoresCycle]
             self.panel = panel
         }
@@ -111,18 +112,18 @@ private struct CompanionSpeechView: View {
                 HStack(spacing:8) {
                     if !speech.actions.isEmpty { ForEach(speech.actions) { action in pill(action.title,icon:action.icon,action:action.action) } }
                     else {
-                        pill("Got it!",icon:"heart") { speech.onDone?() }
-                        pill("10 min",icon:"moon") { speech.onSnooze?() }
+                        pill(speech.title.localizedCaseInsensitiveContains("water") ? "I had a sip!" : "Got it!",icon:speech.title.localizedCaseInsensitiveContains("water") ? "drop.fill" : "heart") { speech.onDone?() }
+                        pill("10 min",icon:"moon.fill") { speech.onSnooze?() }
                     }
                 }
             }
         }.foregroundStyle(ink).padding(.horizontal, 22).padding(.top, 20).padding(.bottom, 26)
             .frame(width: 290, height: speech.bubbleHeight, alignment: .topLeading)
-            .background { ZStack { BubbleShape().fill(.ultraThinMaterial);BubbleShape().fill(LinearGradient(colors:[Color(red:1,green:0.93,blue:0.90).opacity(0.60),Color(red:0.95,green:0.89,blue:0.98).opacity(0.44)],startPoint:.topLeading,endPoint:.bottomTrailing));BubbleShape().stroke(Color.white.opacity(0.92),lineWidth:1.35) } }
+            .background { ZStack { BubbleShape().fill(Color(red:1,green:0.96,blue:0.91));BubbleShape().fill(LinearGradient(colors:[Color(red:1,green:0.91,blue:0.88).opacity(0.18),Color(red:0.92,green:0.87,blue:0.96).opacity(0.10)],startPoint:.topLeading,endPoint:.bottomTrailing));BubbleShape().stroke(Color(red:0.84,green:0.71,blue:0.70),lineWidth:1.35) } }
             .shadow(color: Color(red:0.44,green:0.31,blue:0.39).opacity(0.15), radius: 13, y: 5)
             .contextMenu { if speech.isReminder { Button("Snooze 10 min") { speech.onSnooze?() }; Button("Dismiss") { speech.onDone?() } } }
     }
     private func pill(_ title: String, icon: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) { Label(title, systemImage: icon).font(.system(size: 11, weight: .semibold, design: .rounded)).padding(.horizontal, 11).padding(.vertical, 6).background(.white.opacity(0.75), in: Capsule()) }.buttonStyle(.plain)
+        Button(action: action) { Label(title, systemImage: icon).font(.system(size: 11, weight: .semibold, design: .rounded)).padding(.horizontal, 11).padding(.vertical, 6).foregroundStyle(Color(red:0.34,green:0.25,blue:0.31)).background(Color.white, in: Capsule()).overlay(Capsule().stroke(Color(red:0.89,green:0.79,blue:0.77),lineWidth:0.8) ) }.buttonStyle(.plain)
     }
 }

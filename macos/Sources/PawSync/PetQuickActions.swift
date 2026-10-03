@@ -11,8 +11,8 @@ import SwiftUI
     func show(near window:NSWindow) {
         anchor=window
         if panel == nil {
-            let p=NSPanel(contentRect:CGRect(x:0,y:0,width:340,height:150),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
-            p.isOpaque=false;p.backgroundColor = .clear;p.hasShadow=false;p.hidesOnDeactivate=false;p.isReleasedWhenClosed=false;p.becomesKeyOnlyIfNeeded=true
+            let p=PawPopupPanel(contentRect:CGRect(x:0,y:0,width:340,height:150),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
+            p.isOpaque=false;p.backgroundColor = .clear;p.hasShadow=false;p.hidesOnDeactivate=false;p.isReleasedWhenClosed=false;p.becomesKeyOnlyIfNeeded=true;p.ignoresMouseEvents=false;p.worksWhenModal=true
             p.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary,.ignoresCycle];p.level=NSWindow.Level(rawValue:NSWindow.Level.mainMenu.rawValue-1)
             let host=PetQuickActionsHostingView(rootView:PetQuickActionsView { [weak self] id in self?.action(id);self?.dismiss() })
             p.contentView=host
@@ -76,9 +76,11 @@ private struct OrbitActionButton:View {
     let title:String;let icon:String;let color:Color;let action:()->Void
     var body:some View {
         Button(action:action) {
-            Image(systemName:icon).font(.system(size:17,weight:.semibold)).foregroundStyle(color)
-                .frame(width:46,height:46).background(color.opacity(0.12),in:Circle())
-                .overlay(Circle().fill(LinearGradient(colors:[.white.opacity(0.30),color.opacity(0.10)],startPoint:.topLeading,endPoint:.bottomTrailing)))
+            VStack(spacing:3) {
+                Image(systemName:icon).font(.system(size:17,weight:.semibold)).foregroundStyle(color)
+                    .frame(width:46,height:46).background(Color(red:0.99,green:0.96,blue:0.92),in:Circle())
+                Text(title).font(.system(size:8,weight:.bold,design:.rounded)).foregroundStyle(Color(red:0.32,green:0.26,blue:0.29)).lineLimit(1).fixedSize()
+            }
                 .overlay(Circle().stroke(.white.opacity(0.92),lineWidth:1.35))
                 .shadow(color:color.opacity(0.22),radius:7,y:4)
         }.buttonStyle(.plain).help(title).accessibilityLabel(title)
