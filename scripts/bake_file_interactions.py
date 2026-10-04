@@ -4,9 +4,15 @@ import json
 from pathlib import Path
 import shutil
 from PIL import Image
-from import_pawpaw_previews import eye_pair
+from import_pawpaw_previews import eye_pair, measured_eyes
 
 ROOT = Path(__file__).resolve().parents[1]
+FILE_EYE_OVERRIDES = {
+    "capybara": {
+        "receive": [(62,94.5,5.5),(133.5,94.5,5.5)],
+        "hold": [(52.5,94,5.5),(124.5,94,5.5)],
+    },
+}
 
 
 def main():
@@ -37,6 +43,8 @@ def main():
                 x, y = (x0+x1)/2, (y0+y1)/2
                 sample = frame.getpixel((int(x), max(0, int(y-max(5,(y1-y0)*.95)))))
                 info.append({"point":[x/192,y/208], "radius":min(15,max(2.3,(x1-x0)*.6)), "fur":[v/255 for v in sample[:3]]})
+            if pet_id in FILE_EYE_OVERRIDES:
+                info = measured_eyes(frame,FILE_EYE_OVERRIDES[pet_id][pose])
             cx = sum(eye["point"][0] for eye in info)/2
             eye_y = sum(eye["point"][1] for eye in info)/2
             profile = {"eyes":info, "crown":[cx,max(.08,eye_y-.17)], "accessory_scale":max(.5,min(1.3,(info[1]["point"][0]-info[0]["point"][0])*192/44)), "paw_centers":[[cx-.15,.28],[cx+.15,.28]]}

@@ -192,6 +192,19 @@ import SpriteKit
         transition("petting"); blink(slow:true); cheeks()
         joints["head"]?.run(.sequence([eased(.group([.rotate(toAngle:max(-0.16,min(0.16,-direction*0.015)),duration:0.22),.scaleY(to:0.97,duration:0.22)])),eased(.group([.rotate(toAngle:0,duration:0.45),.scaleY(to:1,duration:0.45)]))]),withKey:"petting")
     }
+    func cuddle() {
+        guard !sleeping,!receivingFiles else { return };transition("cuddle");cheeks();blink(slow:true)
+        if let body=joints["body"],let rest=restPositions["body"] {
+            let left=eased(.group([.move(to:CGPoint(x:rest.x-3,y:rest.y+3),duration:0.18),.rotate(toAngle:-0.04,duration:0.18)]))
+            let right=eased(.group([.move(to:CGPoint(x:rest.x+3,y:rest.y+3),duration:0.18),.rotate(toAngle:0.04,duration:0.18)]))
+            body.run(.sequence([.repeat(.sequence([left,right]),count:3),eased(.group([.move(to:rest,duration:0.24),.rotate(toAngle:0,duration:0.24)]))]),withKey:"cuddle")
+        }
+        joints["head"]?.run(.sequence([.repeat(.sequence([eased(.rotate(toAngle:0.06,duration:0.18)),eased(.rotate(toAngle:-0.06,duration:0.18))]),count:3),eased(.rotate(toAngle:0,duration:0.24))]),withKey:"cuddle")
+        for (key,side) in [("left_paw",CGFloat(-1)),("right_paw",CGFloat(1))] {
+            joints[key]?.run(.sequence([eased(.rotate(toAngle:side*0.6,duration:0.24)),.wait(forDuration:0.6),eased(.rotate(toAngle:0,duration:0.35))]),withKey:"cuddle")
+        }
+        onNeedsRender?()
+    }
     func setSleeping(_ value: Bool) {
         guard value != sleeping else { return }
         sleeping = value
@@ -278,13 +291,15 @@ import SpriteKit
     func express(_ emotion:PetEmotion) {
         guard !sleeping,!receivingFiles else { return };transition("emotion")
         switch emotion {
-        case .happy,.affectionate,.proud: cheeks();blink(slow:true)
-        case .sleepy,.shy: blink(slow:true);joints["head"]?.run(.sequence([eased(.rotate(toAngle:-0.06,duration:0.25)),eased(.rotate(toAngle:0,duration:0.7))]))
+        case .happy,.affectionate,.proud,.delighted: cheeks();blink(slow:true)
+        case .sleepy,.shy,.cozy: blink(slow:true);joints["head"]?.run(.sequence([eased(.rotate(toAngle:-0.06,duration:0.25)),eased(.rotate(toAngle:0,duration:0.7))]))
         case .curious: look(toward:CGPoint(x:position.x+80,y:position.y+150))
         case .surprised: joints["head"]?.run(.sequence([eased(.scale(to:1.07,duration:0.12)),eased(.scale(to:1,duration:0.4))]))
         case .sad: blink(slow:true);joints["head"]?.run(.sequence([eased(.moveBy(x:0,y:-5,duration:0.25)),eased(.move(to:restPositions["head"] ?? .zero,duration:0.7))]))
         case .excited: celebrate()
         case .focused: typing()
+        case .playful: cuddle()
+        case .grumpy: blink();joints["head"]?.run(.sequence([eased(.rotate(toAngle:0.05,duration:0.2)),eased(.rotate(toAngle:0,duration:0.5))]))
         }
         onNeedsRender?()
     }

@@ -18,6 +18,7 @@ import SpriteKit
     func typing()
     func click(toward point: CGPoint)
     func pet(direction: CGFloat)
+    func cuddle()
     func setSleeping(_ value: Bool)
     func celebrate()
     func hideInBox()
@@ -47,6 +48,7 @@ extension CompanionAnimating {
     func setReceivingFiles(_ active:Bool) {}
     func catchFiles() { celebrate() }
     func express(_ emotion:PetEmotion) { play(emotion == .sad ? .failed : emotion == .excited ? .jumping : .review,looping:false,relaxed:true) }
+    func cuddle() { pet(direction:0) }
 }
 
 @MainActor final class PetHeldFilesIndicator:SKNode {

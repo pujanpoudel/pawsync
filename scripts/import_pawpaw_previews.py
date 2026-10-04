@@ -35,6 +35,19 @@ EYE_OVERRIDES = {
     "season2-giant-panda": [(65,129,4),(107,133,4)],
     "season2-sloth": [(70,104,3.5),(108,103,3.5)],
 }
+# Pudding's nostrils are a closer/squarer dark pair than its wide-set eyes.
+# These landmarks refer to the neutral original frame, not the Paw-Paw pet.
+ORIGINAL_EYE_OVERRIDES = {
+    "capybara": [(54.5,78.5,6),(139.5,78,6)],
+}
+
+
+def measured_eyes(image, landmarks):
+    info=[]
+    for x,y,radius in landmarks:
+        sample=image.getpixel((round(x),round(y-radius*1.8)))
+        info.append({"point":[x/192,y/208],"radius":radius,"fur":[v/255 for v in sample[:3]]})
+    return info
 
 
 def fetch(url):
@@ -158,10 +171,7 @@ def bake(companion):
              "paw_centers":paw_centers,
              "source":BASE,"season":companion["season"],"unlock_level":companion["level"]}
     if remote_id in EYE_OVERRIDES:
-        info=[]
-        for x,y,radius in EYE_OVERRIDES[remote_id]:
-            sample=preview.getpixel((round(x),round(y-radius*1.8)))
-            info.append({"point":[x/192,y/208],"radius":radius,"fur":[v/255 for v in sample[:3]]})
+        info=measured_eyes(preview,EYE_OVERRIDES[remote_id])
         profile["eyes"]=info
         profile["crown"]=[sum(e["point"][0] for e in info)/2,min(e["point"][1] for e in info)-24/208]
         profile["accessory_scale"]=max(.4,min(1.25,(info[1]["point"][0]-info[0]["point"][0])*192/44))
@@ -177,16 +187,7 @@ def bake(companion):
     return {"id":pet_id,"name":companion["name"],"folder":"pawpaw/"+remote_id,"columns":8,"rows":9,"source":BASE,"author":"Paw-Paw","origin":"Paw-Paw preview"}
 
 
-def main():
-    script=fetch(BASE+"public/companions.js").decode()
-    companions=json.loads(re.search(r"window.PAWPAW_COMPANIONS = (\[.*?\]);",script,re.S).group(1))
-    if len(companions) != 31: raise ValueError("Reference catalog changed; review before importing")
-    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
-        entries=list(pool.map(bake,companions))
-    catalog_path=ROOT / "macos/Resources/OpenPets/catalog.json"
-    catalog=json.loads(catalog_path.read_text())
-    catalog=[entry for entry in catalog if entry.get("origin") != "Paw-Paw preview"]+entries
-    catalog_path.write_text(json.dumps(catalog,indent=2)+"\n")
+def bake_original_profiles():
     for folder in sorted((ROOT / "macos/Resources/OpenPets/originals").iterdir()):
         path=folder / "spritesheet.webp"
         if not path.exists(): continue
@@ -197,8 +198,29 @@ def main():
             x,y=(x0+x1)/2,(y0+y1)/2
             sample=image.getpixel((int(x),max(0,int(y-max(5,(y1-y0)*.95)))))
             info.append({"point":[x/192,y/208],"radius":max(2.3,(x1-x0)*.6),"fur":[v/255 for v in sample[:3]]})
+        if folder.name in ORIGINAL_EYE_OVERRIDES:
+            info=measured_eyes(image,ORIGINAL_EYE_OVERRIDES[folder.name])
         profile={"eyes":info,"crown":[.5,36/208],"accessory_scale":1,"paw_centers":[[.37,.32],[.63,.32]]}
         (folder / "interaction.json").write_text(json.dumps(profile,indent=2)+"\n")
+
+
+def main():
+    script=fetch(BASE+"public/companions.js").decode()
+    companions=json.loads(re.search(r"window.PAWPAW_COMPANIONS = (\[.*?\]);",script,re.S).group(1))
+    if len(companions) != 31: raise ValueError("Reference catalog changed; review before importing")
+    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
+        entries=list(pool.map(bake,companions))
+    catalog_path=ROOT / "macos/Resources/OpenPets/catalog.json"
+    catalog=json.loads(catalog_path.read_text())
+    catalog=[entry for entry in catalog if entry.get("origin") != "Paw-Paw preview"]+entries
+    catalog_path.write_text(json.dumps(catalog,indent=2)+"\n")
+    bake_original_profiles()
+    # Keep approved full-body adaptations when refreshing the reference catalog.
+    # The unchanged website previews remain preserved under art/pawpaw-reference.
+    from bake_fullbody_companions import bake as bake_fullbody
+    for entry in entries:
+        if (ROOT / "art/pawpaw-fullbody" / f"{entry['id'].removeprefix('pawpaw-')}.png").exists():
+            bake_fullbody(entry)
     pack=ROOT / "build/PawSync-pawpaw-preview-pets.zip"
     with zipfile.ZipFile(pack,"w",zipfile.ZIP_DEFLATED) as archive:
         for path in sorted(BUNDLED.rglob("*")):

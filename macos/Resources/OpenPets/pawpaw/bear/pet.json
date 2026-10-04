@@ -1,7 +1,7 @@
 {
   "id": "pawpaw-bear",
   "displayName": "Bear",
-  "description": "Public Paw-Paw website preview, adapted for local PawSync development.",
+  "description": "Full-body PawSync adaptation of the attributed Paw-Paw reference; authored four-pose sheet and native expressions.",
   "spritesheetPath": "spritesheet.webp",
   "spriteVersionNumber": 1,
   "author": "Paw-Paw"

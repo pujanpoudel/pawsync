@@ -395,7 +395,8 @@ import Combine
     @objc private func menuHide() { preferences.hidden=true }
     private func updateCaption() {
         let name = preferences.nickname.trimmingCharacters(in: .whitespacesAndNewlines)
-        overlay.pet?.setCaption("\(name.isEmpty ? companionDefaultName : String(name.prefix(24))) · Lv.\(activity.level)")
+        let hideBearCaption=["bear","pawpaw-bear"].contains(preferences.companion)
+        overlay.pet?.setCaption(hideBearCaption ? "" : "\(name.isEmpty ? companionDefaultName : String(name.prefix(24))) · Lv.\(activity.level)")
         overlay.animate(for: 0.2)
     }
     private func licenseChanged() {

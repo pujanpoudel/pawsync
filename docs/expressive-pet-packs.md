@@ -4,11 +4,15 @@ The native development build contains 46 frame companions: nine PawSync original
 
 ## Expressions and interactions
 
-PawSync originals and the reference previews have measured facial landmarks for happy, curious, surprised, affectionate, shy, sad, sleepy, excited, proud and focused expressions. The renderer preserves fur patterns and draws lids, pupils, blush and occasional hearts/sparkles over the real face. Existing OpenPets characters without measured facial landmarks keep their authored reaction frames, with limited accent overlays.
+PawSync originals and the full-body reference adaptations have measured facial landmarks for happy, curious, surprised, affectionate, shy, sad, sleepy, excited, proud, focused, playful, delighted, cozy and grumpy expressions. The renderer preserves fur patterns and draws lids, pupils, blush and occasional hearts/sparkles over the real face. Existing OpenPets characters without measured facial landmarks keep their authored reaction frames, with limited accent overlays.
 
 Surprise and file receiving use gently enlarged dark bead eyes with tiny warm highlights, without white sclera rings, to keep everyday reactions soft rather than startled.
 
 Typing alternates left/right paws; rapid typing adds enthusiasm. Ordinary mouse clicks cycle through short boop, curiosity, happy, shy and proud reactions. Petting shows affection. These are finite reactions, independent of the double-tap quick-action menu.
+
+Clicking the pet itself now triggers a finite cuddly dance: a happy shimmy, soft hops and forelimb motion, cycling delighted/playful/affectionate/cozy moods. Typing interrupts it immediately. This affection animation does not equip the system-audio dance headphones. Both Bear variants omit their desktop name/level caption while preserving names/progression in Settings.
+
+All 31 Paw-Paw adaptations now use newly authored full-body four-pose sheets rather than the original peeking silhouettes. Each has complete feet/flippers/tail, alternating front-limb poses and authored file-receive/hold resources. Lower limbs move during walking. Their source sheets and precise prompts are preserved under `art/pawpaw-fullbody/` and `art/pawpaw-fullbody-sources.json`; the unchanged downloaded references remain under `art/pawpaw-reference/`. Pudding's neutral/receive/hold eyes are explicitly measured so its nostrils cannot be selected by the automatic detector.
 
 The nine original pets have newly generated, transparent arms-open and cupped-hand poses. An incoming file drag shows the receive pose, cancellation restores the previous resting/holding pose, and a successful catch closes the arms around the small heart-sealed note. The small note disappears when empty. Other frame pets use their existing artwork with local paw motion; segmented custom pets move their actual arm joints.
 
@@ -28,16 +32,17 @@ Earlier builds stored UUID-prefixed copies under Application Support/PawSync/Pet
 - `macos/Resources/OpenPets/originals/<id>/`: existing OpenPets-compatible V1 atlases plus facial landmarks.
 - `macos/Resources/OpenPets/pawpaw/<id>/`: four-pose character sheet, preview, native V1 playback atlas, manifest and facial landmarks.
 - `art/pawpaw-reference/<id>/`: unchanged public preview sources and source URL/SHA-256 records.
-- `build/emotion-character-sheets/`: native rendered contact sheets for all 46 pets, with ten emotions and receive/catch/hold states.
+- `build/emotion-character-sheets/`: native rendered contact sheets for all 46 pets, with 14 emotion requests, cuddle dance and receive/catch/hold states.
+- `docs/pet-expression-report.md` and `.json`: complete companion inventory and precise expression/art coverage counts.
 - `build/PawSync-expressive-pets.zip`: complete resource/reference archive, including the native code required for procedural expression playback.
 - `build/PawSync-pawpaw-preview-pets.zip`: the 31 adapted public reference packs.
 
 Chat and reminder bubbles use a pet-colored stitched plush cushion with matching paws. Primary buttons have a dark solid fill and light text; secondary actions have a full dark outline. The file pocket and small held note share the selected pet’s palette.
 
-The original two-pose sheets were created with built-in imagegen using the existing PawSync artwork as identity references. Baking only extracts/resizes cells and calculates landmarks; it does not generate artwork at runtime. Reference artwork remains attributed to Paw-Paw and is marked as development preview material. Public availability and a free app do not establish permission to redistribute another creator's illustrations commercially.
+The original two-pose sheets and new full-body adaptations were created with built-in imagegen using the existing artwork as identity references. Baking only extracts/resizes cells and calculates landmarks; it does not generate artwork at runtime. Reference artwork remains attributed to Paw-Paw and is marked as development preview material. Public availability and a free app do not establish permission to redistribute another creator's illustrations commercially.
 
 ## Rebuild and verification
 
-Run `uv run --with pillow python scripts/bake_file_interactions.py` to bake the original file poses. `uv run --with pillow python scripts/import_pawpaw_previews.py` recreates the reference packs from cached sources and the public catalog. Run `python3 scripts/build_app.py` to rebuild the native development app.
+Run `uv run --with pillow python scripts/bake_file_interactions.py` to bake the original file poses and `uv run --with pillow python scripts/bake_fullbody_companions.py` for the full-body adaptations. `uv run --with pillow python scripts/import_pawpaw_previews.py` refreshes the cached reference catalog while preserving approved full-body adaptations. Run `python3 scripts/build_app.py --universal` to rebuild the native development app; `python3 scripts/build_pet_report.py` refreshes the inventory report.
 
 The native `--check-emotions <directory>`, `--check-motion <directory>`, `--check-companion-ui <directory>`, `--check-file-pocket` and `--check-assets` commands cover render/state transitions, event dispatch, hit regions and disposable file fixtures. They do not establish physical cross-app input acceptance, operating-system drag-and-drop acceptance or the release CPU/RAM targets. Those require a live test of the final signed build.

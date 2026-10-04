@@ -18,6 +18,7 @@ import SpriteKit
     private var flipped=false
     private let petID:String
     private let profile:PetExpressionProfile?
+    private var poseProfiles:[Int:PetExpressionProfile]=[:]
     private let expression:PetExpressionNode
     private struct FilePose {
         let texture:SKTexture
@@ -87,7 +88,10 @@ import SpriteKit
         guard spec.columns == 8,[9,11].contains(spec.rows),decoded.width.isMultiple(of:8),decoded.height.isMultiple(of:spec.rows) else { throw PawError.message("Invalid imported sprite sheet.") }
         mask=decoded.mask; cell=CGSize(width:decoded.width/8,height:decoded.height/spec.rows)
         super.init()
-        if PetStore.rigIDs.contains(spec.id),let directory=Bundle.main.resourceURL?.appendingPathComponent("FileInteractions/"+spec.id) {
+        for (index,name) in [(1,"typing-left"),(2,"typing-right"),(3,"receive")] {
+            if let value=PetExpressionProfile.load(spec.directory.appendingPathComponent(name)) { poseProfiles[index]=value }
+        }
+        if let directory=Bundle.main.resourceURL?.appendingPathComponent("FileInteractions/"+spec.id),FileManager.default.fileExists(atPath:directory.appendingPathComponent("receive.png").path) {
             for pose in ["receive","hold"] { filePoses[pose]=try FilePose(directory:directory,name:pose) }
         }
         let atlas=SKTexture(cgImage:decoded.image)
@@ -112,15 +116,21 @@ import SpriteKit
     private func show(row:Int,column:Int) {
         guard frames.indices.contains(row),frames[row].indices.contains(column) else { return }
         guard currentRow != row || currentColumn != column || sprite.texture == nil || displayedFilePose != nil else { return }
-        if displayedFilePose != nil { displayedFilePose=nil;expression.useProfile(profile) }
-        currentRow=row; currentColumn=column; sprite.texture=frames[row][column]; updateAccessoryFit(); onNeedsRender?()
+        if displayedFilePose != nil { displayedFilePose=nil }
+        currentRow=row; currentColumn=column; sprite.texture=frames[row][column]
+        expression.useProfile(frameProfile,preserveEmotion:true);updateAccessoryFit(); onNeedsRender?()
     }
     private func showFilePose(_ name:String) {
         guard let pose=filePoses[name] else { return }
         displayedFilePose=name;sprite.texture=pose.texture;sprite.warpGeometry=nil
         expression.useProfile(pose.profile);updateAccessoryFit();onNeedsRender?()
     }
-    private func stopFrames() { frameTimer?.invalidate();frameTimer=nil;sequence=nil;typingUntil=nil;gazeReset?.cancel();gazeReset=nil;expressionReset?.cancel();expressionReset=nil;expression.clear();sprite.removeAction(forKey:"paw-tap");sprite.removeAction(forKey:"click-perk");sprite.removeAction(forKey:"emotion");sprite.removeAction(forKey:"file-arms");sprite.warpGeometry=nil;inputMotionUntil=0;sprite.position = .zero;sprite.zRotation=0;sprite.yScale=1 }
+    private var frameProfile:PetExpressionProfile? {
+        if [1,2,7].contains(currentRow) { return poseProfiles[currentColumn.isMultiple(of:2) ? 1:2] ?? profile }
+        if currentRow == 6 { return poseProfiles[3] ?? profile }
+        return profile
+    }
+    private func stopFrames() { frameTimer?.invalidate();frameTimer=nil;sequence=nil;typingUntil=nil;gazeReset?.cancel();gazeReset=nil;expressionReset?.cancel();expressionReset=nil;expression.clear();for key in ["paw-tap","click-perk","emotion","file-arms","cuddle","gait","celebration"] { sprite.removeAction(forKey:key) };sprite.warpGeometry=nil;inputMotionUntil=0;sprite.position = .zero;sprite.zRotation=0;sprite.yScale=1 }
     private func begin(_ clip:PetFrameSequence) {
         gazeReset?.cancel(); gazeReset=nil
         if sequence == clip,frameTimer != nil { return }
@@ -195,6 +205,32 @@ import SpriteKit
         sprite.run(.sequence([perk,settle]),withKey:"click-perk");onNeedsRender?()
     }
     func pet(direction:CGFloat) { if profile != nil { express(.affectionate) } else { play(.review,looping:false,relaxed:true) } }
+    func cuddle() {
+        guard !sleeping,!receivingFiles else { return }
+        let moods:[PetEmotion]=[.delighted,.playful,.affectionate,.cozy]
+        let mood=moods[clickMood % moods.count];clickMood+=1
+        neutral();if hasNativeFilePoses,heldCount>0 { showFilePose("hold") }
+        animationState = .review;expression.show(mood)
+        // A short happy shimmy for direct affection, separate from ambient clicks
+        // and the system-audio dance (which alone wears headphones).
+        func sway(_ side:CGFloat)->SKAction {
+            let action=SKAction.group([.move(to:CGPoint(x:side*3,y:3),duration:0.18),.rotate(toAngle:side*0.045,duration:0.18),.scaleY(to:0.98,duration:0.18)])
+            action.timingMode = .easeInEaseOut;return action
+        }
+        var actions:[SKAction]=[]
+        for _ in 0..<3 { actions += [sway(-1),sway(1)] }
+        let settle=SKAction.group([.move(to:.zero,duration:0.24),.rotate(toAngle:0,duration:0.24),.scaleY(to:1,duration:0.24)]);settle.timingMode = .easeInEaseOut;actions.append(settle)
+        sprite.run(.sequence(actions),withKey:"cuddle")
+        if profile != nil {
+            sprite.warpGeometry=restingWarp
+            if let open=SKAction.warp(to:fileWarp(open:true),duration:0.24),let close=SKAction.warp(to:heldCount>0 ? fileWarp(open:false):restingWarp,duration:0.3) {
+                open.timingMode = .easeOut;close.timingMode = .easeInEaseOut;sprite.run(.sequence([open,.wait(forDuration:0.5),close]),withKey:"file-arms")
+            }
+        }
+        inputMotionUntil=ProcessInfo.processInfo.systemUptime+1.5
+        let work=DispatchWorkItem { [weak self] in self?.idle() };expressionReset=work
+        DispatchQueue.main.asyncAfter(deadline:.now()+1.5,execute:work);onNeedsRender?()
+    }
     var companionBoundsInScene:CGRect {
         guard let scene else { return .zero }
         let rect=displayedFilePose.flatMap{filePoses[$0]?.bounds} ?? visualRect
@@ -281,7 +317,15 @@ import SpriteKit
         sleepLabel.isHidden = !value; sprite.alpha=value ? 0.85 : 1
         neutral(); if value,profile != nil { show(row:0,column:5);expression.show(.sleepy) };if !value { idle() }; onNeedsRender?()
     }
-    func celebrate() { play(.jumping,looping:false,relaxed:false) }
+    func celebrate() {
+        play(.jumping,looping:false,relaxed:false)
+        if profile?.fullBody == true,!sleeping,!receivingFiles {
+            let up=SKAction.moveTo(y:30,duration:0.24),down=SKAction.moveTo(y:0,duration:0.34)
+            up.timingMode = .easeOut;down.timingMode = .easeIn
+            sprite.run(.group([.sequence([up,down]),.rotate(byAngle:.pi*2,duration:0.58)]),withKey:"celebration")
+            inputMotionUntil=ProcessInfo.processInfo.systemUptime+0.8;onNeedsRender?()
+        }
+    }
     func hideInBox() { play(.failed,looping:false,relaxed:false) }
     func wave() { play(.waving,looping:false,relaxed:false) }
     func play(_ animation:PetAnimation,looping:Bool,relaxed:Bool) {
@@ -294,10 +338,32 @@ import SpriteKit
     }
     func setWalking(_ value:Bool) {
         guard !receivingFiles else { return }
-        if value { animationState = .running; begin(PetFrameSequence(row:(facing < 0) != flipped ? 2 : 1,frames:8,duration:1.06,iterations:nil)) }
+        if value {
+            animationState = .running; begin(PetFrameSequence(row:(facing < 0) != flipped ? 2 : 1,frames:8,duration:1.06,iterations:nil))
+            if profile?.fullBody == true {
+                sprite.xScale=facing * (flipped ? -1:1);sprite.warpGeometry=restingWarp
+                if let left=SKAction.warp(to:footWarp(left:true),duration:0.18),let right=SKAction.warp(to:footWarp(left:false),duration:0.18) {
+                    left.timingMode = .easeInEaseOut;right.timingMode = .easeInEaseOut;sprite.run(.repeatForever(.sequence([left,right])),withKey:"gait")
+                }
+            }
+        }
         else { idle() }
     }
-    func face(_ direction:CGFloat) { facing=direction < 0 ? -1 : 1 }
+    private func footWarp(left:Bool)->SKWarpGeometryGrid {
+        let feet=profile?.footCenters ?? [[0.32,0.12],[0.68,0.12]]
+        var source:[SIMD2<Float>]=[],target:[SIMD2<Float>]=[]
+        for row in 0...16 { for column in 0...12 {
+            let x=Float(column)/12,y=Float(row)/16;source.append(SIMD2<Float>(x,y));var ty=y,tx=x
+            for (index,foot) in feet.enumerated() {
+                let dx=(x-Float(foot[0]))/0.10,dy=(y-Float(foot[1]))/0.08,strength=exp(-(dx*dx+dy*dy)*0.5)
+                let lifted=(index == 0) == left
+                ty+=(lifted ? 0.025:-0.006)*strength;tx+=(lifted ? -0.014:0.014)*strength
+            }
+            target.append(SIMD2<Float>(tx,ty))
+        } }
+        return SKWarpGeometryGrid(columns:12,rows:16,sourcePositions:source,destinationPositions:target)
+    }
+    func face(_ direction:CGFloat) { facing=direction < 0 ? -1 : 1;if profile?.fullBody == true { sprite.xScale=facing * (flipped ? -1:1) } }
     func look(toward point:CGPoint) {
         guard !sleeping,!receivingFiles,animationState == .idle,let scene else { return }
         if profile != nil { express(.curious);return }
@@ -324,7 +390,7 @@ import SpriteKit
     }
     private func updateAccessoryFit() {
         let fit=PetAccessoryFit.frame(id:petID,row:currentRow,column:currentColumn)
-        let activeProfile=displayedFilePose.flatMap{filePoses[$0]?.profile} ?? profile
+        let activeProfile=displayedFilePose.flatMap{filePoses[$0]?.profile} ?? frameProfile
         let measuredFit=petID.hasPrefix("pawpaw-") || displayedFilePose != nil
         if let profile=activeProfile,measuredFit {
             accessories.position=CGPoint(x:(profile.crown[0]-0.5)*192,y:(1-profile.crown[1])*208+7)

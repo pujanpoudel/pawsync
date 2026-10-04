@@ -371,8 +371,7 @@ import QuartzCore
         if onReminderDismiss?() == true { return }
         if careSleeping { onPetWake?() }
         guard !focusSleeping, !careSleeping else { return }
-        let local = window.convertPoint(fromScreen: NSEvent.mouseLocation)
-        animate(for: 0.7); pet?.click(toward: scene.convertPoint(fromView: view.convert(local, from: window.contentView)))
+        animate(for: 1.6); pet?.cuddle()
     }
     func reactToPetting(direction: CGFloat) {
         guard !focusSleeping, !careSleeping else { return }
