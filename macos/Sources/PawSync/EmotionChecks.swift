@@ -10,6 +10,7 @@ import SpriteKit
         let reference=PetStore.imports.filter{$0.origin == "Paw-Paw preview"}
         try require(reference.count == 31,"The reference collection does not have all 31 free varieties.")
         let pets=PetStore.rigIDs.compactMap(PetStore.frameOriginal)+PetStore.imports
+        try require(pets.contains{$0.id == "knight-cat" && $0.name == "Knight Cat"},"Knight Cat is not registered in the companion gallery.")
         let columns=PetEmotion.allCases.map(\.title)+["Cuddle dance","Reach out","Caught it","Holding","Fast typing"]
         for spec in pets {
             renderer.scene.removeAllChildren()
@@ -29,7 +30,18 @@ import SpriteKit
             }
             pet.cuddle();renderer.advance(0.3)
             try require(pet.requiresContinuousRendering,"Direct affection was not animated for \(spec.name).")
+            try require(pet.affectionLift > 8,"Direct-click kitten hop did not leave the ground for \(spec.name).")
             images.append(try renderer.capture());pet.typing();renderer.advance(0.1);pet.idle()
+            try require(pet.affectionLift == 0,"Typing did not interrupt the click hop for \(spec.name).")
+            pet.cuddle();renderer.advance(PetClickMotion.duration+0.1)
+            try require(abs(pet.affectionLift)<0.01,"Direct-click hop did not land for \(spec.name).")
+            pet.idle()
+            if spec.id == "knight-cat" {
+                try require(pet.hasNativeFilePoses && PetExpressionProfile.load(spec.directory)?.fullBody == true,"Knight Cat is missing full-body or catching resources.")
+                var hops:[CGImage]=[];pet.cuddle()
+                for step in [0.02,0.12,0.18,0.20,0.23,0.18,0.47] { renderer.advance(step);hops.append(try renderer.capture()) }
+                try MotionChecks.writeGrid([(spec.name,hops)],columns:["Rest","Crouch","First hop","Landing","Crouch again","Second hop","Settled"],to:directory.appendingPathComponent("knight-cat-click-hop.png"));pet.idle()
+            }
             pet.setReceivingFiles(true);renderer.advance(0.3)
             try require(pet.receivingFiles && (pet.hasNativeFilePoses ? pet.displayedFilePose == "receive" : pet.leftPawDisplacement.x < -3 && pet.leftPawDisplacement.y > 5),"\(spec.name) did not visibly open its arms.")
             images.append(try renderer.capture())

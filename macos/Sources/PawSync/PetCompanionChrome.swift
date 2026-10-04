@@ -16,6 +16,7 @@ struct PetChromePalette {
             return Self(fur:fur,ink:warm,blush:rose,cloth:fur.blended(withFraction:0.76,of:cream) ?? cream)
         }
         switch animal {
+        case "knight-cat": return Self(fur:NSColor(calibratedRed:0.83,green:0.76,blue:0.65,alpha:1),ink:warm,blush:rose,cloth:cream)
         case "fox","shibe","shiba","corgi","squirrel","pixel-cat": return soft(0.95,0.67,0.38)
         case "hamster": return soft(0.99,0.78,0.48)
         case "frog","chameleon": return soft(0.68,0.78,0.53)

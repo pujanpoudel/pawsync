@@ -4,13 +4,15 @@ Snapshot: 4 October 2026. Source: bundled manifests, face profiles, authored pos
 
 ## Inventory
 
-**46 selectable bundled companions**, comprising nine PawSync originals, six OpenPets imports and 31 full-body Paw-Paw adaptations. These are distinct companion/art variants, not 46 unique animal species.
+**47 selectable bundled companions**, comprising 10 PawSync originals (including Knight Cat), six OpenPets imports and 31 full-body Paw-Paw adaptations. These are distinct companion/art variants, rather than a count of unique animal species.
 
-**14 named expression states**, including the newly added Playful, Delighted, Cozy and Grumpy. Forty pets have measured facial profiles and procedural eyelids/pupils/blush. The six OpenPets imports preserve their authored face artwork and map the state requests to their existing reaction clips with limited accent overlays; they do not gain 14 newly drawn faces.
+**14 named expression states**, including Playful, Delighted, Cozy and Grumpy. 41 pets have measured facial profiles and procedural eyelids/pupils/blush. The six OpenPets imports preserve their authored face artwork and map the state requests to their existing reaction clips with limited accent overlays; they do not gain 14 newly drawn faces.
 
-Forty companions have authored receive/hold pose resources: nine originals and all 31 full-body adaptations. The adaptations contain 124 newly authored source poses (four per pet). The 3,328 atlas cells include repeated poses and generated motion timing; they are not 3,328 distinct hand-drawn pictures.
+41 companions have authored receive/hold pose resources: ten originals and all 31 full-body adaptations. The adaptations contain 124 authored source poses (four per pet); Knight Cat adds four more source poses. The 3,400 atlas cells include repeated poses and generated motion timing; they are not 3,400 distinct hand-drawn pictures.
 
-### PawSync originals (9)
+Knight Cat uses the user-provided armored kitten reference, with silver armor, a cream cape, a pink ear bow and a safely sheathed sword so both hands remain usable. Its exact generation/edit prompts and source references are preserved in `art/knight-cat/source.json`.
+
+### PawSync originals (10)
 
 - Cocoa the Bear (`bear`)
 - Clover the Bunny (`bunny`)
@@ -21,6 +23,7 @@ Forty companions have authored receive/hold pose resources: nine originals and a
 - Bao the Panda (`panda`)
 - Maple the Cat (`pixel-cat`)
 - Mochi the Shibe (`shibe`)
+- Knight Cat (`knight-cat`)
 
 ### OpenPets imports (6)
 
@@ -84,7 +87,7 @@ Forty companions have authored receive/hold pose resources: nine originals and a
 
 ## What the pet does
 
-- Direct single click: a finite happy shimmy, gentle side-to-side hops and cuddly forelimb motion; cycles delighted, playful, affectionate and cozy moods. Typing interrupts it immediately. It does not equip music headphones.
+- Direct single click: a finite crouch, two springy raised-paw kitten hops and soft landings inspired by the supplied Pinterest GIF; cycles delighted, playful, affectionate and cozy moods. Typing interrupts it immediately. It does not equip music headphones.
 - Double tap: opens the existing quick-action menu. Hover does not open that menu.
 - Click and drag: distinct stroking/petting animation. Option-drag repositions the companion.
 - Typing: alternating front-limb taps; fast bursts can show excitement. Ambient mouse clicks keep brief reactions rather than always dancing.
@@ -103,6 +106,7 @@ All 31 adaptations now show complete bodies with feet, flippers or tails appropr
 
 ## Resources and checks
 
+- `build/PawSync-knight-cat.zip`: Knight Cat atlas, source art, prompts, facial metadata and receiving/holding resources.
 - `build/PawSync-expressive-pets.zip`: all bundled resources, full-body source sheets, original catch/hold sheets, exact prompts, code and native emotion contact sheets.
 - `build/emotion-character-sheets/`: one native rendered sheet per bundled pet, including all 14 expressions, direct cuddle, receiving, catch and hold.
 - `docs/pet-expression-report.json`: machine-readable counts and per-pet coverage.

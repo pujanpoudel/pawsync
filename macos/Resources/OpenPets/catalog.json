@@ -362,5 +362,15 @@
     "source": "https://paw-paw.pet/",
     "author": "Paw-Paw",
     "origin": "Paw-Paw preview"
+  },
+  {
+    "id": "knight-cat",
+    "name": "Knight Cat",
+    "folder": "knight-cat",
+    "columns": 8,
+    "rows": 9,
+    "source": "PawSync",
+    "author": "PawSync",
+    "origin": "PawSync original"
   }
 ]

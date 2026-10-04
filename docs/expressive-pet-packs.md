@@ -1,6 +1,6 @@
 # Expressions, catching poses and companion varieties
 
-The native development build contains 46 frame companions: nine PawSync originals, six existing OpenPets imports and 31 public Paw-Paw preview companions. The reference collection follows the [Season 2 release notes](https://paw-paw.pet/changelog#season-2): eleven Season 1 animals and twenty Season 2 animals. It excludes the separately sold Studio Spoon collection.
+The native development build contains 47 frame companions: ten PawSync originals (including Knight Cat), six existing OpenPets imports and 31 public Paw-Paw preview companions. The reference collection follows the [Season 2 release notes](https://paw-paw.pet/changelog#season-2): eleven Season 1 animals and twenty Season 2 animals. It excludes the separately sold Studio Spoon collection.
 
 ## Expressions and interactions
 
@@ -10,7 +10,7 @@ Surprise and file receiving use gently enlarged dark bead eyes with tiny warm hi
 
 Typing alternates left/right paws; rapid typing adds enthusiasm. Ordinary mouse clicks cycle through short boop, curiosity, happy, shy and proud reactions. Petting shows affection. These are finite reactions, independent of the double-tap quick-action menu.
 
-Clicking the pet itself now triggers a finite cuddly dance: a happy shimmy, soft hops and forelimb motion, cycling delighted/playful/affectionate/cozy moods. Typing interrupts it immediately. This affection animation does not equip the system-audio dance headphones. Both Bear variants omit their desktop name/level caption while preserving names/progression in Settings.
+Clicking the pet itself now triggers a finite cuddly dance: a crouch, two raised-paw kitten hops and soft landings inspired by the supplied Pinterest GIF, cycling delighted/playful/affectionate/cozy moods. Typing interrupts it immediately. This affection animation does not equip the system-audio dance headphones. Both Bear variants omit their desktop name/level caption while preserving names/progression in Settings.
 
 All 31 Paw-Paw adaptations now use newly authored full-body four-pose sheets rather than the original peeking silhouettes. Each has complete feet/flippers/tail, alternating front-limb poses and authored file-receive/hold resources. Lower limbs move during walking. Their source sheets and precise prompts are preserved under `art/pawpaw-fullbody/` and `art/pawpaw-fullbody-sources.json`; the unchanged downloaded references remain under `art/pawpaw-reference/`. Pudding's neutral/receive/hold eyes are explicitly measured so its nostrils cannot be selected by the automatic detector.
 
@@ -32,7 +32,7 @@ Earlier builds stored UUID-prefixed copies under Application Support/PawSync/Pet
 - `macos/Resources/OpenPets/originals/<id>/`: existing OpenPets-compatible V1 atlases plus facial landmarks.
 - `macos/Resources/OpenPets/pawpaw/<id>/`: four-pose character sheet, preview, native V1 playback atlas, manifest and facial landmarks.
 - `art/pawpaw-reference/<id>/`: unchanged public preview sources and source URL/SHA-256 records.
-- `build/emotion-character-sheets/`: native rendered contact sheets for all 46 pets, with 14 emotion requests, cuddle dance and receive/catch/hold states.
+- `build/emotion-character-sheets/`: native rendered contact sheets for all 47 pets, with 14 emotion requests, cuddle dance and receive/catch/hold states.
 - `docs/pet-expression-report.md` and `.json`: complete companion inventory and precise expression/art coverage counts.
 - `build/PawSync-expressive-pets.zip`: complete resource/reference archive, including the native code required for procedural expression playback.
 - `build/PawSync-pawpaw-preview-pets.zip`: the 31 adapted public reference packs.
@@ -46,3 +46,7 @@ The original two-pose sheets and new full-body adaptations were created with bui
 Run `uv run --with pillow python scripts/bake_file_interactions.py` to bake the original file poses and `uv run --with pillow python scripts/bake_fullbody_companions.py` for the full-body adaptations. `uv run --with pillow python scripts/import_pawpaw_previews.py` refreshes the cached reference catalog while preserving approved full-body adaptations. Run `python3 scripts/build_app.py --universal` to rebuild the native development app; `python3 scripts/build_pet_report.py` refreshes the inventory report.
 
 The native `--check-emotions <directory>`, `--check-motion <directory>`, `--check-companion-ui <directory>`, `--check-file-pocket` and `--check-assets` commands cover render/state transitions, event dispatch, hit regions and disposable file fixtures. They do not establish physical cross-app input acceptance, operating-system drag-and-drop acceptance or the release CPU/RAM targets. Those require a live test of the final signed build.
+
+## Knight Cat
+
+The armored kitten joins the original companions as `knight-cat`, with four full-body poses, fourteen measured expression states, alternating hand taps, walking/jumping and native file catching. The sword stays sheathed to keep both hands free. Source art, the supplied references and exact built-in imagegen generation/edit prompts live in `art/knight-cat/`. Re-bake with `uv run --with pillow python scripts/bake_knight_cat.py`. The portable resources are in `build/PawSync-knight-cat.zip`.

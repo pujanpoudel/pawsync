@@ -188,6 +188,7 @@ struct SettingsView: View {
             Text("PawSync originals").font(.headline)
             LazyVGrid(columns:[GridItem(.adaptive(minimum:145),spacing:12)],spacing:12) {
                 ForEach(PetStore.rigIDs,id:\.self) { id in companionCard(PetStore.rigNames[id]!,id:id,icon:"pawprint.fill",color:.orange) }
+                ForEach(PetStore.imports.filter{$0.origin == "PawSync original"}) { pet in companionCard(pet.name,id:pet.id,icon:"pawprint.fill",color:.orange) }
             }
             if !custom.customPets.isEmpty {
                 Picker("Your custom pets",selection:$preferences.companion) {

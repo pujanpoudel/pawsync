@@ -36,7 +36,7 @@ struct PetGalleryView: View {
                                             Image(nsImage:image).resizable().scaledToFit().frame(height:100)
                                         } else { Image(systemName:"pawprint.fill").font(.title2).foregroundStyle(.purple).frame(height:100) }
                                         Text(pet.name).font(.system(size:13,weight:.semibold)).lineLimit(1)
-                                        Text(pet.origin == "Paw-Paw preview" ? "Paw-Paw preview":"OpenPets").font(.caption2).foregroundStyle(.secondary)
+                                        Text(pet.origin == "Paw-Paw preview" ? "Paw-Paw preview":pet.origin == "PawSync original" ? "PawSync":"OpenPets").font(.caption2).foregroundStyle(.secondary)
                                     }.frame(maxWidth:.infinity).contentShape(Rectangle())
                                 }.buttonStyle(.plain).accessibilityLabel("Preview \(pet.name)")
                                 Button(preferences.companion == pet.id ? "Selected" : "Use pet") { preferences.companion=pet.id }.disabled(preferences.companion == pet.id)
@@ -116,7 +116,7 @@ struct PetGalleryView: View {
                 }
                 HStack { Button("Use & wave") { preferences.companion=pet.id; model.overlay.wave() }; Button("Preview jump") { preferences.companion=pet.id; model.overlay.celebrate() }; Spacer(); Button("Done") { preview=nil } }
                 if pet.local == true { Button("Remove from my pets") { catalog.remove(pet); preview=nil }.font(.caption).help("Move this imported companion to the system Trash") }
-                if pet.origin == "Paw-Paw preview" { Button("View character sheet") { NSWorkspace.shared.open(pet.directory.appendingPathComponent("character-sheet.png")) } }
+                if ["Paw-Paw preview","PawSync original"].contains(pet.origin) { Button("View character sheet") { NSWorkspace.shared.open(pet.directory.appendingPathComponent("character-sheet.png")) } }
             }.padding(24).frame(width:470).onAppear { catalog.loadInstalledPreview(pet) }
         case .catalog(let pet):
             VStack(alignment:.leading,spacing:14) {

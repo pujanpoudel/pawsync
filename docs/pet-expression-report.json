@@ -2,14 +2,14 @@
   "date": "2026-10-04",
   "source": "Local bundled manifests, measured face profiles and PetEmotion.swift; user-installed/custom pets excluded.",
   "totals": {
-    "bundled_companions": 46,
-    "originals": 9,
+    "bundled_companions": 47,
+    "originals": 10,
     "openpets_imports": 6,
     "full_body_adaptations": 31,
     "emotion_states": 14,
-    "measured_faces": 40,
-    "authored_file_pose_sets": 40,
-    "atlas_cells": 3328
+    "measured_faces": 41,
+    "authored_file_pose_sets": 41,
+    "atlas_cells": 3400
   },
   "pets": [
     {
@@ -651,6 +651,20 @@
       "columns": 8,
       "measured_face": true,
       "full_body_adaptation": true,
+      "emotion_states": 14,
+      "face_playback": "14 measured native expressions",
+      "authored_file_poses": true,
+      "desktop_caption": true
+    },
+    {
+      "id": "knight-cat",
+      "name": "Knight Cat",
+      "group": "PawSync originals",
+      "folder": "knight-cat",
+      "rows": 9,
+      "columns": 8,
+      "measured_face": true,
+      "full_body_adaptation": false,
       "emotion_states": 14,
       "face_playback": "14 measured native expressions",
       "authored_file_poses": true,

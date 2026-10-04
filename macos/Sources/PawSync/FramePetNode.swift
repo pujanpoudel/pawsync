@@ -42,6 +42,7 @@ import SpriteKit
     private(set) var receivingFiles=false
     private var heldCount=0
     var currentEmotion:PetEmotion? { expression.emotion }
+    var affectionLift:CGFloat { sprite.position.y }
     var leftPawDisplacement:CGPoint {
         guard let grid=sprite.warpGeometry as? SKWarpGeometryGrid else { return .zero }
         let paw=profile?.pawCenters.first ?? [0.37,0.32]
@@ -120,10 +121,10 @@ import SpriteKit
         currentRow=row; currentColumn=column; sprite.texture=frames[row][column]
         expression.useProfile(frameProfile,preserveEmotion:true);updateAccessoryFit(); onNeedsRender?()
     }
-    private func showFilePose(_ name:String) {
+    private func showFilePose(_ name:String,preserveEmotion:Bool=false) {
         guard let pose=filePoses[name] else { return }
         displayedFilePose=name;sprite.texture=pose.texture;sprite.warpGeometry=nil
-        expression.useProfile(pose.profile);updateAccessoryFit();onNeedsRender?()
+        expression.useProfile(pose.profile,preserveEmotion:preserveEmotion);updateAccessoryFit();onNeedsRender?()
     }
     private var frameProfile:PetExpressionProfile? {
         if [1,2,7].contains(currentRow) { return poseProfiles[currentColumn.isMultiple(of:2) ? 1:2] ?? profile }
@@ -178,7 +179,7 @@ import SpriteKit
         guard now-lastTapAt >= 0.055 else { return }
         typingStreak=now-lastTapAt<0.25 ? min(12,typingStreak+1):1
         lastTapAt=now;lastTappedPaw=nextTypingLeft ? "left":"right"
-        if petID.hasPrefix("pawpaw-") { show(row:7,column:nextTypingLeft ? 0:1) }
+        if profile?.fullBody == true { show(row:7,column:nextTypingLeft ? 0:1) }
         expression.show(typingStreak>=8 ? .excited:.focused)
         let warp=pawWarps[nextTypingLeft ? 0:1];nextTypingLeft.toggle();inputMotionUntil=now+0.25
         guard PetStore.rigIDs.contains(petID) else { onNeedsRender?();return }
@@ -211,20 +212,22 @@ import SpriteKit
         let mood=moods[clickMood % moods.count];clickMood+=1
         neutral();if hasNativeFilePoses,heldCount>0 { showFilePose("hold") }
         animationState = .review;expression.show(mood)
-        // A short happy shimmy for direct affection, separate from ambient clicks
+        // Two kitten-like springy hops for direct affection, separate from ambient clicks
         // and the system-audio dance (which alone wears headphones).
-        func sway(_ side:CGFloat)->SKAction {
-            let action=SKAction.group([.move(to:CGPoint(x:side*3,y:3),duration:0.18),.rotate(toAngle:side*0.045,duration:0.18),.scaleY(to:0.98,duration:0.18)])
-            action.timingMode = .easeInEaseOut;return action
-        }
-        var actions:[SKAction]=[]
-        for _ in 0..<3 { actions += [sway(-1),sway(1)] }
-        let settle=SKAction.group([.move(to:.zero,duration:0.24),.rotate(toAngle:0,duration:0.24),.scaleY(to:1,duration:0.24)]);settle.timingMode = .easeInEaseOut;actions.append(settle)
-        sprite.run(.sequence(actions),withKey:"cuddle")
-        if profile != nil {
+        sprite.run(PetClickMotion.hops(rest:.zero),withKey:"cuddle")
+        if hasNativeFilePoses {
+            let reach=SKAction.run { [weak self] in self?.showFilePose("receive",preserveEmotion:true) }
+            let rest=SKAction.run { [weak self] in
+                guard let self else { return }
+                if self.heldCount>0 { self.showFilePose("hold",preserveEmotion:true) }
+                else { self.show(row:0,column:self.frames.count == 11 ? 6:0) }
+            }
+            sprite.run(.repeat(.sequence([.wait(forDuration:0.14),reach,.wait(forDuration:0.38),rest,.wait(forDuration:0.09)]),count:2),withKey:"file-arms")
+        } else if profile != nil {
             sprite.warpGeometry=restingWarp
-            if let open=SKAction.warp(to:fileWarp(open:true),duration:0.24),let close=SKAction.warp(to:heldCount>0 ? fileWarp(open:false):restingWarp,duration:0.3) {
-                open.timingMode = .easeOut;close.timingMode = .easeInEaseOut;sprite.run(.sequence([open,.wait(forDuration:0.5),close]),withKey:"file-arms")
+            if let open=SKAction.warp(to:fileWarp(open:true),duration:0.18),let close=SKAction.warp(to:heldCount>0 ? fileWarp(open:false):restingWarp,duration:0.20) {
+                open.timingMode = .easeOut;close.timingMode = .easeInEaseOut
+                sprite.run(.sequence([.repeat(.sequence([.wait(forDuration:0.14),open,close,.wait(forDuration:0.09)]),count:2)]),withKey:"file-arms")
             }
         }
         inputMotionUntil=ProcessInfo.processInfo.systemUptime+1.5
@@ -391,13 +394,13 @@ import SpriteKit
     private func updateAccessoryFit() {
         let fit=PetAccessoryFit.frame(id:petID,row:currentRow,column:currentColumn)
         let activeProfile=displayedFilePose.flatMap{filePoses[$0]?.profile} ?? frameProfile
-        let measuredFit=petID.hasPrefix("pawpaw-") || displayedFilePose != nil
+        let measuredFit=profile?.fullBody == true || displayedFilePose != nil
         if let profile=activeProfile,measuredFit {
             accessories.position=CGPoint(x:(profile.crown[0]-0.5)*192,y:(1-profile.crown[1])*208+7)
         } else { accessories.position=fit.crown }
         heldFiles.position=CGPoint(x:fit.crown.x*0.55,y:[1,2].contains(currentRow) ? 42:36)
         heldFiles.setScale([1,2].contains(currentRow) ? 0.85:1)
-        if petID.hasPrefix("pawpaw-"),let profile {
+        if let profile,profile.fullBody == true {
             heldFiles.position=CGPoint(x:((profile.eyes[0].point[0]+profile.eyes[1].point[0])/2-0.5)*192,y:18)
             heldFiles.setScale(0.82)
         }

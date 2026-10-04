@@ -1,0 +1,7 @@
+{
+  "file": "art/knight-cat/character-sheet-source.png",
+  "sha256": "1e37a8cb6346ee9279a72de130fb2797756410ac8832c32ab0eaf0f4566413e8",
+  "tool": "built-in imagegen",
+  "reference": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTXhrAY5tGo0h0Fv-JecJZb3aCSpw0htqltCiMZidafmlD69G7Cmg5ULpg&s=10",
+  "prompt_manifest": "art/knight-cat/source.json"
+}

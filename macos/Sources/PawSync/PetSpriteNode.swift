@@ -195,13 +195,11 @@ import SpriteKit
     func cuddle() {
         guard !sleeping,!receivingFiles else { return };transition("cuddle");cheeks();blink(slow:true)
         if let body=joints["body"],let rest=restPositions["body"] {
-            let left=eased(.group([.move(to:CGPoint(x:rest.x-3,y:rest.y+3),duration:0.18),.rotate(toAngle:-0.04,duration:0.18)]))
-            let right=eased(.group([.move(to:CGPoint(x:rest.x+3,y:rest.y+3),duration:0.18),.rotate(toAngle:0.04,duration:0.18)]))
-            body.run(.sequence([.repeat(.sequence([left,right]),count:3),eased(.group([.move(to:rest,duration:0.24),.rotate(toAngle:0,duration:0.24)]))]),withKey:"cuddle")
+            body.run(PetClickMotion.hops(rest:rest),withKey:"cuddle")
         }
         joints["head"]?.run(.sequence([.repeat(.sequence([eased(.rotate(toAngle:0.06,duration:0.18)),eased(.rotate(toAngle:-0.06,duration:0.18))]),count:3),eased(.rotate(toAngle:0,duration:0.24))]),withKey:"cuddle")
         for (key,side) in [("left_paw",CGFloat(-1)),("right_paw",CGFloat(1))] {
-            joints[key]?.run(.sequence([eased(.rotate(toAngle:side*0.6,duration:0.24)),.wait(forDuration:0.6),eased(.rotate(toAngle:0,duration:0.35))]),withKey:"cuddle")
+            joints[key]?.run(.repeat(.sequence([.wait(forDuration:0.14),eased(.rotate(toAngle:side*0.6,duration:0.18)),eased(.rotate(toAngle:0,duration:0.20)),.wait(forDuration:0.09)]),count:2),withKey:"cuddle")
         }
         onNeedsRender?()
     }

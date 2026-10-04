@@ -47,7 +47,7 @@ import SpriteKit
         guard let clear=pocket.subviews.compactMap({$0 as? PetSoftButton}).first(where:{$0.title == "Clear all"}),pocket.hitTest(pocket.convert(CGPoint(x:clear.frame.midX,y:clear.frame.midY),to:pocket.superview)) === clear else { throw PawError.message("Clear all is missing or not clickable.") }
         clear.performClick(nil)
         guard cleared == 1 else { throw PawError.message("Clear all did not dispatch.") }
-        for id in ["bunny","fox","hamster","openpets-default","pawpaw-season2-frog","pawpaw-season2-axolotl"] {
+        for id in ["bunny","fox","hamster","openpets-default","pawpaw-season2-frog","pawpaw-season2-axolotl","knight-cat"] {
             let spec=PetStore.frameOriginal(id) ?? PetStore.imports.first(where:{$0.id == id})!
             let source=try DecodedPetImage(url:spec.directory.appendingPathComponent("spritesheet.webp"))
             let w=source.width/8,h=source.height/spec.rows
@@ -87,7 +87,7 @@ import SpriteKit
             guard !node.containsHeldFilesPoint(heldPoint) else { throw PawError.message("Empty held pocket stayed interactive.") }
             node.setRenderingSuspended(true)
         }
-        print("Companion UI checks passed: double-tap-only actions; readable whole-paw targets; thought dismiss/done/snooze; Clear all dispatch; empty held-note hit region. Rendered 36 native previews, including dark backgrounds and six pet palettes, at \(directory.path).")
+        print("Companion UI checks passed: double-tap-only actions; readable whole-paw targets; thought dismiss/done/snooze; Clear all dispatch; empty held-note hit region. Rendered 42 native previews, including dark backgrounds and seven pet palettes, at \(directory.path).")
     }
 }
 

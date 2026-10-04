@@ -130,12 +130,12 @@ def profile(image, remote, pose, reference=None, reference_eyes=None):
             'full_body':True}
 
 
-def bake(pet):
+def bake(pet, source=None, description=None):
     remote=pet['id'].removeprefix('pawpaw-')
-    source=ROOT/'art/pawpaw-fullbody'/f'{remote}.png'
+    source=source or ROOT/'art/pawpaw-fullbody'/f'{remote}.png'
     sheet=Image.open(source).convert('RGBA')
-    if abs(sheet.width-sheet.height)>16 or sheet.getchannel('A').getextrema() != (0,255):
-        raise ValueError(f'Expected a transparent square four-cell sheet: {remote}')
+    if not .8 < sheet.width/sheet.height < 1.2 or sheet.getchannel('A').getextrema() != (0,255):
+        raise ValueError(f'Expected a transparent four-cell sheet with balanced cells: {remote}')
     cw,ch=sheet.width//2,sheet.height//2
     cells=[sheet.crop((x*cw,y*ch,(x+1)*cw,(y+1)*ch)) for y in range(2) for x in range(2)]
     bounds=[cell.getchannel('A').getbbox() for cell in cells]
@@ -169,7 +169,7 @@ def bake(pet):
     for i,frame in enumerate(fitted): contact.alpha_composite(frame,((i%2)*192,(i//2)*208))
     contact.save(directory/'character-sheet.png')
     manifest=json.loads((directory/'pet.json').read_text())
-    manifest['description']='Full-body PawSync adaptation of the attributed Paw-Paw reference; authored four-pose sheet and native expressions.'
+    manifest['description']=description or 'Full-body PawSync adaptation of the attributed Paw-Paw reference; authored four-pose sheet and native expressions.'
     (directory/'pet.json').write_text(json.dumps(manifest,indent=2)+'\n')
     (directory/'fullbody-source.json').write_text(json.dumps({'file':str(source.relative_to(ROOT)),'sha256':hashlib.sha256(source.read_bytes()).hexdigest(),'tool':'built-in imagegen','reference':pet['source']},indent=2)+'\n')
     file_directory=ROOT/'macos/Resources/FileInteractions'/pet['id'];file_directory.mkdir(parents=True,exist_ok=True)
