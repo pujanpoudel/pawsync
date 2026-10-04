@@ -50,3 +50,5 @@ The native `--check-emotions <directory>`, `--check-motion <directory>`, `--chec
 ## Knight Cat
 
 The armored kitten joins the original companions as `knight-cat`, with four full-body poses, fourteen measured expression states, alternating hand taps, walking/jumping and native file catching. The sword stays sheathed to keep both hands free. Source art, the supplied references and exact built-in imagegen generation/edit prompts live in `art/knight-cat/`. Re-bake with `uv run --with pillow python scripts/bake_knight_cat.py`. The portable resources are in `build/PawSync-knight-cat.zip`.
+
+Knight Cat is now the first-launch default and first original in Companion. Its live animation uses one registered base face and a smoothly interpolated 16 × 24 mesh for hands, boots and cape: alternate typing taps, walking with opposing arms/feet, a greeting, a stretch, affection, music dancing and occasional breathing. Curious and Playful use matching eyes; unilateral winks are removed. Both eyes blink together during the short idle breath. Active rendering runs at 60 FPS and completes the requested finite action before pausing; it does not run continuously at idle.

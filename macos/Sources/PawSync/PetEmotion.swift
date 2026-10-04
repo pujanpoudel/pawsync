@@ -68,14 +68,10 @@ struct PetExpressionProfile:Decodable {
                     let pupil=SKShapeNode(ellipseOf:CGSize(width:r*1.65,height:r*2.05));pupil.fillColor=palette.ink;pupil.strokeColor = .clear;group.addChild(pupil)
                     let glint=SKShapeNode(circleOfRadius:max(0.45,r*0.16));glint.position=CGPoint(x:-r*0.25,y:r*0.38);glint.fillColor=NSColor(calibratedRed:1,green:0.94,blue:0.83,alpha:0.8);glint.strokeColor = .clear;group.addChild(glint)
                 case .curious:
-                    if index == 0 {
-                        let pupil=SKShapeNode(ellipseOf:CGSize(width:r*1.8,height:r*2));pupil.fillColor=palette.ink;pupil.strokeColor = .clear;group.addChild(pupil)
-                        line(CGPoint(x:-r,y:r*1.8),CGPoint(x:r,y:r*1.8),CGPoint(x:0,y:r*2.5),width:1.2)
-                    } else { line(CGPoint(x:-r,y:0),CGPoint(x:r,y:0),CGPoint(x:0,y:r*0.4)) }
+                    let pupil=SKShapeNode(ellipseOf:CGSize(width:r*1.8,height:r*2));pupil.fillColor=palette.ink;pupil.strokeColor = .clear;group.addChild(pupil)
+                    line(CGPoint(x:-r,y:r*1.8),CGPoint(x:r,y:r*1.8),CGPoint(x:0,y:r*2.5),width:1.2)
                 case .playful:
-                    if index == 0 {
-                        let pupil=SKShapeNode(ellipseOf:CGSize(width:r*1.65,height:r*1.9));pupil.fillColor=palette.ink;pupil.strokeColor = .clear;group.addChild(pupil)
-                    } else { line(CGPoint(x:-r,y:0),CGPoint(x:r,y:0),CGPoint(x:0,y:r)) }
+                    line(CGPoint(x:-r,y:-1),CGPoint(x:r,y:-1),CGPoint(x:0,y:r*1.3))
                 case .grumpy:
                     line(CGPoint(x:-r,y:index == 0 ? r*0.35:-r*0.35),CGPoint(x:r,y:index == 0 ? -r*0.35:r*0.35),CGPoint(x:0,y:0))
                 case .sad:

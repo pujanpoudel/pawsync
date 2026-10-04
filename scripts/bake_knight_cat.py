@@ -3,6 +3,7 @@
 import argparse
 import json
 import zipfile
+from PIL import Image
 from bake_fullbody_companions import ROOT, OVERRIDES, bake
 
 PET={
@@ -10,7 +11,7 @@ PET={
     'columns':8,'rows':9,'source':'PawSync','author':'PawSync',
     'origin':'PawSync original'
 }
-DESCRIPTION='A fluffy kitten knight with silver armor, a cream cape and pink ear bow. Four full-body poses, measured expressions and native file-catching paws.'
+DESCRIPTION='PawSync’s main kitten knight: silver armor, cream cape and pink ear bow. Stable face, fluid hand/boot/cape motion, matching-eye expressions and native file catching.'
 # The asymmetrical face is narrower than the generic detector's safe minimum.
 # These are reviewed pixel coordinates in the fitted 192 × 208 neutral cell.
 OVERRIDES[('knight-cat','neutral')]=[(78.5,84,4.2),(102.5,87.5,4.5)]
@@ -32,6 +33,13 @@ def main():
     profile['paw_centers']=[[64/192,1-144/208],[124/192,1-145/208]]
     profile['foot_centers']=[[79/192,1-186/208],[115/192,1-188/208]]
     profile_path.write_text(json.dumps(profile,indent=2)+'\n')
+    # Knight's actual hand/boot/cape pixels are animated by the native motion
+    # mesh. Keep the face registered on one base pose instead of hard cuts.
+    neutral=Image.open(directory/'preview.png').convert('RGBA')
+    atlas=Image.new('RGBA',(192*8,208*9))
+    for row in range(9):
+        for column in range(8): atlas.alpha_composite(neutral,(column*192,row*208))
+    atlas.save(directory/'spritesheet.webp',lossless=True,method=6)
     proof.save(ROOT/'build/knight-cat-eye-proof.png')
     provenance=json.loads((ROOT/'art/knight-cat/source.json').read_text())
     source=json.loads((directory/'fullbody-source.json').read_text())
@@ -52,9 +60,9 @@ def package():
         for folder in [directory,ROOT/'macos/Resources/FileInteractions/knight-cat',ROOT/'art/knight-cat']:
             for path in sorted(folder.rglob('*')):
                 if path.is_file(): archive.write(path,path.relative_to(ROOT))
-        for name in ['scripts/bake_knight_cat.py','scripts/bake_fullbody_companions.py','scripts/import_pawpaw_previews.py','macos/Sources/PawSync/PetClickMotion.swift']:
+        for name in ['scripts/bake_knight_cat.py','scripts/bake_fullbody_companions.py','scripts/import_pawpaw_previews.py','macos/Sources/PawSync/PetClickMotion.swift','macos/Sources/PawSync/KnightCatMotion.swift']:
             archive.write(ROOT/name,name)
-        for name in ['knight-cat-expressions.png','knight-cat-click-hop.png']:
+        for name in ['knight-cat-expressions.png','knight-cat-click-hop.png','knight-cat-fluid-motions.png','knight-cat-fluid.gif']:
             path=ROOT/'build/emotion-character-sheets'/name
             if path.exists(): archive.write(path,path.relative_to(ROOT))
 

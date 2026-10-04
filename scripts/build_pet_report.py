@@ -7,7 +7,7 @@ import re
 ROOT=Path(__file__).resolve().parents[1]
 DESCRIPTIONS={
     'happy':'Smiling eye arcs and soft blush; ordinary positive reactions.',
-    'curious':'One attentive eye, a raised brow and a soft squint; cursor interest.',
+    'curious':'Two attentive open eyes with gently raised brows; cursor interest.',
     'surprised':'Small dark bead eyes with warm highlights; brief boop/file receiving.',
     'affectionate':'Closed smiling eyes, blush and small hearts; petting and cuddles.',
     'shy':'Lowered lids, blush and a slight lean; gentle ambient reaction.',
@@ -16,7 +16,7 @@ DESCRIPTIONS={
     'excited':'Bright closed-eye smile and sparkles; rapid typing.',
     'proud':'Smiling eyes, blush and sparkles; a successful file catch.',
     'focused':'Retains the original eyes with subtle concentration brows; typing.',
-    'playful':'A friendly wink; one of the direct-click cuddle responses.',
+    'playful':'A matching smile in both eyes; one of the direct-click cuddle responses.',
     'delighted':'Smiling closed eyes, blush and little sparkles; direct affection.',
     'cozy':'Relaxed closed eyes and blush; calm cuddling.',
     'grumpy':'Small slanted lids; a previewable expression, not a random punishment.',

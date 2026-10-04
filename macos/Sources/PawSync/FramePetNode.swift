@@ -17,6 +17,7 @@ import SpriteKit
     private var facing:CGFloat=1
     private var flipped=false
     private let petID:String
+    var isKnightCat:Bool { petID == "knight-cat" }
     private let profile:PetExpressionProfile?
     private var poseProfiles:[Int:PetExpressionProfile]=[:]
     private let expression:PetExpressionNode
@@ -43,10 +44,13 @@ import SpriteKit
     private var heldCount=0
     var currentEmotion:PetEmotion? { expression.emotion }
     var affectionLift:CGFloat { sprite.position.y }
-    var leftPawDisplacement:CGPoint {
+    var leftPawDisplacement:CGPoint { pawDisplacement(index:0) }
+    var tappedPawDisplacement:CGPoint { pawDisplacement(index:lastTappedPaw == "right" ? 1:0) }
+    private func pawDisplacement(index pawIndex:Int)->CGPoint {
         guard let grid=sprite.warpGeometry as? SKWarpGeometryGrid else { return .zero }
-        let paw=profile?.pawCenters.first ?? [0.37,0.32]
-        let index=min(16,max(0,Int((paw[1]*16).rounded())))*13+min(12,max(0,Int((paw[0]*12).rounded())))
+        let paw=profile?.pawCenters[pawIndex] ?? [pawIndex == 0 ? 0.37:0.63,0.32]
+        let columns=grid.numberOfColumns,rows=grid.numberOfRows
+        let index=min(rows,max(0,Int((paw[1]*Double(rows)).rounded())))*(columns+1)+min(columns,max(0,Int((paw[0]*Double(columns)).rounded())))
         let delta=grid.destPosition(at:index)-grid.sourcePosition(at:index)
         return CGPoint(x:CGFloat(delta.x)*sprite.size.width,y:CGFloat(delta.y)*sprite.size.height)
     }
@@ -62,11 +66,13 @@ import SpriteKit
     private var nextTypingLeft=true
     private var lastTapAt:TimeInterval=0
     private var typingStreak=0
+    private var nextAmbientBreath:TimeInterval=0
     private var inputMotionUntil:TimeInterval=0
     private(set) var lastTappedPaw:String?
     private let restingWarp=SKWarpGeometryGrid(columns:12,rows:16)
     private lazy var pawWarps:[SKWarpGeometryGrid]=[Self.pawWarp(left:true),Self.pawWarp(left:false)]
     var requiresContinuousRendering:Bool { ProcessInfo.processInfo.systemUptime < inputMotionUntil }
+    var remainingAnimationDuration:TimeInterval { max(0,inputMotionUntil-ProcessInfo.processInfo.systemUptime) }
     private static func pawWarp(left:Bool)->SKWarpGeometryGrid {
         var source:[SIMD2<Float>]=[],destination:[SIMD2<Float>]=[]
         for row in 0...16 { for column in 0...12 {
@@ -127,11 +133,12 @@ import SpriteKit
         expression.useProfile(pose.profile,preserveEmotion:preserveEmotion);updateAccessoryFit();onNeedsRender?()
     }
     private var frameProfile:PetExpressionProfile? {
+        if isKnightCat { return profile }
         if [1,2,7].contains(currentRow) { return poseProfiles[currentColumn.isMultiple(of:2) ? 1:2] ?? profile }
         if currentRow == 6 { return poseProfiles[3] ?? profile }
         return profile
     }
-    private func stopFrames() { frameTimer?.invalidate();frameTimer=nil;sequence=nil;typingUntil=nil;gazeReset?.cancel();gazeReset=nil;expressionReset?.cancel();expressionReset=nil;expression.clear();for key in ["paw-tap","click-perk","emotion","file-arms","cuddle","gait","celebration"] { sprite.removeAction(forKey:key) };sprite.warpGeometry=nil;inputMotionUntil=0;sprite.position = .zero;sprite.zRotation=0;sprite.yScale=1 }
+    private func stopFrames() { frameTimer?.invalidate();frameTimer=nil;sequence=nil;typingUntil=nil;gazeReset?.cancel();gazeReset=nil;expressionReset?.cancel();expressionReset=nil;expression.clear();for key in ["paw-tap","click-perk","emotion","file-arms","cuddle","gait","celebration","knight-limbs","knight-breathe","knight-blink","knight-body"] { sprite.removeAction(forKey:key) };sprite.warpGeometry=nil;inputMotionUntil=0;sprite.position = .zero;sprite.zRotation=0;sprite.yScale=1 }
     private func begin(_ clip:PetFrameSequence) {
         gazeReset?.cancel(); gazeReset=nil
         if sequence == clip,frameTimer != nil { return }
@@ -163,10 +170,29 @@ import SpriteKit
         let hadExpression=expression.emotion != nil
         animationState = .idle
         if hasNativeFilePoses,heldCount>0 { neutral();showFilePose("hold") }
-        else if frames.count == 11 { neutral() }
+        else if frames.count == 11 || isKnightCat { neutral() }
         else { begin(PetFrameSequence(row:0,frames:6,duration:5.5,iterations:nil)) }
         if heldCount>0,!hasNativeFilePoses { sprite.warpGeometry=fileWarp(open:false) }
         if hadExpression { onNeedsRender?() }
+    }
+    /// A short breath and synchronized blink, then render suspension again.
+    func ambientBreath(at now:TimeInterval=ProcessInfo.processInfo.systemUptime) {
+        guard isKnightCat,!suspended,!sleeping,!receivingFiles,animationState == .idle,
+              expression.emotion == nil,now >= nextAmbientBreath,profile != nil else { return }
+        nextAmbientBreath=now+10
+        knightLimbs(.breathe,duration:2.2)
+        let up=SKAction.scaleY(to:1.012,duration:1.1),down=SKAction.scaleY(to:1,duration:1.1)
+        up.timingMode = .easeInEaseOut;down.timingMode = .easeInEaseOut
+        sprite.run(.sequence([up,down]),withKey:"knight-breathe")
+        sprite.run(.sequence([.wait(forDuration:0.8),.run { [weak self] in self?.expression.show(.cozy) },.wait(forDuration:0.12),.run { [weak self] in self?.expression.clear() }]),withKey:"knight-blink")
+        inputMotionUntil=now+2.3;onNeedsRender?()
+    }
+    private func knightLimbs(_ gesture:KnightCatMotion.Gesture,duration:TimeInterval,looping:Bool=false) {
+        guard isKnightCat,let profile else { return }
+        if let grid=sprite.warpGeometry as? SKWarpGeometryGrid,grid.numberOfColumns == KnightCatMotion.columns,grid.numberOfRows == KnightCatMotion.rows { }
+        else { sprite.warpGeometry=KnightCatMotion.rest }
+        let action=KnightCatMotion.action(gesture,duration:duration,profile:profile)
+        sprite.run(looping ? .repeatForever(action):action,withKey:"knight-limbs")
     }
     func typing() { typing(at:ProcessInfo.processInfo.systemUptime) }
     func typing(at now:TimeInterval) {
@@ -182,6 +208,12 @@ import SpriteKit
         if profile?.fullBody == true { show(row:7,column:nextTypingLeft ? 0:1) }
         expression.show(typingStreak>=8 ? .excited:.focused)
         let warp=pawWarps[nextTypingLeft ? 0:1];nextTypingLeft.toggle();inputMotionUntil=now+0.25
+        if isKnightCat {
+            knightLimbs(lastTappedPaw == "left" ? .tapLeft:.tapRight,duration:0.24)
+            let down=SKAction.scaleY(to:0.994,duration:0.08),up=SKAction.scaleY(to:1,duration:0.16)
+            down.timingMode = .easeOut;up.timingMode = .easeInEaseOut
+            sprite.run(.sequence([down,up]),withKey:"paw-tap");onNeedsRender?();return
+        }
         guard PetStore.rigIDs.contains(petID) else { onNeedsRender?();return }
         if sprite.warpGeometry == nil { sprite.warpGeometry=restingWarp }
         if let down=SKAction.warp(to:warp,duration:0.065),let up=SKAction.warp(to:restingWarp,duration:0.13) {
@@ -205,7 +237,15 @@ import SpriteKit
         perk.timingMode = .easeOut;settle.timingMode = .easeInEaseOut
         sprite.run(.sequence([perk,settle]),withKey:"click-perk");onNeedsRender?()
     }
-    func pet(direction:CGFloat) { if profile != nil { express(.affectionate) } else { play(.review,looping:false,relaxed:true) } }
+    func pet(direction:CGFloat) {
+        if profile != nil { express(.affectionate) } else { play(.review,looping:false,relaxed:true) }
+        if isKnightCat {
+            knightLimbs(.affection,duration:0.9)
+            let lean=SKAction.rotate(toAngle:max(-0.06,min(0.06,direction*0.009)),duration:0.25)
+            let rest=SKAction.rotate(toAngle:0,duration:0.45);lean.timingMode = .easeInEaseOut;rest.timingMode = .easeInEaseOut
+            sprite.run(.sequence([lean,rest]),withKey:"knight-body")
+        }
+    }
     func cuddle() {
         guard !sleeping,!receivingFiles else { return }
         let moods:[PetEmotion]=[.delighted,.playful,.affectionate,.cozy]
@@ -215,7 +255,9 @@ import SpriteKit
         // Two kitten-like springy hops for direct affection, separate from ambient clicks
         // and the system-audio dance (which alone wears headphones).
         sprite.run(PetClickMotion.hops(rest:.zero),withKey:"cuddle")
-        if hasNativeFilePoses {
+        if isKnightCat {
+            knightLimbs(.affection,duration:1.22)
+        } else if hasNativeFilePoses {
             let reach=SKAction.run { [weak self] in self?.showFilePose("receive",preserveEmotion:true) }
             let rest=SKAction.run { [weak self] in
                 guard let self else { return }
@@ -311,6 +353,7 @@ import SpriteKit
         let settle=SKAction.group([.rotate(toAngle:0,duration:0.3),.scaleY(to:1,duration:0.3),.moveTo(y:0,duration:0.3)])
         upbeat.timingMode = .easeOut;settle.timingMode = .easeInEaseOut
         sprite.run(.sequence([upbeat,.wait(forDuration:0.35),settle]),withKey:"emotion")
+        if isKnightCat { knightLimbs(emotion == .excited || emotion == .proud ? .wave:emotion == .affectionate || emotion == .cozy ? .affection:.breathe,duration:0.95) }
         inputMotionUntil=ProcessInfo.processInfo.systemUptime+duration
         let work=DispatchWorkItem { [weak self] in self?.idle() };expressionReset=work
         DispatchQueue.main.asyncAfter(deadline:.now()+duration,execute:work);onNeedsRender?()
@@ -323,6 +366,7 @@ import SpriteKit
     func celebrate() {
         play(.jumping,looping:false,relaxed:false)
         if profile?.fullBody == true,!sleeping,!receivingFiles {
+            if isKnightCat { knightLimbs(.stretch,duration:0.58) }
             let up=SKAction.moveTo(y:30,duration:0.24),down=SKAction.moveTo(y:0,duration:0.34)
             up.timingMode = .easeOut;down.timingMode = .easeIn
             sprite.run(.group([.sequence([up,down]),.rotate(byAngle:.pi*2,duration:0.58)]),withKey:"celebration")
@@ -330,13 +374,20 @@ import SpriteKit
         }
     }
     func hideInBox() { play(.failed,looping:false,relaxed:false) }
-    func wave() { play(.waving,looping:false,relaxed:false) }
+    func wave() {
+        if isKnightCat { express(.happy);knightLimbs(.wave,duration:1.1) }
+        else { play(.waving,looping:false,relaxed:false) }
+    }
     func play(_ animation:PetAnimation,looping:Bool,relaxed:Bool) {
         guard !sleeping,!receivingFiles else { return }
         if animation == .idle { idle(); return }
         animationState=animation
         let finite=[PetAnimation.waving,.jumping,.failed].contains(animation)
         begin(PetFrameSequence(row:animation.row,frames:animation.frames,duration:animation == .waiting && relaxed ? 2.2 : animation.duration,iterations:finite ? 2 : looping ? nil : 1))
+        if isKnightCat {
+            knightLimbs(animation == .waving ? .wave:animation == .running ? .walk:animation == .jumping ? .stretch:.breathe,duration:animation.duration,looping:looping)
+            inputMotionUntil=ProcessInfo.processInfo.systemUptime+animation.duration*(finite ? 2:1);onNeedsRender?()
+        }
         typingUntil=nil
     }
     func setWalking(_ value:Bool) {
@@ -345,7 +396,12 @@ import SpriteKit
             animationState = .running; begin(PetFrameSequence(row:(facing < 0) != flipped ? 2 : 1,frames:8,duration:1.06,iterations:nil))
             if profile?.fullBody == true {
                 sprite.xScale=facing * (flipped ? -1:1);sprite.warpGeometry=restingWarp
-                if let left=SKAction.warp(to:footWarp(left:true),duration:0.18),let right=SKAction.warp(to:footWarp(left:false),duration:0.18) {
+                if isKnightCat {
+                    knightLimbs(.walk,duration:0.72,looping:true)
+                    let rise=SKAction.moveTo(y:1.5,duration:0.18),fall=SKAction.moveTo(y:0,duration:0.18)
+                    rise.timingMode = .easeInEaseOut;fall.timingMode = .easeInEaseOut
+                    sprite.run(.repeatForever(.sequence([rise,fall])),withKey:"gait")
+                } else if let left=SKAction.warp(to:footWarp(left:true),duration:0.18),let right=SKAction.warp(to:footWarp(left:false),duration:0.18) {
                     left.timingMode = .easeInEaseOut;right.timingMode = .easeInEaseOut;sprite.run(.repeatForever(.sequence([left,right])),withKey:"gait")
                 }
             }
@@ -369,7 +425,16 @@ import SpriteKit
     func face(_ direction:CGFloat) { facing=direction < 0 ? -1 : 1;if profile?.fullBody == true { sprite.xScale=facing * (flipped ? -1:1) } }
     func look(toward point:CGPoint) {
         guard !sleeping,!receivingFiles,animationState == .idle,let scene else { return }
-        if profile != nil { express(.curious);return }
+        if profile != nil {
+            express(.curious)
+            if isKnightCat {
+                let local=sprite.convert(point,from:scene)
+                let turn=SKAction.rotate(toAngle:max(-0.045,min(0.045,local.x/2500)),duration:0.22)
+                let rest=SKAction.rotate(toAngle:0,duration:0.38);turn.timingMode = .easeInEaseOut;rest.timingMode = .easeInEaseOut
+                sprite.run(.sequence([turn,.wait(forDuration:0.25),rest]),withKey:"knight-body")
+            }
+            return
+        }
         if frames.count == 9 {
             play(.waving,looping:false,relaxed:true)
             return
@@ -384,6 +449,12 @@ import SpriteKit
     }
     func containsOpaquePoint(_ point:CGPoint)->Bool {
         guard let scene else { return false }; let p=sprite.convert(point,from:scene)
+        if isKnightCat,let grid=sprite.warpGeometry as? SKWarpGeometryGrid,grid.numberOfColumns == KnightCatMotion.columns {
+            guard let source=KnightCatMotion.sourcePoint(SIMD2<Float>(Float(p.x/192+0.5),Float(p.y/208)),in:grid) else { return false }
+            let x=Int(floor(source.x*192)),y=207-Int(floor(source.y*208))
+            if let pose=displayedFilePose.flatMap({filePoses[$0]}) { return pose.mask.contains(x:x,y:y) }
+            return mask.contains(x:x+currentColumn*192,y:y+currentRow*208)
+        }
         if let pose=displayedFilePose.flatMap({filePoses[$0]}) {
             return pose.mask.contains(x:Int(floor(p.x+96)),y:207-Int(floor(p.y)))
         }
@@ -441,7 +512,15 @@ import SpriteKit
             let half=max(0.33,min(1,beat))/2
             let up=SKAction.moveTo(y:7,duration:half),down=SKAction.moveTo(y:0,duration:half); up.timingMode = .easeOut; down.timingMode = .easeIn
             sprite.run(.repeatForever(.sequence([up,down])),withKey:"dance")
+            if isKnightCat { knightLimbs(.dance,duration:half*2,looping:true) }
+        } else if isKnightCat {
+            sprite.removeAction(forKey:"knight-limbs");sprite.warpGeometry=nil
         }; updateAccessoryFit(); onNeedsRender?()
     }
-    func reminderGesture(_ kind:String) { play(kind == "stretch" ? .jumping : kind == "eyes" ? .waiting : .waving,looping:false,relaxed:kind == "eyes") }
+    func reminderGesture(_ kind:String) {
+        if isKnightCat {
+            express(kind == "eyes" ? .cozy:.happy)
+            knightLimbs(kind == "stretch" ? .stretch:kind == "eyes" ? .breathe:.wave,duration:1.1)
+        } else { play(kind == "stretch" ? .jumping : kind == "eyes" ? .waiting : .waving,looping:false,relaxed:kind == "eyes") }
+    }
 }

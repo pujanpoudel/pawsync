@@ -9,6 +9,7 @@ import SpriteKit
 @MainActor protocol CompanionAnimating: AnyObject {
     var sleeping: Bool { get }
     var requiresContinuousRendering:Bool { get }
+    var remainingAnimationDuration:TimeInterval { get }
     var companionBoundsInScene:CGRect { get }
     func containsHeldFilesPoint(_ point:CGPoint)->Bool
     var onNeedsRender:(()->Void)? { get set }
@@ -41,6 +42,7 @@ import SpriteKit
 }
 extension CompanionAnimating {
     var requiresContinuousRendering:Bool { false }
+    var remainingAnimationDuration:TimeInterval { 0 }
     var companionBoundsInScene:CGRect { (self as? SKNode)?.calculateAccumulatedFrame() ?? .zero }
     func containsHeldFilesPoint(_ point:CGPoint)->Bool { false }
     func setRenderingSuspended(_ value:Bool) {}

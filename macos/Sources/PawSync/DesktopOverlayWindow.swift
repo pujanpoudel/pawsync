@@ -254,8 +254,8 @@ import QuartzCore
         scene.removeAllChildren(); scene.addChild(travelDriver);
         animationDeadline=Date()
         statusLabel.fontSize = 11; statusLabel.fontColor = .systemPurple; statusLabel.zPosition = 80; scene.addChild(statusLabel); currentReaction = .idle; statusLabel.text = nil; pet = node; node.position = CGPoint(x: 140, y: 32); scene.addChild(node)
-        view.preferredFramesPerSecond=node is FramePetNode ? 30 : 60
-        node.onNeedsRender = { [weak self,weak node] in self?.animate(for:node?.requiresContinuousRendering == true ? 0.35:0.08) }
+        view.preferredFramesPerSecond=(node as? FramePetNode)?.isKnightCat == true ? 60:node is FramePetNode ? 30:60
+        node.onNeedsRender = { [weak self,weak node] in self?.animate(for:max(0.08,(node?.remainingAnimationDuration ?? 0)+0.05)) }
         node.setRenderingSuspended(screenSleeping || isHidden || preferences.reactionsPaused)
         setScale(preferences.petScale)
         node.setAccessory(preferences.accessory)
@@ -381,6 +381,7 @@ import QuartzCore
         if Date().timeIntervalSince(lastPettingSound) > 1.5 { lastPettingSound = Date(); onPetting?() }
     }
     private func interruptReaction() {
+        animationDeadline=Date()
         if currentReaction.loops { resumeReaction = true }
         pet?.removeAction(forKey: "mapped-reaction")
     }
@@ -464,8 +465,9 @@ import QuartzCore
     func stopWalking() {
         movementGeneration += 1; travelDriver.removeAllActions()
         guard walking else { return }
+        animationDeadline=Date()
         walking = false; pet?.setWalking(false); restorePresentation?(); updatePassThrough()
-        view.preferredFramesPerSecond=pet is FramePetNode ? 30 : 60
+        view.preferredFramesPerSecond=(pet as? FramePetNode)?.isKnightCat == true ? 60:pet is FramePetNode ? 30:60
     }
     private func travel(to target: CGPoint, jump: Bool, completion: (() -> Void)? = nil) {
         stopWalking(); stopDance(); walking = true
@@ -487,7 +489,7 @@ import QuartzCore
         motion.timingMode = .easeInEaseOut
         travelDriver.run(.sequence([motion, .run { [weak self] in
             guard let self, self.movementGeneration == generation else { return }
-            self.window.setFrameOrigin(target); self.walking = false; self.view.preferredFramesPerSecond=self.pet is FramePetNode ? 30 : 60; self.pet?.setWalking(false); self.restorePresentation?(); self.updatePassThrough(); completion?()
+            self.window.setFrameOrigin(target); self.walking = false; self.view.preferredFramesPerSecond=(self.pet as? FramePetNode)?.isKnightCat == true ? 60:self.pet is FramePetNode ? 30:60; self.pet?.setWalking(false); self.restorePresentation?(); self.updatePassThrough(); completion?()
         }]), withKey: "travel")
     }
     private func wanderIfNeeded(force: Bool = false) {
@@ -581,6 +583,9 @@ import QuartzCore
     private func heartbeat() {
         guard !screenSleeping, !isHidden, !preferences.reactionsPaused else { stopWalking(); stopDance(); view.isPaused = true; return }
         if Date().timeIntervalSince(lastInput) >= 15, !idleSleeping,!receivingFiles { idleSleeping = true; updateSleep() }
+        if currentReaction == .idle,!focusSleeping,!careSleeping,!idleSleeping,!dancing,!walking,!isInteracting {
+            (pet as? FramePetNode)?.ambientBreath()
+        }
         if currentReaction == .idle, musicAudible, canRoam, !focusSleeping, !careSleeping, !idleSleeping, !isInteracting, Date().timeIntervalSince(lastInput) > 1.5 {
             stopWalking()
             if !dancing { dancing = true; pet?.setDancing(true, beat: musicBeat) }

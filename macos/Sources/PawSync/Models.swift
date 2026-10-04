@@ -164,7 +164,7 @@ enum PetStore {
     @Published var musicLite: Bool { didSet { defaults.set(musicLite, forKey: "musicLite") } }
     var onboarded: Bool { get { defaults.bool(forKey: "onboarded") } set { defaults.set(newValue, forKey: "onboarded") } }
     init() {
-        companion = defaults.string(forKey: "companion") ?? "openpets-default"
+        companion = defaults.string(forKey: "companion") ?? "knight-cat"
         anchor = ScreenAnchor(rawValue: defaults.string(forKey: "anchor") ?? "") ?? .dock
         muted = defaults.object(forKey: "muted") as? Bool ?? true
         hidden = defaults.bool(forKey: "hidden")

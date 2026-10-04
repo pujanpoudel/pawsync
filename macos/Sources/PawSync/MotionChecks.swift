@@ -227,5 +227,10 @@ import UniformTypeIdentifiers
         controller.jumpNow()
         RunLoop.main.run(until:Date().addingTimeInterval(0.5))
         try require(controller.window.frame.minY > bottom+15,"The Jump control did not lift the real overlay window.")
+        controller.stopWalking();try controller.loadPet("knight-cat")
+        controller.reactToPetClick()
+        RunLoop.main.run(until:Date().addingTimeInterval(0.7))
+        try require(!controller.view.isPaused,"The real overlay paused before Knight Cat's second hop.")
+        try require(controller.view.preferredFramesPerSecond == 60,"Knight Cat's interactive motion is not running at 60 FPS.")
     }
 }

@@ -681,7 +681,7 @@
     {
       "id": "curious",
       "name": "Curious",
-      "description": "One attentive eye, a raised brow and a soft squint; cursor interest.",
+      "description": "Two attentive open eyes with gently raised brows; cursor interest.",
       "new": false
     },
     {
@@ -735,7 +735,7 @@
     {
       "id": "playful",
       "name": "Playful",
-      "description": "A friendly wink; one of the direct-click cuddle responses.",
+      "description": "A matching smile in both eyes; one of the direct-click cuddle responses.",
       "new": true
     },
     {

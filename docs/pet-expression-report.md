@@ -71,7 +71,7 @@ Knight Cat uses the user-provided armored kitten reference, with silver armor, a
 ## Expressions
 
 - **Happy**: Smiling eye arcs and soft blush; ordinary positive reactions.
-- **Curious**: One attentive eye, a raised brow and a soft squint; cursor interest.
+- **Curious**: Two attentive open eyes with gently raised brows; cursor interest.
 - **Surprised**: Small dark bead eyes with warm highlights; brief boop/file receiving.
 - **Affectionate**: Closed smiling eyes, blush and small hearts; petting and cuddles.
 - **Shy**: Lowered lids, blush and a slight lean; gentle ambient reaction.
@@ -80,7 +80,7 @@ Knight Cat uses the user-provided armored kitten reference, with silver armor, a
 - **Excited**: Bright closed-eye smile and sparkles; rapid typing.
 - **Proud**: Smiling eyes, blush and sparkles; a successful file catch.
 - **Focused**: Retains the original eyes with subtle concentration brows; typing.
-- **Playful** (new): A friendly wink; one of the direct-click cuddle responses.
+- **Playful** (new): A matching smile in both eyes; one of the direct-click cuddle responses.
 - **Delighted** (new): Smiling closed eyes, blush and little sparkles; direct affection.
 - **Cozy** (new): Relaxed closed eyes and blush; calm cuddling.
 - **Grumpy** (new): Small slanted lids; a previewable expression, not a random punishment.

@@ -1,7 +1,7 @@
 {
   "id": "knight-cat",
   "displayName": "Knight Cat",
-  "description": "A fluffy kitten knight with silver armor, a cream cape and pink ear bow. Four full-body poses, measured expressions and native file-catching paws.",
+  "description": "PawSync\u2019s main kitten knight: silver armor, cream cape and pink ear bow. Stable face, fluid hand/boot/cape motion, matching-eye expressions and native file catching.",
   "spritesheetPath": "spritesheet.webp",
   "spriteVersionNumber": 1,
   "author": "PawSync"

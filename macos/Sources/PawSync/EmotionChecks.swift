@@ -1,5 +1,7 @@
 import AppKit
 import SpriteKit
+import ImageIO
+import UniformTypeIdentifiers
 
 @MainActor enum EmotionChecks {
     static func run(directory:URL) throws {
@@ -41,6 +43,45 @@ import SpriteKit
                 var hops:[CGImage]=[];pet.cuddle()
                 for step in [0.02,0.12,0.18,0.20,0.23,0.18,0.47] { renderer.advance(step);hops.append(try renderer.capture()) }
                 try MotionChecks.writeGrid([(spec.name,hops)],columns:["Rest","Crouch","First hop","Landing","Crouch again","Second hop","Settled"],to:directory.appendingPathComponent("knight-cat-click-hop.png"));pet.idle()
+                var motions:[CGImage]=[]
+                pet.ambientBreath();renderer.advance(0.45);motions.append(try renderer.capture());pet.idle()
+                for action in [0,1,2,3,4,5] {
+                    switch action {
+                    case 0: pet.typing(at:ProcessInfo.processInfo.systemUptime+1)
+                    case 1: pet.setWalking(true)
+                    case 2: pet.wave()
+                    case 3: pet.reminderGesture("stretch")
+                    case 4: pet.pet(direction:4)
+                    default: pet.setDancing(true,beat:0.5)
+                    }
+                    renderer.advance(0.19);motions.append(try renderer.capture())
+                    if action == 0 { try require(pet.tappedPawDisplacement.y>2,"Knight Cat's actual typing hand did not move.") }
+                    if action == 1 { try require(pet.affectionLift>0,"Knight Cat's gait has no body bounce.") }
+                    pet.setDancing(false,beat:0.5);pet.idle()
+                }
+                try MotionChecks.writeGrid([(spec.name,motions)],columns:["Breathe","Paw tap","Walk","Greeting","Stretch","Cuddle","Dance"],to:directory.appendingPathComponent("knight-cat-fluid-motions.png"))
+                let gifURL=directory.appendingPathComponent("knight-cat-fluid.gif")
+                guard let gif=CGImageDestinationCreateWithURL(gifURL as CFURL,UTType.gif.identifier as CFString,120,nil) else { throw PawError.message("Could not export Knight Cat's motion preview.") }
+                CGImageDestinationSetProperties(gif,[kCGImagePropertyGIFDictionary:[kCGImagePropertyGIFLoopCount:0]] as CFDictionary)
+                let pulseClock=ProcessInfo.processInfo.systemUptime+2
+                pet.setWalking(true)
+                for frame in 0..<120 {
+                    if frame == 39 { pet.setWalking(false) }
+                    if (39..<75).contains(frame),frame.isMultiple(of:4) { pet.typing(at:pulseClock+Double(frame)/30) }
+                    if frame == 75 { pet.cuddle() }
+                    renderer.advance(1.0/30)
+                    CGImageDestinationAddImage(gif,try renderer.capture(),[kCGImagePropertyGIFDictionary:[kCGImagePropertyGIFDelayTime:1.0/30,kCGImagePropertyGIFUnclampedDelayTime:1.0/30]] as CFDictionary)
+                }
+                try require(CGImageDestinationFinalize(gif),"Could not finish the native animation preview.");pet.idle()
+                let profile=PetExpressionProfile.load(spec.directory)!
+                let grid=KnightCatMotion.geometry(.tapLeft,phase:0.5,profile:profile)
+                let paw=profile.pawCenters[0]
+                let index=Int((paw[1]*Double(KnightCatMotion.rows)).rounded())*(KnightCatMotion.columns+1)+Int((paw[0]*Double(KnightCatMotion.columns)).rounded())
+                let source=KnightCatMotion.sourcePoint(grid.destPosition(at:index),in:grid)
+                try require(source != nil && abs(source!.y-grid.sourcePosition(at:index).y)<0.001,"Animated hand hit testing does not follow the visible paw.")
+                pet.ambientBreath(at:ProcessInfo.processInfo.systemUptime+20)
+                try require(pet.remainingAnimationDuration>2,"The render window truncates Knight Cat's idle motion.")
+                pet.setSleeping(true);try require(!pet.requiresContinuousRendering,"Sleeping Knight Cat kept an active rendering deadline.");pet.setSleeping(false)
             }
             pet.setReceivingFiles(true);renderer.advance(0.3)
             try require(pet.receivingFiles && (pet.hasNativeFilePoses ? pet.displayedFilePose == "receive" : pet.leftPawDisplacement.x < -3 && pet.leftPawDisplacement.y > 5),"\(spec.name) did not visibly open its arms.")
@@ -56,7 +97,7 @@ import SpriteKit
             try require(pet.containsHeldFilesPoint(holdPoint),"Held files cannot be hovered on \(spec.name).")
             pet.setHeldFileCount(0);pet.idle()
             try require(pet.leftPawDisplacement == .zero && pet.displayedFilePose == nil && !pet.containsHeldFilesPoint(holdPoint),"Empty hands did not return to rest on \(spec.name).")
-            let now=ProcessInfo.processInfo.systemUptime
+            let now=ProcessInfo.processInfo.systemUptime+10
             for index in 0..<10 { pet.typing(at:now+Double(index)*0.08) }
             pet.advanceFrame(at:now+0.75);renderer.advance(0.1);images.append(try renderer.capture());pet.idle()
             pet.setRenderingSuspended(true)

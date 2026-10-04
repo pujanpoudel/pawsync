@@ -187,8 +187,8 @@ struct SettingsView: View {
         VStack(alignment:.leading,spacing:12) {
             Text("PawSync originals").font(.headline)
             LazyVGrid(columns:[GridItem(.adaptive(minimum:145),spacing:12)],spacing:12) {
-                ForEach(PetStore.rigIDs,id:\.self) { id in companionCard(PetStore.rigNames[id]!,id:id,icon:"pawprint.fill",color:.orange) }
                 ForEach(PetStore.imports.filter{$0.origin == "PawSync original"}) { pet in companionCard(pet.name,id:pet.id,icon:"pawprint.fill",color:.orange) }
+                ForEach(PetStore.rigIDs,id:\.self) { id in companionCard(PetStore.rigNames[id]!,id:id,icon:"pawprint.fill",color:.orange) }
             }
             if !custom.customPets.isEmpty {
                 Picker("Your custom pets",selection:$preferences.companion) {
@@ -232,7 +232,7 @@ struct SettingsView: View {
                     Image(nsImage: image).resizable().interpolation(.high).scaledToFit().frame(height: 100)
                 } else { Image(systemName: icon).font(.system(size: 43)).foregroundStyle(color.opacity(0.8)).frame(height: 100) }
                 HStack { Text(name).font(.system(size: 13, weight: .semibold)); Spacer(); if preferences.companion == id { Image(systemName: "checkmark.circle.fill").foregroundStyle(pawAccent) } }
-                Text(wardrobe.canSelectPet(id) ? "Desk buddy" : "Joins at level \(PetWardrobe.unlockLevels[id] ?? 1)").font(.caption2).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
+                Text(id == "knight-cat" ? "Our main companion" : wardrobe.canSelectPet(id) ? "Desk buddy" : "Joins at level \(PetWardrobe.unlockLevels[id] ?? 1)").font(.caption2).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
             }.padding(18).frame(maxWidth: .infinity).background(color.opacity(0.06), in: RoundedRectangle(cornerRadius: 14))
                 .overlay(RoundedRectangle(cornerRadius: 14).stroke(preferences.companion == id ? pawAccent.opacity(0.65) : Color.primary.opacity(0.08), lineWidth: 1.5))
         }.buttonStyle(.plain).disabled(!wardrobe.canSelectPet(id))
