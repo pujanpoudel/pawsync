@@ -9,7 +9,7 @@ struct PresentationSettingsView: View {
     @ObservedObject var shortcuts:HotkeyService
     private var id:String { preferences.companion }
     private func hat(_ key:WritableKeyPath<HatTransform,Double>) -> Binding<Double> {
-        Binding(get:{ (store.state.hats[id] ?? HatTransform())[keyPath:key] },set:{ value in var transform=store.state.hats[id] ?? HatTransform(); transform[keyPath:key]=value; store.state.hats[id]=transform })
+        Binding(get:{ (store.transform(pet:id,item:preferences.accessory))[keyPath:key] },set:{ value in var transform=store.transform(pet:id,item:preferences.accessory); transform[keyPath:key]=value; store.setTransform(transform,pet:id,item:preferences.accessory) })
     }
     var body: some View {
         VStack(alignment:.leading,spacing:16) {
@@ -24,7 +24,7 @@ struct PresentationSettingsView: View {
                         HStack { Text("Up / down").frame(width:100,alignment:.leading); Slider(value:hat(\.y),in:-100...100) }
                         HStack { Text("Size").frame(width:100,alignment:.leading); Slider(value:hat(\.scale),in:0.4...2) }
                         HStack { Text("Tilt").frame(width:100,alignment:.leading); Slider(value:hat(\.rotation),in:-90...90) }
-                        Button("Reset placement") { store.state.hats[id]=HatTransform() }
+                        Button("Reset placement") { store.setTransform(HatTransform(),pet:id,item:preferences.accessory) }
                     }
                     Menu("Temporarily hide around an app") {
                         ForEach(NSWorkspace.shared.runningApplications.filter { $0.activationPolicy == .regular && $0.bundleIdentifier != Bundle.main.bundleIdentifier },id: \.processIdentifier) { app in

@@ -16,6 +16,7 @@ def catalog_items(data, catalog):
         if not isinstance(quantity, int) or not 1 <= quantity <= 1000:
             raise WalletError("Invalid purchase quantity", 422)
         allowed = {"base": 3, "credits.5": 5, "credits.15": 15, "credits.40": 40, "accessory.hat": 0, "accessory.glasses": 0}
+        if re.fullmatch(r"(?:accessory\.pack|collection)\.[a-z0-9_-]{1,60}",sku): allowed[sku]=0
         if sku not in allowed or (sku == "base" and quantity != 1):
             raise WalletError("Invalid SKU configuration", 422)
         if sku not in aggregated:

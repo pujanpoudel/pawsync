@@ -8,10 +8,10 @@ private let pawAccent = Color(red: 0.45, green: 0.36, blue: 0.72)
 private typealias ViewState<Value> = SwiftUI.State<Value>
 
 enum SettingsSection: String, CaseIterable, Identifiable {
-    case appearance = "Appearance", dashboard = "Overview", general = "Companion", gallery = "Pet gallery", features = "Companion tools", reminders = "Reminders", activity = "Activity", focus = "Focus & habits", developer = "Developer", wallet = "License & credits", privacy = "Privacy"
+    case appearance = "Appearance", dashboard = "Overview", general = "Companion", gallery = "All companions", items = "Items", achievements = "Achievements", season1 = "Season 1", season2 = "Season 2", originals = "PawSync originals", about = "About", collections = "Artist collections", features = "Companion tools", reminders = "Reminders", activity = "Progress", focus = "Focus & habits", developer = "Developer", wallet = "Account", privacy = "Privacy"
     var id: String { rawValue }
     var icon: String {
-        switch self { case .appearance: return "slider.horizontal.3"; case .dashboard: return "square.grid.2x2.fill"; case .general: return "pawprint"; case .gallery: return "square.grid.2x2"; case .features: return "leaf"; case .reminders: return "bell"; case .activity: return "sparkles"; case .focus: return "timer"; case .developer: return "terminal"; case .wallet: return "creditcard"; case .privacy: return "hand.raised" }
+        switch self { case .collections:return "paintpalette";case .items:return "bag";case .achievements:return "trophy";case .season1,.season2,.originals:return "sparkles";case .about:return "info.circle";case .appearance: return "slider.horizontal.3"; case .dashboard: return "square.grid.2x2.fill"; case .general: return "pawprint"; case .gallery: return "square.grid.2x2"; case .features: return "leaf"; case .reminders: return "bell"; case .activity: return "sparkles"; case .focus: return "timer"; case .developer: return "terminal"; case .wallet: return "creditcard"; case .privacy: return "hand.raised" }
     }
 }
 
@@ -25,6 +25,11 @@ struct SettingsView: View {
     @ObservedObject var input: InputSupervisor
     @ObservedObject var activity: CompanionActivity
     @ObservedObject var wardrobe: PetWardrobe
+    @ObservedObject var library:LibraryProgress
+    @ObservedObject var sync:LibrarySyncService
+    @ObservedObject var content:LibraryContentService
+    @ViewState private var launchAtLogin=LoginLaunch.enabled
+    @ViewState private var onboardingPage=0
     @ObservedObject var reminders: ReminderService
     private var section: SettingsSection { get { model.settingsSection } nonmutating set { model.settingsSection = newValue } }
     @ObservedObject var music: MusicReactionService
@@ -40,7 +45,7 @@ struct SettingsView: View {
 
     init(model: AppModel) {
         self.model = model; preferences = model.preferences; wallet = model.wallet
-        custom = model.custom; focus = model.focus; input = model.input; activity = model.activity; wardrobe = model.wardrobe; reminders = model.reminders; music = model.music; windowEdges = model.windowEdges
+        custom = model.custom; focus = model.focus; input = model.input; activity = model.activity; wardrobe = model.wardrobe;library=model.library;sync=model.librarySync;content=model.libraryContent; reminders = model.reminders; music = model.music; windowEdges = model.windowEdges
     }
     var body: some View {
         HStack(spacing: 0) {
@@ -51,20 +56,28 @@ struct SettingsView: View {
                 }.padding(.bottom, 27).padding(.top, 26)
                 ScrollView {
                     VStack(alignment:.leading,spacing:8) {
-                        ForEach([SettingsSection.general,.gallery,.reminders,.focus]) { item in sidebarItem(item) }
+                        Text("LIBRARY").font(.system(size:10,weight:.bold)).foregroundStyle(LibraryStyle.muted).padding(.leading,12)
+                        ForEach([SettingsSection.gallery,.items,.achievements]) { item in sidebarItem(item) }
+                        Text("YOUR TRACKS").font(.system(size:10,weight:.bold)).foregroundStyle(LibraryStyle.muted).padding(.leading,12).padding(.top,14)
+                        ForEach([SettingsSection.season1,.season2,.originals]) { item in sidebarItem(item) }
+                        if !LibraryContent.collections.isEmpty{sidebarItem(.collections)}
+                        Divider().padding(.vertical,10)
+                        ForEach([SettingsSection.general,.activity,.reminders,.focus,.wallet,.privacy,.about]) { item in sidebarItem(item) }
                         Divider().padding(.vertical,10)
                         DisclosureGroup("Advanced",isExpanded:$advancedExpanded) {
-                            ForEach([SettingsSection.appearance,.features,.activity,.developer,.privacy,.wallet,.dashboard]) { item in sidebarItem(item) }
+                            ForEach([SettingsSection.appearance,.features,.developer,.dashboard]) { item in sidebarItem(item) }
                         }.font(.system(size:12,weight:.medium)).foregroundStyle(.secondary)
                     }
                 }.scrollIndicators(.hidden)
-                VStack(alignment: .leading, spacing: 6) {
-                    Label(wallet.licensed ? "License active" : (model.configuration.environment == "development" ? "Development preview" : "Companion preview"), systemImage: wallet.licensed ? "checkmark.seal.fill" : "sparkles")
-                        .font(.caption.weight(.medium)).foregroundStyle(pawAccent)
-                    Text("A little company. A lighter day.").font(.caption2).foregroundStyle(.secondary)
-                    Text("Version 0.1.0").font(.caption2).foregroundStyle(.tertiary)
-                }.padding(.bottom, 20)
-            }.padding(.horizontal, 18).frame(width: 186).background(Color(nsColor: .windowBackgroundColor))
+                VStack(alignment:.leading,spacing:10) {
+                    if !library.state.gifts.isEmpty {Button {model.presentGifts=true} label:{Label("\(library.state.gifts.count) gifts waiting",systemImage:"gift.fill")}.buttonStyle(CozyButton(prominent:true))}
+                    HStack {
+                        if let image=PetStore.preview(preferences.companion){Image(nsImage:image).resizable().scaledToFit().frame(width:44,height:50)}
+                        VStack(alignment:.leading,spacing:4){Text(PetStore.builtInNames[preferences.companion] ?? "Your buddy").font(.system(size:11,weight:.semibold,design:.rounded)).lineLimit(1);Text("\(library.active.name) · LVL \(library.active.level)").font(.system(size:9)).foregroundStyle(LibraryStyle.muted)}
+                    }
+                    ProgressView(value:library.active.fraction).tint(LibraryStyle.purple)
+                }.padding(.bottom,20)
+            }.padding(.horizontal,16).frame(width:202).background(LibraryStyle.paper)
             Divider()
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
@@ -80,7 +93,12 @@ struct SettingsView: View {
                     case .dashboard: DashboardView(model: model, catalog: model.catalog, input: input, focus: focus, reminders: reminders)
                     case .general: general
                     case .appearance: advancedAppearance
-                    case .gallery: builtInGallery; PetGalleryView(model: model, catalog: model.catalog, preferences: preferences); DisclosureGroup("Create a pet from a photo") { customUpload }
+                    case .gallery: LibraryGalleryView(model:model,library:library,preferences:preferences);DisclosureGroup("Create a pet from a photo") {customUpload}
+                    case .collections:LibraryCollectionsView(model:model,library:library,wallet:wallet,preferences:preferences)
+                    case .items: LibraryItemsView(model:model,library:library,wardrobe:wardrobe,preferences:preferences)
+                    case .achievements: AchievementsView(library:library)
+                    case .season1,.season2,.originals: LibraryGalleryView(model:model,library:library,preferences:preferences,track:section == .season1 ? "season1":section == .season2 ? "season2":"originals")
+                    case .about: aboutContent
                     case .features:
                         NativeFeaturesView(model:model,features:model.features,countdown:model.countdown,daily:model.daily,care:model.care,resources:model.resources,practices:model.practices)
                         if model.fileInbox.hasEarlierCopies {
@@ -90,16 +108,16 @@ struct SettingsView: View {
                             }
                         }
                     case .reminders: remindersContent
-                    case .activity: activityContent
+                    case .activity: progressContent;activityContent
                     case .focus: focusContent
                     case .developer: developer
-                    case .wallet: walletContent
+                    case .wallet: accountSyncContent;walletContent
                     case .privacy: privacy
                     }
                     Spacer(minLength: 20)
                 }.padding(.horizontal, 30).frame(maxWidth: .infinity, alignment: .leading)
-            }.background(Color(nsColor: .controlBackgroundColor))
-        }.tint(pawAccent).frame(minWidth: 790, minHeight: 610)
+            }.background(LibraryStyle.cream)
+        }.tint(LibraryStyle.purple).foregroundStyle(LibraryStyle.ink).preferredColorScheme(.light).frame(minWidth:940,minHeight:700)
         .onAppear { advancedExpanded = ![SettingsSection.general,.gallery,.reminders,.focus].contains(section) }
         .onChange(of:section) { _,value in if ![SettingsSection.general,.gallery,.reminders,.focus].contains(value) { advancedExpanded=true } }
         .onChange(of:model.quickAddReminder) { _,requested in
@@ -107,11 +125,20 @@ struct SettingsView: View {
             editingReminder=PetReminder(id:UUID(),title:"",message:"",kind:"chore",enabled:true,intervalMinutes:nil,nextDue:Date().addingTimeInterval(3600))
             model.quickAddReminder=false
         }
+        .sheet(isPresented:$model.presentItemEditor){ItemEditorView(model:model,preferences:preferences,store:model.presentation)}
+        .sheet(isPresented:$model.presentGifts){GiftRevealView(model:model,library:library)}
         .sheet(isPresented: $model.onboarding) { onboarding }
         .sheet(item: $editingReminder) { item in ReminderEditor(reminder: item, service: reminders) }
     }
     private var subtitle: String {
         switch section {
+        case .collections:return "Original art, optional one-time collections."
+        case .items:return "Little things to wear, collect, and love."
+        case .achievements:return "Every small discovery deserves a smile."
+        case .season1:return "Eleven friends. A little progress every day."
+        case .season2:return "Twenty friends, from Sheep to Opossum."
+        case .originals:return "Meet Knight Cat and our original desk buddies."
+        case .about:return "Your little companion, cared for."
         case .appearance: return "Fine-tune movement, reactions and placement."
         case .dashboard: return "Your companion’s home base."
         case .general: return "Make a little space for your new desk companion."
@@ -130,10 +157,11 @@ struct SettingsView: View {
             HStack(spacing:8) {
                 Image(systemName:item.icon).frame(width:18)
                 Text(item.rawValue); Spacer(minLength:0)
+                if [.season1,.season2,.originals].contains(item),library.state.activeTrack == (item == .season1 ? "season1":item == .season2 ? "season2":"originals") {Image(systemName:"bolt.fill").font(.system(size:9)).help("This track is earning XP")}
             }.font(.system(size:13,weight:.medium))
                 .frame(maxWidth:.infinity,alignment:.leading).padding(.horizontal,12).padding(.vertical,10)
-                .foregroundStyle(section == item ? pawAccent : Color.primary)
-                .background(section == item ? pawAccent.opacity(0.10) : Color.clear,in:RoundedRectangle(cornerRadius:9))
+                .foregroundStyle(section == item ? Color.white : LibraryStyle.ink)
+                .background(section == item ? LibraryStyle.purple : Color.clear,in:RoundedRectangle(cornerRadius:9))
                 .contentShape(Rectangle())
         }.buttonStyle(.plain)
     }
@@ -151,14 +179,20 @@ struct SettingsView: View {
                 HStack {
                     Button("Say hello") { model.sayHello(manual:true) }
                     Button("Pet") { model.overlay.reactToPetting(direction:4) }
-                    Button("Walk") { model.overlay.wanderNow() }
-                    Button("Jump") { model.overlay.jumpNow() }
+                    Button("Walk") {library.record("walk"); model.overlay.wanderNow() }
+                    Button("Jump") {library.record("jump"); model.overlay.jumpNow() }
                 }
                 Text("Stroke your pet with a click and drag. Hold Option while dragging to move it.").font(.caption).foregroundStyle(.secondary)
             }
             card {
                 Toggle("Show my companion",isOn:Binding(get:{!preferences.hidden},set:{preferences.hidden = !$0}))
-                HStack { Text("Size"); Slider(value:$preferences.petScale,in:0.4...1.8); Text("\(Int(preferences.petScale*100))%").monospacedDigit().frame(width:45) }
+                Picker("Size",selection:$preferences.petScale) {Text("Small").tag(0.65);Text("Medium").tag(1.0);Text("Large").tag(1.35)}.pickerStyle(.segmented).onChange(of:preferences.petScale){_,_ in library.record("resize")}
+                Toggle("Mirror Mode · dock on the left",isOn:Binding(get:{preferences.mirrorDock},set:{model.mirrorMode($0)}))
+                HStack{Text("Opacity");Slider(value:$preferences.petOpacity,in:0.2...1);Text("\(Int(preferences.petOpacity*100))%").font(.caption.monospacedDigit())}
+                Toggle("Click-through",isOn:$preferences.clickThrough)
+                Toggle("Little automatic cheers",isOn:Binding(get:{library.state.automaticCheers},set:{library.updateOptions(cheers:$0)}))
+                Toggle("Open PawSync at login",isOn:$launchAtLogin).onChange(of:launchAtLogin){_,enabled in do{try LoginLaunch.set(enabled)}catch{launchAtLogin=LoginLaunch.enabled;model.notice=error.localizedDescription}}
+                Text("Double-tap your pet for quick actions. Right-click for favorites and placement controls. Click-through can be turned off here or from the menu bar.").font(.caption).foregroundStyle(LibraryStyle.muted)
                 Picker("Movement",selection:$preferences.movement) { ForEach(MovementMode.allCases) { Text($0.rawValue).tag($0) } }
                 Toggle("React to typing and clicks",isOn:Binding(get:{!preferences.reactionsPaused},set:{preferences.reactionsPaused = !$0}))
                 if !input.running {
@@ -172,12 +206,12 @@ struct SettingsView: View {
             card {
                 Text("Dress up").font(.headline)
                 Toggle("Show head accessories",isOn:$preferences.headAccessoriesVisible)
-                Picker("Accessory",selection:Binding(get:{preferences.accessory},set:{sku in preferences.accessory=sku; preferences.headAccessoriesVisible=sku != "none"; model.presentation.state.hats[preferences.companion]=HatTransform() })) {
+                Picker("Accessory",selection:Binding(get:{preferences.accessory},set:{sku in preferences.accessory=sku; preferences.headAccessoriesVisible=sku != "none" })) {
                     Text("None").tag("none")
                     ForEach(FreeHat.all.filter{wardrobe.ownedHats.contains($0.id)}) { Text($0.name).tag($0.id) }
                     ForEach(wallet.accessories,id:\.self) { Text($0 == "accessory.hat" ? "Top hat" : "Glasses").tag($0) }
                 }
-                if preferences.accessory != "none" { Button("Recenter on my pet") { model.presentation.state.hats[preferences.companion]=HatTransform() } }
+                if preferences.accessory != "none" { Button("Adjust item…") { model.presentItemEditor=true } }
                 Text("Turn accessories off for bare ears, including while dancing.").font(.caption).foregroundStyle(.secondary)
                 DisclosureGroup("My wardrobe") { wardrobeContent }
             }
@@ -243,7 +277,7 @@ struct SettingsView: View {
             Text("Free hats drop when you level up, with no duplicates. Pets join at levels 1–6. Your previously available pets stay unlocked.").font(.caption).foregroundStyle(.secondary)
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 135))], spacing: 12) {
                 ForEach(FreeHat.all) { hat in
-                    Button { preferences.accessory = hat.id; preferences.headAccessoriesVisible = true; model.presentation.state.hats[preferences.companion]=HatTransform() } label: {
+                    Button { preferences.accessory = hat.id; preferences.headAccessoriesVisible = true } label: {
                         VStack(spacing: 6) {
                             Image(nsImage: accessoryPreview(hat.id)).resizable().scaledToFit().frame(width: 65, height: 56)
                             Text(hat.name).font(.caption.weight(.semibold))
@@ -286,11 +320,6 @@ struct SettingsView: View {
     }
     private var activityContent: some View {
         VStack(alignment: .leading, spacing: 20) {
-            card {
-                HStack { Image(systemName: "sparkles").font(.title).foregroundStyle(pawAccent); VStack(alignment: .leading) { Text("Level \(activity.level)").font(.title2.bold()); Text("\(activity.snapshot.total % 500) / 500 to the next level").font(.caption).foregroundStyle(.secondary) }; Spacer() }
-                ProgressView(value: activity.progress).tint(pawAccent)
-                Text("Every typing or click event adds a little progress. Your companion celebrates each new level.").font(.caption).foregroundStyle(.secondary)
-            }
             card {
                 HStack { Text("Today’s gentle goal").font(.headline); Spacer(); Text("\(activity.snapshot.today) / \(preferences.dailyGoal)").font(.callout.monospacedDigit()).foregroundStyle(pawAccent) }
                 ProgressView(value: min(1, Double(activity.snapshot.today) / Double(preferences.dailyGoal)))
@@ -479,26 +508,62 @@ struct SettingsView: View {
             Button("Check for Updates…") { model.updates.check() }
         }
     }
-    private var onboarding: some View {
-        VStack(spacing: 22) {
-            Image(systemName: "pawprint.fill").font(.system(size: 62)).foregroundStyle(pawAccent).padding(.top, 15)
-            Text("Meet your new desk companion.").font(.system(size: 27, weight: .bold, design: .rounded))
-            Text("A tiny friend for your workday. Tap along, take a breath,\nand celebrate a little progress.").multilineTextAlignment(.center).foregroundStyle(.secondary)
-            VStack(alignment: .leading, spacing: 14) {
-                Label("Input Monitoring makes typing and click reactions work.", systemImage: "keyboard")
-                Text("Only the fact that input happened is used. PawSync never reads your keystrokes. Window-edge jumping and music reactions ask for their own permissions only when enabled.").font(.caption).foregroundStyle(.secondary)
-                HStack { Button("Enable Input Monitoring") { input.requestPermission() }; if input.running { Image(systemName: "checkmark.circle.fill").foregroundStyle(.green) } }
-                Divider()
-                Toggle("Share anonymous crash diagnostics (optional)", isOn: $preferences.telemetry)
-            }.padding(20).background(pawAccent.opacity(0.05), in: RoundedRectangle(cornerRadius: 13))
-            Button("Make yourself at home") { model.finishOnboarding() }.buttonStyle(.borderedProminent).controlSize(.large)
-            Text("You can change all of this later in Settings.").font(.caption).foregroundStyle(.secondary)
-        }.padding(32).frame(width: 490).tint(pawAccent)
+    private var onboarding:some View {
+        VStack(spacing:24) {
+            HStack {ForEach(0..<3,id:\.self){i in Capsule().fill(i<=onboardingPage ? LibraryStyle.purple:LibraryStyle.purple.opacity(0.12)).frame(width:36,height:5)}}
+            if let image=PetStore.preview("knight-cat"){Image(nsImage:image).resizable().scaledToFit().frame(height:130)}
+            Text(["A little friend for your day","Your world stays yours","Let’s tap along"][onboardingPage]).font(.system(size:25,weight:.bold,design:.rounded))
+            if onboardingPage==0 {Text("Your collection lives on this Mac. An account is optional for progress sync and purchases.").multilineTextAlignment(.center).foregroundStyle(LibraryStyle.muted)}
+            else if onboardingPage==1 {Toggle("Share crash diagnostics (optional)",isOn:$preferences.telemetry);Text("Only aggregate activity totals are saved. No typed text, key identities, or captured audio is stored or sent.").font(.callout).foregroundStyle(LibraryStyle.muted)}
+            else {Text("Input Monitoring lets your pet react to typing and clicks in other apps. Window jumps and music dancing ask for separate permissions only when enabled.").multilineTextAlignment(.center).foregroundStyle(LibraryStyle.muted);Button(input.running ? "Typing reactions are ready":"Enable Input Monitoring"){input.requestPermission()}.buttonStyle(CozyButton())}
+            HStack {if onboardingPage>0{Button("Back"){onboardingPage-=1}.buttonStyle(CozyButton())};Spacer();Button(onboardingPage==2 ? "Make yourself at home":"Next"){if onboardingPage<2{onboardingPage+=1}else{model.finishOnboarding()}}.buttonStyle(CozyButton(prominent:true))}
+            Text("You can change everything later in Settings.").font(.caption).foregroundStyle(LibraryStyle.muted)
+        }.padding(34).frame(width:480).background(LibraryStyle.cream).foregroundStyle(LibraryStyle.ink)
+    }
+    private var progressContent:some View {
+        card {
+            LibraryXPStrip(library:library)
+            Picker("Earn XP in",selection:Binding(get:{library.state.activeTrack},set:{library.earn(in:$0)})){ForEach(library.state.tracks){Text($0.name).tag($0.id)}}
+            Toggle("XP follows my companion",isOn:Binding(get:{library.state.followsPet},set:{library.updateOptions(follows:$0)}))
+            Text("Changing companions keeps XP in your chosen track. A fast typing/click rhythm earns 2× XP; only live activity earns it.").font(.caption).foregroundStyle(LibraryStyle.muted)
+            if !library.state.gifts.isEmpty{GiftQueueBanner(model:model,library:library)}
+        }
+    }
+    private var accountSyncContent:some View {
+        card {
+            Label("Progress that stays together",systemImage:"icloud").font(.headline)
+            Toggle("Keep my Library in sync across Macs",isOn:Binding(get:{library.state.syncEnabled},set:{sync.setEnabled($0)}))
+            Text(sync.status).font(.callout).foregroundStyle(LibraryStyle.muted)
+            if library.state.syncEnabled {Button(sync.busy ? "Syncing…":"Sync now"){Task{await sync.sync()}}.disabled(sync.busy)}
+            Text("Sync combines owned items, companions, achievements, and the higher level of each track. Copies are kept in Backups. No app restart is needed.").font(.caption).foregroundStyle(LibraryStyle.muted)
+            Toggle("Get new items and cheers without an app update",isOn:$content.enabled)
+            Text(content.status).font(.caption).foregroundStyle(LibraryStyle.muted)
+            if content.enabled{Button("Refresh content"){Task{await content.refresh()}}.disabled(content.busy)}
+            Button("Show local backups"){NSWorkspace.shared.open(PetStore.root.appendingPathComponent("Backups"))}
+        }
+    }
+    @ViewBuilder private var aboutContent:some View {
+        card {
+            Text("PawSync").font(.system(size:28,weight:.bold,design:.rounded));Text("A little company. A lighter day.").foregroundStyle(LibraryStyle.muted)
+            Text("Version \(Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String ?? "0.1.0")").font(.caption).foregroundStyle(LibraryStyle.muted)
+            Text("47 companions · \(FreeHat.all.count) free items · 30 achievements · 7 secrets").font(.callout)
+            Button("Check for Updates…"){model.updates.check()}.buttonStyle(CozyButton(prominent:true))
+            Text("Your signed release feed provides automatic update checks. This local development build does not have a live release feed.").font(.caption).foregroundStyle(LibraryStyle.muted)
+        }
+        card {
+            Text("A fresh start, when you want one").font(.headline)
+            Text("Reset earned Library progress, gifts and achievements. Your purchases, companion settings, photo pets and files are kept. A backup is saved first. If sync is enabled, your account resets too.").font(.callout).foregroundStyle(LibraryStyle.muted)
+            Button("Reset Progress…"){model.confirmProgressReset()}.buttonStyle(CozyButton())
+            DisclosureGroup("Reset local preferences too") {
+                Text("This also clears local reminders, aggregate input counters, layout and privacy choices, then reopens setup. Photos and purchases remain backed up or retained.").font(.caption).foregroundStyle(LibraryStyle.muted)
+                Button("Reset Local Everything…"){model.confirmResetEverything()}.buttonStyle(CozyButton())
+            }
+        }
     }
     private func card<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 13, content: content).padding(20).frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(nsColor: .windowBackgroundColor), in: RoundedRectangle(cornerRadius: 13))
-            .overlay(RoundedRectangle(cornerRadius: 13).stroke(Color.primary.opacity(0.06)))
+            .background(LibraryStyle.paper,in:RoundedRectangle(cornerRadius:22))
+            .overlay(RoundedRectangle(cornerRadius:22).stroke(LibraryStyle.purple.opacity(0.09)))
     }
     private func copy(_ text: String) { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(text, forType: .string) }
 }

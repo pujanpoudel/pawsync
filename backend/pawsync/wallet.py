@@ -46,7 +46,7 @@ def fulfill(session, account, transaction_id, items):
     if is_base:
         account.licensed = True
     for item in items:
-        if item["sku"].startswith("accessory."):
+        if item["sku"].startswith(("accessory.","collection.")):
             session.add(AccessoryOwnership(account_id=account.id, purchase_id=transaction_id, sku=item["sku"]))
     return purchase
 

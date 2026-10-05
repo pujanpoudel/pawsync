@@ -9,8 +9,13 @@ import SwiftUI
     private var companionMenu:NSMenu?
     private var accessoryMenu:NSMenu?
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApp.setActivationPolicy(.accessory)
+        NSApp.setActivationPolicy(.regular)
         reopenObserver=DistributedNotificationCenter.default().addObserver(forName:SingleInstance.showSettings,object:nil,queue:.main) { [weak self] _ in MainActor.assumeIsolated { self?.showSettings() } }
+        let appMenu=NSMenu();let appParent=NSMenuItem();let appSubmenu=NSMenu();appParent.submenu=appSubmenu;appMenu.addItem(appParent)
+        let quitItem=NSMenuItem(title:"Quit PawSync",action:#selector(quit),keyEquivalent:"q");quitItem.target=self;appSubmenu.addItem(quitItem)
+        let edit=NSMenuItem(title:"Edit",action:nil,keyEquivalent:"");let editMenu=NSMenu(title:"Edit");edit.submenu=editMenu;appMenu.addItem(edit)
+        for (title,action,key) in [("Cut",#selector(NSText.cut(_:)),"x"),("Copy",#selector(NSText.copy(_:)),"c"),("Paste",#selector(NSText.paste(_:)),"v"),("Select All",#selector(NSText.selectAll(_:)),"a")] {editMenu.addItem(NSMenuItem(title:title,action:action,keyEquivalent:key))}
+        NSApp.mainMenu=appMenu
         model = AppModel()
         model.openSettings = { [weak self] in self?.showSettings() }
         model.overlay.isSettingsPoint = { [weak self] point in
@@ -29,6 +34,7 @@ import SwiftUI
         add("Open Wardrobe…",#selector(openWardrobe))
         menu.addItem(.separator())
         add("Hide Pet",#selector(toggleHidden))
+        add("Click-Through",#selector(toggleClickThrough))
         add("Mute Sounds",#selector(toggleMute))
         add("Pause Reactions",#selector(togglePaused))
         add("Let Pet Sleep",#selector(toggleSleep))
@@ -46,8 +52,8 @@ import SwiftUI
     }
     @objc func showSettings() {
         if settingsWindow == nil {
-            let window = NSWindow(contentRect: CGRect(x: 0, y: 0, width: 820, height: 650), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
-            window.title = "PawSync"; window.titlebarAppearsTransparent = true; window.isReleasedWhenClosed = false
+            let window = NSWindow(contentRect: CGRect(x: 0, y: 0, width: 1060, height: 780), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+            window.title = "PawSync Library"; window.titlebarAppearsTransparent = true; window.isReleasedWhenClosed = false
             window.delegate = self
             window.contentView = NSHostingView(rootView: SettingsView(model: model)); window.center()
             settingsWindow = window
@@ -55,11 +61,12 @@ import SwiftUI
         model.overlay.setSettingsVisible(true)
         settingsWindow?.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true)
     }
+    @objc func toggleClickThrough(){model.preferences.clickThrough.toggle();model.overlay.updatePassThrough()}
     @objc func toggleMute(_ sender: NSMenuItem) { model.preferences.muted.toggle(); refreshMenu() }
     @objc func toggleHidden(_ sender: NSMenuItem) { model.preferences.hidden.toggle(); refreshMenu() }
     @objc func togglePaused(_ sender: NSMenuItem) { model.preferences.reactionsPaused.toggle(); refreshMenu() }
     @objc func nextCompanion() {
-        let available = (PetStore.builtInIDs + PetStore.customPets().map(\.id)).filter { model.wardrobe.canSelectPet($0) }
+        let available = (PetStore.builtInIDs + PetStore.customPets().map(\.id)).filter { model.library.canSelect($0) }
         guard !available.isEmpty else { return }
         let index = available.firstIndex(of: model.preferences.companion) ?? -1
         model.preferences.hidden = false
@@ -111,7 +118,7 @@ import SwiftUI
         case #selector(toggleSleep): entry.title=model.overlay.isMenuSleeping ? "Wake Pet" : "Let Pet Sleep"
         case #selector(toggleFocus): entry.title=model.focus.phase == .ready ? "Start Pomodoro" : "Stop Pomodoro"
         case #selector(nextCompanion):
-            enabled=PetStore.builtInIDs.filter { model.wardrobe.canSelectPet($0) }.count > 1
+            enabled=PetStore.builtInIDs.filter { model.library.canSelect($0) }.count > 1
         default: break
         }
         entry.isEnabled=enabled
@@ -129,7 +136,7 @@ import SwiftUI
     @objc private func toggleSleep() { model.overlay.setMenuSleeping(!model.overlay.isMenuSleeping);refreshMenu() }
     private func refreshCompanionSubmenu() {
         guard let menu=companionMenu else { return };menu.removeAllItems()
-        let ids=(PetStore.builtInIDs+PetStore.customPets().map(\.id)).filter{model.wardrobe.canSelectPet($0)}
+        let ids=(PetStore.builtInIDs+PetStore.customPets().map(\.id)).filter{model.library.canSelect($0)}
         for id in ids {
             let entry=NSMenuItem(title:PetStore.builtInNames[id] ?? id,action:#selector(chooseCompanion(_:)),keyEquivalent:"")
             entry.target=self;entry.representedObject=id;entry.state=model.preferences.companion == id ? .on:.off;menu.addItem(entry)
@@ -144,11 +151,19 @@ import SwiftUI
             entry.target=self;entry.representedObject=sku;entry.state=model.preferences.accessory == sku ? .on:.off;menu.addItem(entry)
         }
     }
+    func applicationDockMenu(_ sender:NSApplication)->NSMenu? {model.petContextMenu()}
     func applicationWillTerminate(_ notification: Notification) { model.stop() }
 }
 
 MainActor.assumeIsolated {
-    if CommandLine.arguments.contains("--check-file-pocket") {
+    if let index=CommandLine.arguments.firstIndex(of:"--relaunch-after"),CommandLine.arguments.indices.contains(index+1),let pid=Int32(CommandLine.arguments[index+1]) {
+        let deadline=Date().addingTimeInterval(10)
+        while NSRunningApplication(processIdentifier:pid) != nil,Date()<deadline {Thread.sleep(forTimeInterval:0.15)}
+        let launcher=Process();launcher.executableURL=URL(fileURLWithPath:"/usr/bin/open");launcher.arguments=["-n",Bundle.main.bundleURL.path];try? launcher.run();exit(0)
+    } else if let index=CommandLine.arguments.firstIndex(of:"--check-library"),CommandLine.arguments.indices.contains(index+1) {
+        do{try LibraryChecks.run(directory:URL(fileURLWithPath:CommandLine.arguments[index+1]))}
+        catch{fputs("Library check failed: \(error.localizedDescription)\n",stderr);exit(1)}
+    } else if CommandLine.arguments.contains("--check-file-pocket") {
         do { try FilePocketChecks.run() }
         catch { fputs("File pocket check failed: \(error.localizedDescription)\n",stderr);exit(1) }
     } else if let index=CommandLine.arguments.firstIndex(of:"--check-emotions"),CommandLine.arguments.indices.contains(index+1) {

@@ -20,6 +20,8 @@ class Settings:
     smtp_username: str = field(default_factory=lambda: os.environ.get("SMTP_USERNAME", ""))
     smtp_password: str = field(default_factory=lambda: os.environ.get("SMTP_PASSWORD", ""))
     mail_from: str = field(default_factory=lambda: os.environ.get("MAIL_FROM", "PawSync <hello@example.com>"))
+    library_assets_dir: str = field(default_factory=lambda: os.environ.get("LIBRARY_ASSETS_DIR", ""))
+    library_content_path: str = field(default_factory=lambda: os.environ.get("LIBRARY_CONTENT_PATH", ""))
     sentry_dsn: str = field(default_factory=lambda: os.environ.get("SENTRY_DSN", ""))
     environment: str = field(default_factory=lambda: os.environ.get("ENVIRONMENT", "development"))
 

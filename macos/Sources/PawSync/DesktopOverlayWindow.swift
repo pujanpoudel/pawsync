@@ -95,7 +95,7 @@ import QuartzCore
         previous = nil; controller?.isInteracting = false; controller?.updatePassThrough()
     }
     override func rightMouseDown(with event: NSEvent) {
-        controller?.reactToPetClick()
+        if let menu=controller?.makeContextMenu?() {NSMenu.popUpContextMenu(menu,with:event,for:self)}
     }
 }
 
@@ -132,12 +132,13 @@ import QuartzCore
     private var resumeReaction = false
     private let statusLabel = SKLabelNode(fontNamed: NSFont.systemFont(ofSize:11,weight:.semibold).fontName)
     var onPetting: (() -> Void)?
+    var onDirectClick:(()->Void)?
     var onPetWake: (() -> Void)?
     var onWake: (() -> Void)?
     var onVisibilityChanged: (() -> Void)?
     var onReminderDismiss: (() -> Bool)?
     var windowEdge: (() -> CGRect?)?
-    private let travelDriver = SKNode()
+    private var travelTimer:Timer?
     private var musicAudible = false
     private var musicBeat = 0.5
     private var dancing = false
@@ -197,10 +198,6 @@ import QuartzCore
         view.allowsTransparency = true; view.preferredFramesPerSecond = 30
         view.ignoresSiblingOrder = true; view.shouldCullNonVisibleNodes = true
         scene.backgroundColor = .clear; scene.scaleMode = .resizeFill
-        scene.step = { [weak self] in
-            guard let self, self.walking else { return }
-            self.window.setFrameOrigin(self.travelDriver.position)
-        }
         view.presentScene(scene)
         window.contentView = view
         let center = NSWorkspace.shared.notificationCenter
@@ -251,7 +248,7 @@ import QuartzCore
         let node: SKNode & CompanionAnimating
         if let spec = PetStore.frameOriginal(id) ?? PetStore.imports.first(where: { $0.id == id }) { node = try FramePetNode(spec: spec) }
         else { node = try PetSpriteNode(manifest: PetStore.load(id), directory: PetStore.directory(for: id)) }
-        scene.removeAllChildren(); scene.addChild(travelDriver);
+        scene.removeAllChildren();
         animationDeadline=Date()
         statusLabel.fontSize = 11; statusLabel.fontColor = .systemPurple; statusLabel.zPosition = 80; scene.addChild(statusLabel); currentReaction = .idle; statusLabel.text = nil; pet = node; node.position = CGPoint(x: 140, y: 32); scene.addChild(node)
         view.preferredFramesPerSecond=(node as? FramePetNode)?.isKnightCat == true ? 60:node is FramePetNode ? 30:60
@@ -286,7 +283,7 @@ import QuartzCore
         let width = scene.size.width, height = scene.size.height
         var origin: CGPoint
         switch preferences.anchor {
-        case .dock: origin = CGPoint(x: local.maxX - width - 20, y: 0)
+        case .dock: origin = CGPoint(x:preferences.mirrorDock ? 20:local.maxX - width - 20, y: 0)
         case .notch: origin = CGPoint(x: local.midX - width/2, y: local.maxY - height)
         case .activeWindow:
             let rect = front ?? visible
@@ -312,7 +309,7 @@ import QuartzCore
     }
     func updatePassThrough() {
         guard !isInteracting else { return }
-        guard !screenSleeping, !isHidden else { window.ignoresMouseEvents = true; return }
+        guard !screenSleeping, !isHidden,!preferences.clickThrough else { window.ignoresMouseEvents = true; return }
         if settingsVisible, !wardrobeDragging, isSettingsPoint?(NSEvent.mouseLocation) == true {
             window.ignoresMouseEvents = true
             return
@@ -371,7 +368,7 @@ import QuartzCore
         if onReminderDismiss?() == true { return }
         if careSleeping { onPetWake?() }
         guard !focusSleeping, !careSleeping else { return }
-        animate(for: 1.6); pet?.cuddle()
+        animate(for: 1.6); pet?.cuddle();onDirectClick?()
     }
     func reactToPetting(direction: CGFloat) {
         guard !focusSleeping, !careSleeping else { return }
@@ -463,7 +460,7 @@ import QuartzCore
         nextWander = .distantPast; wanderIfNeeded(force: true)
     }
     func stopWalking() {
-        movementGeneration += 1; travelDriver.removeAllActions()
+        movementGeneration += 1;travelTimer?.invalidate();travelTimer=nil
         guard walking else { return }
         animationDeadline=Date()
         walking = false; pet?.setWalking(false); restorePresentation?(); updatePassThrough()
@@ -474,24 +471,33 @@ import QuartzCore
         view.preferredFramesPerSecond=60
         let generation = movementGeneration
         let start = window.frame.origin
-        travelDriver.position = start
-        let path = CGMutablePath(); path.move(to: start)
-        if jump {
-            let top = screen?.visibleFrame.maxY ?? max(start.y,target.y)+scene.size.height+100
-            path.addQuadCurve(to: target, control: CGPoint(x: (start.x+target.x)/2, y: min(top-scene.size.height, max(start.y,target.y)+100)))
-        } else { path.addLine(to: target) }
         let speed=max(20,min(200,movementSettings?.state.walkSpeed ?? 95))
         let duration = jump ? (pet is FramePetNode ? 1.68 : 1.1) : max(1.2,min(30,hypot(target.x-start.x,target.y-start.y)/speed))
         pet?.face(target.x-start.x)
         if jump { pet?.play(.jumping,looping:false,relaxed:false) } else { pet?.setWalking(true) }
         animate(for: duration+0.5); window.ignoresMouseEvents = true
-        let motion = SKAction.follow(path, asOffset: false, orientToPath: false, duration: duration)
-        motion.timingMode = .easeInEaseOut
-        travelDriver.run(.sequence([motion, .run { [weak self] in
-            guard let self, self.movementGeneration == generation else { return }
-            self.window.setFrameOrigin(target); self.walking = false; self.view.preferredFramesPerSecond=(self.pet as? FramePetNode)?.isKnightCat == true ? 60:self.pet is FramePetNode ? 30:60; self.pet?.setWalking(false); self.restorePresentation?(); self.updatePassThrough(); completion?()
-        }]), withKey: "travel")
+        let started=ProcessInfo.processInfo.systemUptime
+        let control=CGPoint(x:(start.x+target.x)/2,y:min((screen?.visibleFrame.maxY ?? 1000)-scene.size.height,max(start.y,target.y)+100))
+        // Window travel must keep advancing when SKView has no drawable (for
+        // example beneath Library or on a transitioning Space). The timer
+        // exists only during travel; pet gait still renders through SpriteKit.
+        let timer=Timer(timeInterval:1.0/60,repeats:true){[weak self] timer in
+            MainActor.assumeIsolated {
+                guard let self,self.walking,self.movementGeneration==generation else{timer.invalidate();return}
+                let elapsed=ProcessInfo.processInfo.systemUptime-started
+                let raw=min(1,max(0,elapsed/duration)),t=CGFloat(jump ? (1-cos(raw * .pi))/2:raw),u=1-t
+                let point=jump ? CGPoint(x:u*u*start.x+2*u*t*control.x+t*t*target.x,y:u*u*start.y+2*u*t*control.y+t*t*target.y):CGPoint(x:start.x+(target.x-start.x)*t,y:start.y+(target.y-start.y)*t)
+                self.window.setFrameOrigin(point);self.updatePassThrough()
+                if raw>=1 {
+                    timer.invalidate();self.travelTimer=nil;self.window.setFrameOrigin(target);self.walking=false
+                    self.view.preferredFramesPerSecond=(self.pet as? FramePetNode)?.isKnightCat == true ? 60:self.pet is FramePetNode ? 30:60
+                    self.pet?.setWalking(false);self.restorePresentation?();self.updatePassThrough();completion?()
+                }
+            }
+        }
+        timer.tolerance=0.002;travelTimer=timer;RunLoop.main.add(timer,forMode:.common)
     }
+
     private func wanderIfNeeded(force: Bool = false) {
         guard currentReaction == .idle, canRoam, !walking, !dancing, !screenSleeping, (force || companionUIActive?() != true), (force || !settingsVisible), !isHidden, !focusSleeping, !careSleeping, !idleSleeping, !isInteracting, !preferences.reactionsPaused,
               force || (preferences.movement != .stay && Date().timeIntervalSince(lastInput) > 3), Date() >= nextWander,
@@ -506,7 +512,7 @@ import QuartzCore
             let right=visible.maxX-scene.size.width-window.frame.minX
             x=window.frame.minX+(right > left ? min(260,right) : -min(260,left))
         }
-        if preferences.movement == .patrol { patrolRight.toggle(); x=patrolRight ? visible.maxX-scene.size.width-10 : visible.minX+10 }
+        if preferences.movement == .patrol && !force { patrolRight=window.frame.midX < visible.midX; x=patrolRight ? visible.maxX-scene.size.width-10 : visible.minX+10 }
         if preferences.movement == .follow, !force {
             let pointer = NSEvent.mouseLocation; guard visible.contains(pointer) else { return }; x = pointer.x-scene.size.width/2
         }
@@ -529,7 +535,7 @@ import QuartzCore
                       !self.careSleeping, self.preferences.anchor == .dock,
                       self.preferences.movement == .roam, let screen = self.screen else { return }
                 let frame = screen.visibleFrame
-                let home = Self.clampedOrigin(CGPoint(x: frame.maxX - self.scene.size.width - 20,
+                let home = Self.clampedOrigin(CGPoint(x:self.preferences.mirrorDock ? frame.minX+20:frame.maxX - self.scene.size.width - 20,
                                                        y: frame.minY), in: frame, size: self.scene.size)
                 if abs(self.window.frame.minX - home.x) > 40 { self.travel(to: home, jump: false) }
             }

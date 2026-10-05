@@ -17,6 +17,7 @@ struct ActivitySnapshot: Codable {
     private var dirty=false
     var onLevelUp: (() -> Void)?
     var onGoalReached: (() -> Void)?
+    var onInput:(()->Void)?
     var level: Int { Self.level(for: snapshot.total+pending) }
     var progress: Double { Double((snapshot.total+pending) % 500) / 500 }
     static func level(for total: Int) -> Int { max(0, total) / 500 + 1 }
@@ -40,6 +41,7 @@ struct ActivitySnapshot: Codable {
         if snapshot.day != day { flush(); snapshot.day = day; snapshot.today = 0; dirty=true }
     }
     func record(goal: Int) {
+        onInput?()
         refreshDay()
         let oldLevel = level, previous = snapshot.today+pending
         pending+=1; dirty=true

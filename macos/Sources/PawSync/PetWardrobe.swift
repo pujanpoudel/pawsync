@@ -2,12 +2,19 @@ import AppKit
 import Combine
 import SpriteKit
 
-struct FreeHat: Identifiable {
+struct FreeHat: Identifiable, Codable {
     let id: String
     let name: String
     let rarity: String
     let weight: Int
-    static let all = [
+    var category:String?=nil
+    var season:String?=nil
+    var kind:String?=nil
+    var color:String?=nil
+    var requiresSKU:String?=nil
+    var track:String { season ?? "season1" }
+    var group:String { category ?? (id == "free.sprout" || id == "free.flower" ? "Plants":id == "free.star" ? "Curios":"Accessories") }
+    static let legacy = [
         FreeHat(id: "free.sprout", name: "Little sprout", rarity: "Common", weight: 40),
         FreeHat(id: "free.bow", name: "Peach bow", rarity: "Common", weight: 40),
         FreeHat(id: "free.beanie", name: "Sleepy beanie", rarity: "Uncommon", weight: 25),
@@ -15,6 +22,21 @@ struct FreeHat: Identifiable {
         FreeHat(id: "free.star", name: "Starry friend", rarity: "Rare", weight: 10),
         FreeHat(id: "free.crown", name: "Tiny royalty", rarity: "Legendary", weight: 3)
     ]
+    private static let bundled:[FreeHat] = {
+        struct Catalog:Decodable { let items:[FreeHat] }
+        let url=Bundle.main.url(forResource:"catalog",withExtension:"json",subdirectory:"Library")
+        let extra=url.flatMap{try? Data(contentsOf:$0)}.flatMap{try? JSONDecoder().decode(Catalog.self,from:$0)}?.items ?? []
+        return legacy+extra
+    }()
+    private static let contentLock=NSLock()
+    private static var extra:[FreeHat]=[]
+    static var all:[FreeHat] { contentLock.lock();defer{contentLock.unlock()};let overrides=Dictionary(uniqueKeysWithValues:extra.map{($0.id,$0)});let known=Set(bundled.map(\.id));return bundled.map{overrides[$0.id] ?? $0}+extra.filter{!known.contains($0.id)} }
+    static func installContent(_ items:[FreeHat]) throws {
+        let kinds=Set(["leaf","flower","mushroom","fruit","berry","donut","cupcake","dumpling","toast","cup","bow","beanie","beret","crown","star","moon","cloud","rainbow","bird","butterfly"])
+        guard items.count<=1000,Set(items.map(\.id)).count==items.count,items.allSatisfy({item in item.id.hasPrefix("free.") && item.id.count<=80 && !item.name.isEmpty && item.name.count<=80 && (1...100).contains(item.weight) && kinds.contains(item.kind ?? "") && (["season1","season2"].contains(item.track) || item.track.hasPrefix("collection.")) && ["Common","Uncommon","Rare","Epic","Legendary"].contains(item.rarity) && ["Plants","Food","Animals","Accessories","Curios"].contains(item.group) && (item.color ?? "").range(of:"^[A-Fa-f0-9]{6}$",options:.regularExpression) != nil}) else{throw PawError.message("Invalid Library content.")}
+        contentLock.lock();extra=items;contentLock.unlock()
+    }
+
 }
 
 private struct WardrobeSnapshot: Codable {
@@ -35,7 +57,7 @@ private struct WardrobeSnapshot: Codable {
 
     init(directory: URL = PetStore.root, preserveExistingPets: Bool = false) {
         file = directory.appendingPathComponent("Wardrobe/inventory.json")
-        let saved = LocalState.read(WardrobeSnapshot.self,at:file,validate:{$0.version == 1 && $0.pets.count <= 100 && $0.hats.count <= 100 && (1...1_000_000).contains($0.rewardedLevel)})
+        let saved = LocalState.read(WardrobeSnapshot.self,at:file,validate:{$0.version == 1 && $0.pets.count <= 2000 && $0.hats.count <= 1000 && (1...1_000_000).contains($0.rewardedLevel)})
         ownedPets = Set(saved?.pets ?? (preserveExistingPets ? PetStore.rigIDs : ["pixel-cat", "shibe"]))
         ownedHats = Set((saved?.hats ?? ["free.sprout"]).filter { id in FreeHat.all.contains { $0.id == id } })
         rewardedLevel = max(1, saved?.rewardedLevel ?? 1)
@@ -44,6 +66,11 @@ private struct WardrobeSnapshot: Codable {
     }
     func canSelectPet(_ id: String) -> Bool { !PetStore.rigIDs.contains(id) || ownedPets.contains(id) }
     func canEquipFreeHat(_ id: String) -> Bool { ownedHats.contains(id) && FreeHat.all.contains { $0.id == id } }
+    func adopt(pets:Set<String>,hats:Set<String>,replace:Bool=false) {
+        ownedPets=replace ? pets:ownedPets.union(pets)
+        ownedHats=replace ? hats:ownedHats.union(hats)
+        save()
+    }
     func reconcile(level: Int, announce: Bool = true) {
         var gained: [String] = []
         for id in PetStore.rigIDs where level >= (Self.unlockLevels[id] ?? Int.max) && !ownedPets.contains(id) {
@@ -83,6 +110,7 @@ private struct WardrobeSnapshot: Codable {
 @MainActor enum PetAccessories {
     static func make(_ id: String) -> SKNode? {
         guard id != "none" else { return nil }
+        if let item=FreeHat.all.first(where:{$0.id == id}),item.kind != nil { return LibraryAccessoryArt.make(item) }
         let root = SKNode(); root.name = "cosmetic"
         let ink = NSColor(calibratedRed: 0.38, green: 0.27, blue: 0.29, alpha: 1)
         func shape(_ path: CGPath, _ color: NSColor) -> SKShapeNode {
@@ -145,14 +173,15 @@ private struct WardrobeSnapshot: Codable {
             oval(0,0,74,9,NSColor(calibratedRed:0.32,green:0.27,blue:0.40,alpha:1))
         case "accessory.glasses":
             for x: CGFloat in [-22, 22] {
-                let lens=shape(CGPath(roundedRect:CGRect(x:x-18,y:-47,width:36,height:28),cornerWidth:11,cornerHeight:11,transform:nil),NSColor(calibratedRed:0.79,green:0.91,blue:0.94,alpha:0.12));lens.lineWidth=3.5
+                let lens=shape(CGPath(roundedRect:CGRect(x:x-14,y:-45,width:28,height:24),cornerWidth:10,cornerHeight:10,transform:nil),NSColor(calibratedRed:0.79,green:0.91,blue:0.94,alpha:0.12));lens.lineWidth=3.5
                 oval(x-8,-27,13,4,.white.withAlphaComponent(0.25))
             }
             line([CGPoint(x:-4,y:-33),CGPoint(x:4,y:-33)],width:3.3)
-            line([CGPoint(x:-40,y:-34),CGPoint(x:-52,y:-30)],width:3)
-            line([CGPoint(x:40,y:-34),CGPoint(x:52,y:-30)],width:3)
+            line([CGPoint(x:-36,y:-34),CGPoint(x:-43,y:-30)],width:3)
+            line([CGPoint(x:36,y:-34),CGPoint(x:43,y:-30)],width:3)
         default: return nil
         }
+        PetWearableFit.recordBounds(root)
         return root
     }
     static func headphones()->SKNode {

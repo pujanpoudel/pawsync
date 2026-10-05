@@ -4,20 +4,24 @@ import datetime as dt
 import hmac
 import json
 import logging
+import pathlib
+import copy
+import re
 import secrets
 import uuid
 from contextlib import asynccontextmanager
 
 import sentry_sdk
 from fastapi import Depends, FastAPI, File, Header, Request, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from .config import Settings
-from .database import Account, RestoreCode, Revocation, WebhookEvent, connect, now
+from .database import LibraryProgressRecord, LibraryProgressBackup, Account, RestoreCode, Revocation, WebhookEvent, connect, now
+from .progress import ProgressPayload, fresh, merge as merge_progress
 from .limits import RateLimiter
 from .mail import send_restore_code
 from .payments import catalog_items, customer_email
@@ -45,7 +49,7 @@ class BodyLimit:
         if scope["type"] != "http":
             await self.app(scope, receive, send); return
         headers = dict(scope["headers"])
-        maximum = self.maximum if scope.get("path") == "/v1/pet/vectorize" else (256 * 1024 if scope.get("path") == "/v1/webhooks/paddle" else 8192)
+        maximum = self.maximum if scope.get("path") == "/v1/pet/vectorize" else (256 * 1024 if scope.get("path") in {"/v1/webhooks/paddle", "/v1/library/progress"} else 8192)
         try:
             length = int(headers.get(b"content-length", b"0"))
         except ValueError:
@@ -153,6 +157,62 @@ def create_app(settings=None, session_factory=None, limiter=None, pipeline=None,
     @app.get("/health")
     def health():
         return {"ok": True}
+
+    def save_progress(session,account_id,state):
+        existing=session.get(LibraryProgressRecord,account_id)
+        if existing:
+            session.add(LibraryProgressBackup(account_id=account_id,state=copy.deepcopy(existing.state)))
+            existing.state=state;existing.updated_at=now()
+        else: session.add(LibraryProgressRecord(account_id=account_id,state=state))
+        session.flush()
+        backups=session.scalars(select(LibraryProgressBackup).where(LibraryProgressBackup.account_id==account_id).order_by(LibraryProgressBackup.created_at.desc(),LibraryProgressBackup.id.desc())).all()
+        for old in backups[20:]: session.delete(old)
+
+    @app.post("/v1/library/progress")
+    def sync_progress(payload:ProgressPayload,account_id=Depends(authenticated)):
+        limits.check("progress-account",account_id,20)
+        with factory.begin() as session:
+            lock_account(session,account_id)
+            existing=session.get(LibraryProgressRecord,account_id)
+            state=merge_progress(existing.state if existing else None,payload.model_dump())
+            save_progress(session,account_id,state)
+            return state
+
+    @app.post("/v1/library/progress/reset")
+    def reset_progress(account_id=Depends(authenticated)):
+        limits.check("progress-reset",account_id,3,600)
+        with factory.begin() as session:
+            lock_account(session,account_id)
+            existing=session.get(LibraryProgressRecord,account_id)
+            epoch=(existing.state['epoch'] if existing else 0)+1
+            save_progress(session,account_id,fresh(epoch))
+            return {"epoch":epoch}
+
+    def read_library_content():
+        path=pathlib.Path(settings.library_content_path) if settings.library_content_path else pathlib.Path(__file__).resolve().parents[2]/"macos/Resources/Library/catalog.json"
+        if not path.is_file() or path.stat().st_size>1024*1024: raise WalletError("Library content is not configured",503)
+        return json.loads(path.read_text())
+
+    @app.get("/v1/library/catalog")
+    def library_catalog(request:Request):
+        limits.check("content-ip",client_ip(request),30)
+        return read_library_content()
+
+    @app.get("/v1/library/pets/{pet_id}")
+    def library_pet(pet_id:str,request:Request,credentials:HTTPAuthorizationCredentials | None = Depends(bearer)):
+        limits.check("content-pet-ip",client_ip(request),10)
+        if not re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,79}",pet_id): raise WalletError("Invalid pet ID",404)
+        entry=next((p for p in read_library_content().get('pets',[]) if p['id']==pet_id),None)
+        if entry is None: raise WalletError("Pet is not in this collection",404)
+        if entry.get('requiresSKU'):
+            if credentials is None: raise WalletError("Restore your purchase to download this collection",401)
+            with factory() as session:
+                account=authority.verify(session,credentials.credentials)
+                if entry['requiresSKU'] not in owned_accessories(session,account.id): raise WalletError("Collection is not owned",403)
+        if not settings.library_assets_dir: raise WalletError("Collection artwork is not configured",503)
+        root=pathlib.Path(settings.library_assets_dir).resolve();path=(root/(pet_id+'.zip')).resolve()
+        if not path.is_relative_to(root) or not path.is_file() or path.stat().st_size>10*1024*1024: raise WalletError("Collection artwork is unavailable",404)
+        return FileResponse(path,media_type="application/zip")
 
     @app.get("/v1/wallet")
     def wallet_snapshot(account_id=Depends(authenticated)):

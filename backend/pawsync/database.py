@@ -109,3 +109,18 @@ class RestoreCode(Base):
 def connect(url):
     engine = create_engine(url, pool_pre_ping=True)
     return engine, sessionmaker(engine, expire_on_commit=False)
+
+
+class LibraryProgressRecord(Base):
+    __tablename__ = "library_progress"
+    account_id: Mapped[str] = mapped_column(ForeignKey("accounts.id"), primary_key=True)
+    state: Mapped[dict] = mapped_column(JSON)
+    updated_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class LibraryProgressBackup(Base):
+    __tablename__ = "library_progress_backups"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=identifier)
+    account_id: Mapped[str] = mapped_column(ForeignKey("accounts.id"), index=True)
+    state: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=now)

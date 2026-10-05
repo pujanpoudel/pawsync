@@ -4,7 +4,7 @@ Native macOS 14+ desktop companion. AppKit overlay, SwiftUI Settings, SpriteKit 
 
 ## Open the app
 
-The built development app is at **`build/PawSync.app`**. Open it in Finder: Settings opens on launch and when the app is reopened. The paw icon in the menu bar also opens Settings. The first launch presents onboarding. OpenPets Buddy is the default frame pet; nine PawSync originals remain in the gallery. Click reactions and typing inside PawSync work locally; grant Input Monitoring for typing in other apps. The main Settings screens are Companion, Pet gallery, Reminders, and Focus & habits. Appearance, animation tests, developer tools, licensing, and privacy details are under Advanced.
+The built development app is at **`build/PawSync.app`**. Opening PawSync or clicking its Dock icon opens the native Library. Knight Cat is the main companion, with 47 bundled companions available in the gallery. The menu-bar utility remains available. Click reactions and typing inside PawSync work locally; grant Input Monitoring for typing in other apps. Library pages include companions, items, achievements and independent XP tracks. Companion, Progress, Reminders, Focus, Account, Privacy and About stay easy to find; detailed tools remain under Advanced.
 
 The bundled configuration is an explicit development preview. It unlocks local companion features for development, uses placeholder cat/Shibe atlases, and does not pretend that payments or real-photo generation are configured. Production configuration requires a valid purchased license; unlicensed users receive a ten-minute static companion preview.
 
@@ -23,7 +23,7 @@ The Swift package is in `macos/Package.swift`; resolved package versions are che
 - A pet-sized transparent panel follows application activation, space changes, display changes, and clicks on another display. Dock, active-window, notch and free-floating anchors are available. Option-drag moves the pet; ordinary drag pets it. Transparent pixels pass clicks through to other apps. Settings remains above the pet and always receives its own clicks.
 - The same JSON/PNG rig loader handles both bundled and custom pets. Breathing, tail sway, typing, click reaction, petting/blink, sleep, celebration and build-failure box animations are implemented.
 - Double-clicking a pet opens its nearby quick-action menu, with one-click reminder creation, hydration, focus, movement, and pet actions. Hovering opens the pet’s pocket for files it has caught.
-- Drop regular files on the pet to copy them into the private `~/Library/Application Support/PawSync/PetInbox` folder. The pocket accepts up to 20 files per drop (100 MB each, 250 MB per batch), caps stored data at 500 MB, and offers Open, Show in Finder, and Remove actions. It stores copies and never deletes the originals.
+- Drop regular files onto the pet to hold session-only references to their original URLs and filenames. The pocket supports drag-out, Open, Show in Finder, Remove and Clear All. Releasing or clearing a file never deletes the original; the app makes no new persistent copies.
 - Global keyboard input is observed through a **listen-only CGEventTap**, with work dispatched off the tap callback. Mouse input has its own global/local NSEvent monitors and works even without keyboard permission. Local key events also work inside PawSync without that permission; granting permission is rechecked automatically. The listeners use event type only, never reading key codes, strings, or keyboard flags. Mouse position is read separately in AppKit screen coordinates. Only aggregate reaction counts appear in Privacy Settings; no event contents are retained.
 - Each keyboard event alternates a short paw tap, without a keyboard prop. Clicks perk the head; dragging on the pet has a separate blink and head-tilt animation.
 - Pomodoro uses absolute deadlines, puts the pet to sleep during focus, and celebrates breaks. Screen sleep pauses `SKView`; idle sleep pauses after its settling animation. Idle breathing renders short bursts rather than a permanent display loop.
@@ -31,7 +31,7 @@ The Swift package is in `macos/Package.swift`; resolved package versions are che
 - License and local webhook secrets use Keychain. Preferences use standard UserDefaults, which writes to the app's bundle-ID domain. Custom rigs and display-only wallet metadata use Application Support JSON.
 - Custom-photo upload validates format, dimensions and size, strips image metadata on the server, uses a 30-second request timeout, retries transient errors twice with backoff, and reuses the generation request ID. A lost successful response can be retried even when the displayed balance is zero.
 
-Settings keeps Companion, Pet gallery, Reminders, and Focus & habits at the top level. Advanced holds motion tuning, extra tools, developer integrations, licensing, and privacy. OpenPets pets use their authored frame sequences; nine PawSync originals use joint motion and expressions. Menu-bar actions include Settings, Mute, Hide/Show, Start Pomodoro, Check for Updates, and Quit.
+All 47 bundled companions use native frame playback, with joint-based rigs available for custom photo pets. The Library adds 228 original free wearable variants, 30 permanent achievements, seven secret pairings, three-choice gifts, favorites and chosen XP tracks with live 2× XP. Headwear follows each pet’s head silhouette and authored poses; glasses use facial landmarks. Adjustments persist separately per pet/item, and dragging an item onto a pet seats it automatically. See [Library features and deployment](docs/library-features.md) for optional progress sync, content delivery, paid collections and reset behavior.
 
 ## Run the backend
 
@@ -76,6 +76,7 @@ cd backend
 TEST_DATABASE_URL=postgresql+psycopg://pawsync:pawsync@127.0.0.1:15432/pawsync \
   uv run pytest -q
 cd ..
+build/PawSync.app/Contents/MacOS/PawSync --check-library build/library-proof
 build/PawSync.app/Contents/MacOS/PawSync --check-assets
 build/PawSync.app/Contents/MacOS/PawSync --check-motion build/motion-proofs
 build/PawSync.app/Contents/MacOS/PawSync --check-input-status
@@ -108,6 +109,6 @@ The implementation pauses rendering to minimize idle work, but the **0.5% CPU / 
 
 The clean local page lives in [website](website/README.md), with a bottom-right pet preview and a studio using all 15 bundled sprite sheets: nine PawSync originals and six OpenPets imports. Visitors can preview the wardrobe, pet size, backgrounds, and animations. Run `python3 scripts/serve_website.py` and open `http://127.0.0.1:8767/`. The page has not been published and does not claim the development app is notarized.
 
-The native development build includes six original free vector hats, weighted level-up drops without duplicates, locally persisted inventory, and earned pet unlocks. Existing companions remain unlocked on migration. Optional paid accessories stay independent of earned hats and generation credits. Character-specific head landmarks make accessories follow original pets through walk and jump frames; imported OpenPets pets have separate fit profiles. Functional music headphones bypass cosmetic ownership entirely. Companion Settings includes the free wardrobe and a 40–180% size slider.
+The native development build includes 228 original free wearable variants, weighted three-choice gifts, locally persisted inventory, and earned pet unlocks. Existing companions remain unlocked on migration. Optional paid accessories stay independent of earned hats and generation credits. Character-specific head landmarks make accessories follow original pets through walk and jump frames; imported OpenPets pets have separate fit profiles. Functional music headphones bypass cosmetic ownership entirely. Companion Settings includes the free wardrobe and a 40–180% size slider.
 
 The [OpenPets feature report](docs/openpets-feature-report.md) audits every maintained official/community plugin, the SDK, gallery/imports, agent paths, assistant/voice and optional LAN/Teams. The native P1–P7 implementation plan was approved; its remaining phases are tracked in [implementation progress](docs/implementation-progress.md). See [the machine-readable inventory](docs/openpets-feature-inventory.json) for tracked feature families and phases.

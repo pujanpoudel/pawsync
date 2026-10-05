@@ -203,8 +203,13 @@ import Darwin
         precondition(restoredReactions.animation(for:.success) == .waving && restoredReactions.relaxedWaiting)
         let presentation=PetPresentationStore(directory:temporary)
         presentation.flip("pixel-cat"); presentation.state.hudScale=1.2
+        presentation.setTransform(HatTransform(x:8,y:-4,scale:1.2,rotation:9),pet:"pixel-cat",item:"free.crown")
+        presentation.setTransform(HatTransform(x:-3,y:2),pet:"pixel-cat",item:"accessory.glasses")
         let restoredPresentation=PetPresentationStore(directory:temporary)
         precondition(restoredPresentation.state.flipped["pixel-cat"] == true && restoredPresentation.state.hudScale == 1.2)
+        precondition(restoredPresentation.transform(pet:"pixel-cat",item:"free.crown").x == 8)
+        precondition(restoredPresentation.transform(pet:"pixel-cat",item:"accessory.glasses").x == -3)
+        precondition(restoredPresentation.transform(pet:"fox",item:"free.crown") == HatTransform())
         let corrupt=temporary.appendingPathComponent("Presentation/reactions.json")
         try Data("{\"version\":99,\"mapping\":{},\"relaxedWaiting\":false}".utf8).write(to:corrupt)
         let recovered=ReactionSettings(directory:temporary)

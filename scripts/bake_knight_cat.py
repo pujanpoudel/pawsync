@@ -60,7 +60,7 @@ def package():
         for folder in [directory,ROOT/'macos/Resources/FileInteractions/knight-cat',ROOT/'art/knight-cat']:
             for path in sorted(folder.rglob('*')):
                 if path.is_file(): archive.write(path,path.relative_to(ROOT))
-        for name in ['scripts/bake_knight_cat.py','scripts/bake_fullbody_companions.py','scripts/import_pawpaw_previews.py','macos/Sources/PawSync/FramePetNode.swift','macos/Sources/PawSync/PetClickMotion.swift','macos/Sources/PawSync/KnightCatMotion.swift']:
+        for name in ['scripts/bake_knight_cat.py','scripts/bake_fullbody_companions.py','scripts/import_pawpaw_previews.py','macos/Sources/PawSync/FramePetNode.swift','macos/Sources/PawSync/LibraryAccessoryArt.swift','macos/Sources/PawSync/PetAccessoryFit.swift','macos/Sources/PawSync/PetWardrobe.swift','macos/Resources/Library/catalog.json','macos/Sources/PawSync/PetClickMotion.swift','macos/Sources/PawSync/KnightCatMotion.swift']:
             archive.write(ROOT/name,name)
         for name in ['knight-cat-expressions.png','knight-cat-click-hop.png','knight-cat-fluid-motions.png','knight-cat-fluid.gif']:
             path=ROOT/'build/emotion-character-sheets'/name

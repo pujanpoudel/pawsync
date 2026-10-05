@@ -474,13 +474,35 @@ import SpriteKit
         guard x >= 0,y >= 0,x < cell.width,y < cell.height else { return false }
         return mask.contains(x:Int(x)+currentColumn*Int(cell.width),y:Int(cell.height-y-1)+currentRow*Int(cell.height))
     }
+    private func headSurfaceY(at x:CGFloat,maximumY:CGFloat?=nil)->CGFloat? {
+        let pose=displayedFilePose.flatMap{filePoses[$0]}
+        let width=pose == nil ? Int(cell.width):192,height=pose == nil ? Int(cell.height):208
+        let sampleX=max(0,min(width-1,Int((x/192+0.5)*CGFloat(width))))
+        let ox=pose == nil ? currentColumn*width:0,oy=pose == nil ? currentRow*height:0
+        let alpha=pose?.mask ?? mask
+        // Scan a narrow contact column, not ear tips or the overall sprite box.
+        let first=maximumY.map{max(0,min(height-1,Int((1-$0/208)*CGFloat(height))))} ?? 0
+        for row in first..<height {
+            if (-1...1).allSatisfy({dx in alpha.contains(x:ox+max(0,min(width-1,sampleX+dx)),y:oy+row)}) {return (1-CGFloat(row)/CGFloat(height))*208}
+        };return nil
+    }
     private func updateAccessoryFit() {
         let fit=PetAccessoryFit.frame(id:petID,row:currentRow,column:currentColumn)
         let activeProfile=displayedFilePose.flatMap{filePoses[$0]?.profile} ?? frameProfile
         let measuredFit=profile?.fullBody == true || displayedFilePose != nil
         if let profile=activeProfile,measuredFit {
-            accessories.position=CGPoint(x:(profile.crown[0]-0.5)*192,y:(1-profile.crown[1])*208+7)
-        } else { accessories.position=fit.crown }
+            let x=CGFloat((profile.crown[0]-0.5)*192)
+            accessories.position=CGPoint(x:x,y:headSurfaceY(at:x) ?? CGFloat((1-profile.crown[1])*208))
+        } else {
+            // Sitting artwork is often offset to leave room for a tail. Center
+            // headwear between the eyes, not in the sprite's bounding rectangle.
+            let faceX=activeProfile.map{CGFloat(($0.eyes[0].point[0]+$0.eyes[1].point[0])/2-0.5)*192}
+            let x=currentRow == 0 ? (faceX ?? PetAccessoryFit.importedEyes(id:petID)?.point.x ?? fit.crown.x):fit.crown.x
+            // Long ears are not the hat-contact surface. Reviewed forehead
+            // heights prevent headwear perching on an ear in each rabbit pose.
+            let limit:CGFloat?=petID == "bunny" ? (currentRow == 4 ? (currentColumn == 0 ? 111:currentColumn<4 ? 146:115):currentRow == 5 ? 115:148):nil
+            accessories.position=CGPoint(x:x,y:headSurfaceY(at:x,maximumY:limit) ?? fit.crown.y)
+        }
         heldFiles.position=CGPoint(x:fit.crown.x*0.55,y:[1,2].contains(currentRow) ? 42:36)
         heldFiles.setScale([1,2].contains(currentRow) ? 0.85:1)
         if let profile,profile.fullBody == true {
@@ -494,18 +516,23 @@ import SpriteKit
             heldFiles.setScale(1)
         }
         if let node=accessories.childNode(withName:"cosmetic") {
-            let earInset:CGFloat = petID == "bunny" && ["free.beanie","free.crown","accessory.hat"].contains(accessorySKU) ? -17 : 0
-            var eyeDrop=fit.glassesDrop
-            if let profile=activeProfile,measuredFit {
-                let eyeY=(1-(profile.eyes[0].point[1]+profile.eyes[1].point[1])/2)*208
-                eyeDrop=accessories.position.y-eyeY-33*profile.accessoryScale
+            let headScale=CGFloat(measuredFit ? activeProfile?.accessoryScale ?? Double(fit.scale):Double(fit.scale))
+            let eyes=activeProfile?.eyes
+            var eyePoint=eyes.map{CGPoint(x:(($0[0].point[0]+$0[1].point[0])/2-0.5)*192,y:(1-($0[0].point[1]+$0[1].point[1])/2)*208)}
+            var eyeDistance=eyes.map{CGFloat(abs($0[1].point[0]-$0[0].point[0])*192)}
+            if eyes == nil,let landmarks=PetAccessoryFit.importedEyes(id:petID) {
+                let rest=PetAccessoryFit.frame(id:petID,row:0,column:0)
+                eyePoint=CGPoint(x:landmarks.point.x+fit.crown.x-rest.crown.x,y:landmarks.point.y+fit.crown.y-rest.crown.y)
+                eyeDistance=landmarks.distance
             }
-            node.position=CGPoint(x:hatTransform.x,y:hatTransform.y + earInset - (accessorySKU == "accessory.glasses" ? eyeDrop : 0))
-            node.setScale((measuredFit ? activeProfile?.accessoryScale ?? fit.scale:fit.scale) * hatTransform.scale)
-            node.zRotation=hatTransform.rotation * .pi/180
+            if !measuredFit,eyes != nil,let base=eyePoint {
+                let rest=PetAccessoryFit.frame(id:petID,row:0,column:0)
+                eyePoint=CGPoint(x:base.x+fit.crown.x-rest.crown.x,y:base.y+fit.crown.y-rest.crown.y)
+            }
+            PetWearableFit.apply(node,id:accessorySKU,petID:petID,headScale:headScale,eyePoint:eyePoint,eyeDistance:eyeDistance,slot:accessories.position,transform:hatTransform)
             node.isHidden=accessories.childNode(withName:"free-headphones") != nil
         }
-        accessories.childNode(withName:"free-headphones")?.setScale(fit.scale)
+        accessories.childNode(withName:"free-headphones")?.setScale(CGFloat(measuredFit ? activeProfile?.accessoryScale ?? Double(fit.scale):Double(fit.scale)))
     }
     func setAccessory(_ sku:String) { accessorySKU=sku; accessories.childNode(withName:"cosmetic")?.removeFromParent(); if let node=PetAccessories.make(sku) { accessories.addChild(node) }; updateAccessoryFit(); onNeedsRender?() }
     func setAccessoryVisibility(_ visible:Bool) { accessories.isHidden = !visible; onNeedsRender?() }

@@ -154,3 +154,57 @@ def test_rate_limits_auth_and_restore(service):
     client, sent, settings, limiter = service
     for _ in range(3): assert client.post("/v1/license/restore", json={"email": "missing@example.com"}).status_code == 200
     assert client.post("/v1/license/restore", json={"email": "missing@example.com"}).status_code == 429
+
+
+def test_library_sync_reset_and_catalog(service, db):
+    from pawsync.database import LibraryProgressBackup, LibraryProgressRecord
+    from pawsync.progress import fresh
+    client, sent, settings, limiter=service
+    assert webhook(client,settings,purchase_event()).status_code==200
+    headers={"Authorization":f"Bearer {restore(client,sent)}"}
+    a=fresh();a['tracks'][0]['xp']=1200;a['hats'].append('free.bow')
+    response=client.post('/v1/library/progress',json=a,headers=headers)
+    assert response.status_code==200,response.text
+    b=fresh();b['tracks'][1]['xp']=2300;b['hats'].append('free.star')
+    response=client.post('/v1/library/progress',json=b,headers=headers)
+    assert response.status_code==200,response.text
+    state=response.json()
+    assert [t['xp'] for t in state['tracks']]==[1200,2300,0]
+    assert {'free.bow','free.star'}<=set(state['hats'])
+    assert client.post('/v1/library/progress',json=a).status_code==401
+    a['hats'].append('accessory.glasses')
+    assert client.post('/v1/library/progress',json=a,headers=headers).status_code==422
+    assert client.post('/v1/library/progress/reset',headers=headers).json()['epoch']==1
+    # An offline Mac with old progress cannot undo a reset.
+    response=client.post('/v1/library/progress',json=b,headers=headers)
+    assert all(t['xp']==0 for t in response.json()['tracks'])
+    assert response.json()['epoch']==1
+    assert client.get('/v1/wallet',headers=headers).json()['licensed'] is True
+    with db() as session:
+        assert session.scalar(select(Account.balance))==3
+        assert session.scalar(select(LibraryProgressBackup)) is not None
+        assert session.scalar(select(LibraryProgressRecord)).state['epoch']==1
+    content=client.get('/v1/library/catalog')
+    assert content.status_code==200 and len(content.json()['items'])==222
+
+
+def test_paid_collection_download_requires_verified_ownership(service, tmp_path):
+    import hashlib
+    client,sent,settings,limiter=service
+    data=b'bounded fixture; native client also validates the ZIP contents'
+    root=tmp_path/'art';root.mkdir();(root/'artist-kitten.zip').write_bytes(data)
+    catalog=tmp_path/'catalog.json'
+    catalog.write_text(json.dumps(dict(version=1,items=[],lines=[],pets=[dict(id='artist-kitten',sha256=hashlib.sha256(data).hexdigest(),requiresSKU='collection.artist',collection='collection.artist',unlockLevel=1)],collections=[dict(id='collection.artist',name='Artist collection',sku='collection.artist')])))
+    object.__setattr__(settings,'library_content_path',str(catalog));object.__setattr__(settings,'library_assets_dir',str(root))
+    assert client.get('/v1/library/pets/artist-kitten').status_code==401
+    assert webhook(client,settings,purchase_event()).status_code==200
+    headers={"Authorization":f"Bearer {restore(client,sent)}"}
+    assert client.get('/v1/library/pets/artist-kitten',headers=headers).status_code==403
+    settings.price_catalog['pri_collection']={'sku':'collection.artist'}
+    assert webhook(client,settings,purchase_event(transaction='txn_collection',event_id='evt_collection',price='pri_collection')).status_code==200
+    assert client.get('/v1/library/pets/artist-kitten',headers=headers).content==data
+    assert 'collection.artist' in client.get('/v1/wallet',headers=headers).json()['accessories']
+    # An alternate path cannot escape the configured asset directory.
+    (root/'artist-kitten.zip').unlink();(root/'artist-kitten.zip').symlink_to(tmp_path/'secret.zip')
+    (tmp_path/'secret.zip').write_bytes(b'not collection art')
+    assert client.get('/v1/library/pets/artist-kitten',headers=headers).status_code==404

@@ -1,0 +1,2235 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "free.s1.leaf.0",
+      "name": "Mint leaf",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Plants",
+      "season": "season1",
+      "kind": "leaf",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s1.leaf.1",
+      "name": "Tea leaf",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Plants",
+      "season": "season1",
+      "kind": "leaf",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s1.leaf.2",
+      "name": "Autumn leaf",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Plants",
+      "season": "season1",
+      "kind": "leaf",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s1.leaf.3",
+      "name": "Sage leaf",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Plants",
+      "season": "season1",
+      "kind": "leaf",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s1.leaf.4",
+      "name": "Lime leaf",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Plants",
+      "season": "season1",
+      "kind": "leaf",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s1.flower.1",
+      "name": "Cherry blossom",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Plants",
+      "season": "season1",
+      "kind": "flower",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s1.flower.2",
+      "name": "Bluebell",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Plants",
+      "season": "season1",
+      "kind": "flower",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s1.flower.3",
+      "name": "Sunflower",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Plants",
+      "season": "season1",
+      "kind": "flower",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s1.flower.4",
+      "name": "Lavender",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Plants",
+      "season": "season1",
+      "kind": "flower",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s1.flower.5",
+      "name": "Poppy",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Plants",
+      "season": "season1",
+      "kind": "flower",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s1.mushroom.0",
+      "name": "Forest mushroom",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Plants",
+      "season": "season1",
+      "kind": "mushroom",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s1.mushroom.1",
+      "name": "Rosy mushroom",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Plants",
+      "season": "season1",
+      "kind": "mushroom",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s1.mushroom.2",
+      "name": "Moon mushroom",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Plants",
+      "season": "season1",
+      "kind": "mushroom",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s1.mushroom.3",
+      "name": "Golden mushroom",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Plants",
+      "season": "season1",
+      "kind": "mushroom",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s1.mushroom.4",
+      "name": "Moss mushroom",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Plants",
+      "season": "season1",
+      "kind": "mushroom",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s1.mushroom.5",
+      "name": "Snow mushroom",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Plants",
+      "season": "season1",
+      "kind": "mushroom",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s1.fruit.0",
+      "name": "Peach",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season1",
+      "kind": "fruit",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s1.fruit.1",
+      "name": "Apple",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season1",
+      "kind": "fruit",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s1.fruit.2",
+      "name": "Orange",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Food",
+      "season": "season1",
+      "kind": "fruit",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s1.fruit.3",
+      "name": "Pear",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Food",
+      "season": "season1",
+      "kind": "fruit",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s1.fruit.4",
+      "name": "Plum",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Food",
+      "season": "season1",
+      "kind": "fruit",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s1.fruit.5",
+      "name": "Lemon",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Food",
+      "season": "season1",
+      "kind": "fruit",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s1.berry.0",
+      "name": "Strawberry",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season1",
+      "kind": "berry",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s1.berry.1",
+      "name": "Blueberry",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season1",
+      "kind": "berry",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s1.berry.2",
+      "name": "Raspberry",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Food",
+      "season": "season1",
+      "kind": "berry",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s1.berry.3",
+      "name": "Blackberry",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Food",
+      "season": "season1",
+      "kind": "berry",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s1.berry.4",
+      "name": "Cloudberry",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Food",
+      "season": "season1",
+      "kind": "berry",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s1.berry.5",
+      "name": "Gooseberry",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Food",
+      "season": "season1",
+      "kind": "berry",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s1.donut.0",
+      "name": "Strawberry donut",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season1",
+      "kind": "donut",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s1.donut.1",
+      "name": "Sugar donut",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season1",
+      "kind": "donut",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s1.donut.2",
+      "name": "Lavender donut",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Food",
+      "season": "season1",
+      "kind": "donut",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s1.donut.3",
+      "name": "Honey donut",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Food",
+      "season": "season1",
+      "kind": "donut",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s1.donut.4",
+      "name": "Mint donut",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Food",
+      "season": "season1",
+      "kind": "donut",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s1.donut.5",
+      "name": "Chocolate donut",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Food",
+      "season": "season1",
+      "kind": "donut",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s1.cupcake.0",
+      "name": "Peach cupcake",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season1",
+      "kind": "cupcake",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s1.cupcake.1",
+      "name": "Vanilla cupcake",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season1",
+      "kind": "cupcake",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s1.cupcake.2",
+      "name": "Blueberry cupcake",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Food",
+      "season": "season1",
+      "kind": "cupcake",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s1.cupcake.3",
+      "name": "Caramel cupcake",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Food",
+      "season": "season1",
+      "kind": "cupcake",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s1.cupcake.4",
+      "name": "Pistachio cupcake",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Food",
+      "season": "season1",
+      "kind": "cupcake",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s1.cupcake.5",
+      "name": "Cocoa cupcake",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Food",
+      "season": "season1",
+      "kind": "cupcake",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s1.dumpling.0",
+      "name": "Cozy dumpling",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season1",
+      "kind": "dumpling",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s1.dumpling.1",
+      "name": "Steamed bun",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season1",
+      "kind": "dumpling",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s1.dumpling.2",
+      "name": "Sesame bun",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Food",
+      "season": "season1",
+      "kind": "dumpling",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s1.dumpling.3",
+      "name": "Peach bao",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Food",
+      "season": "season1",
+      "kind": "dumpling",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s1.dumpling.4",
+      "name": "Herby dumpling",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Food",
+      "season": "season1",
+      "kind": "dumpling",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s1.dumpling.5",
+      "name": "Moon bun",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Food",
+      "season": "season1",
+      "kind": "dumpling",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s1.toast.0",
+      "name": "Berry toast",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season1",
+      "kind": "toast",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s1.toast.1",
+      "name": "Butter toast",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season1",
+      "kind": "toast",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s1.toast.2",
+      "name": "Honey toast",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Food",
+      "season": "season1",
+      "kind": "toast",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s1.toast.3",
+      "name": "Cocoa toast",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Food",
+      "season": "season1",
+      "kind": "toast",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s1.toast.4",
+      "name": "Mint toast",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Food",
+      "season": "season1",
+      "kind": "toast",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s1.toast.5",
+      "name": "Peach toast",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Food",
+      "season": "season1",
+      "kind": "toast",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s1.cup.0",
+      "name": "Matcha cup",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season1",
+      "kind": "cup",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s1.cup.1",
+      "name": "Berry tea",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season1",
+      "kind": "cup",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s1.cup.2",
+      "name": "Cloud cocoa",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Food",
+      "season": "season1",
+      "kind": "cup",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s1.cup.3",
+      "name": "Honey latte",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Food",
+      "season": "season1",
+      "kind": "cup",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s1.cup.4",
+      "name": "Peach tea",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Food",
+      "season": "season1",
+      "kind": "cup",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s1.cup.5",
+      "name": "Moon milk",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Food",
+      "season": "season1",
+      "kind": "cup",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s1.bow.1",
+      "name": "Cream ribbon",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Accessories",
+      "season": "season1",
+      "kind": "bow",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s1.bow.2",
+      "name": "Lilac ribbon",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Accessories",
+      "season": "season1",
+      "kind": "bow",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s1.bow.3",
+      "name": "Amber ribbon",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Accessories",
+      "season": "season1",
+      "kind": "bow",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s1.bow.4",
+      "name": "Mint ribbon",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Accessories",
+      "season": "season1",
+      "kind": "bow",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s1.bow.5",
+      "name": "Velvet ribbon",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Accessories",
+      "season": "season1",
+      "kind": "bow",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s1.beanie.0",
+      "name": "Rose knit",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Accessories",
+      "season": "season1",
+      "kind": "beanie",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s1.beanie.1",
+      "name": "Oat knit",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Accessories",
+      "season": "season1",
+      "kind": "beanie",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s1.beanie.3",
+      "name": "Honey knit",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Accessories",
+      "season": "season1",
+      "kind": "beanie",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s1.beanie.4",
+      "name": "Sage knit",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Accessories",
+      "season": "season1",
+      "kind": "beanie",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s1.beanie.5",
+      "name": "Cocoa knit",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Accessories",
+      "season": "season1",
+      "kind": "beanie",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s1.beret.0",
+      "name": "Rose beret",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Accessories",
+      "season": "season1",
+      "kind": "beret",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s1.beret.1",
+      "name": "Cloud beret",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Accessories",
+      "season": "season1",
+      "kind": "beret",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s1.beret.2",
+      "name": "Lavender beret",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Accessories",
+      "season": "season1",
+      "kind": "beret",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s1.beret.3",
+      "name": "Amber beret",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Accessories",
+      "season": "season1",
+      "kind": "beret",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s1.beret.4",
+      "name": "Mint beret",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Accessories",
+      "season": "season1",
+      "kind": "beret",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s1.beret.5",
+      "name": "Mocha beret",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Accessories",
+      "season": "season1",
+      "kind": "beret",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s1.crown.0",
+      "name": "Rose crown",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Accessories",
+      "season": "season1",
+      "kind": "crown",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s1.crown.1",
+      "name": "Pearl crown",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Accessories",
+      "season": "season1",
+      "kind": "crown",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s1.crown.2",
+      "name": "Amethyst crown",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Accessories",
+      "season": "season1",
+      "kind": "crown",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s1.crown.4",
+      "name": "Emerald crown",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Accessories",
+      "season": "season1",
+      "kind": "crown",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s1.crown.5",
+      "name": "Copper crown",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Accessories",
+      "season": "season1",
+      "kind": "crown",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s1.star.0",
+      "name": "Rose star",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Curios",
+      "season": "season1",
+      "kind": "star",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s1.star.1",
+      "name": "Cloud star",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Curios",
+      "season": "season1",
+      "kind": "star",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s1.star.2",
+      "name": "Twilight star",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Curios",
+      "season": "season1",
+      "kind": "star",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s1.star.4",
+      "name": "Mint star",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Curios",
+      "season": "season1",
+      "kind": "star",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s1.star.5",
+      "name": "Bronze star",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Curios",
+      "season": "season1",
+      "kind": "star",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s1.moon.0",
+      "name": "Rose moon",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Curios",
+      "season": "season1",
+      "kind": "moon",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s1.moon.1",
+      "name": "Pearl moon",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Curios",
+      "season": "season1",
+      "kind": "moon",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s1.moon.2",
+      "name": "Lilac moon",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Curios",
+      "season": "season1",
+      "kind": "moon",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s1.moon.3",
+      "name": "Golden moon",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Curios",
+      "season": "season1",
+      "kind": "moon",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s1.moon.4",
+      "name": "Sage moon",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Curios",
+      "season": "season1",
+      "kind": "moon",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s1.moon.5",
+      "name": "Cocoa moon",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Curios",
+      "season": "season1",
+      "kind": "moon",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s1.cloud.0",
+      "name": "Pink cloud",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Curios",
+      "season": "season1",
+      "kind": "cloud",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s1.cloud.1",
+      "name": "Little cloud",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Curios",
+      "season": "season1",
+      "kind": "cloud",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s1.cloud.2",
+      "name": "Twilight cloud",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Curios",
+      "season": "season1",
+      "kind": "cloud",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s1.cloud.3",
+      "name": "Sunset cloud",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Curios",
+      "season": "season1",
+      "kind": "cloud",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s1.cloud.4",
+      "name": "Mint cloud",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Curios",
+      "season": "season1",
+      "kind": "cloud",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s1.cloud.5",
+      "name": "Rain cloud",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Curios",
+      "season": "season1",
+      "kind": "cloud",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s1.rainbow.0",
+      "name": "Peach rainbow",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Curios",
+      "season": "season1",
+      "kind": "rainbow",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s1.rainbow.1",
+      "name": "Cloud rainbow",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Curios",
+      "season": "season1",
+      "kind": "rainbow",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s1.rainbow.2",
+      "name": "Lilac rainbow",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Curios",
+      "season": "season1",
+      "kind": "rainbow",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s1.rainbow.3",
+      "name": "Honey rainbow",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Curios",
+      "season": "season1",
+      "kind": "rainbow",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s1.rainbow.4",
+      "name": "Mint rainbow",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Curios",
+      "season": "season1",
+      "kind": "rainbow",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s1.rainbow.5",
+      "name": "Dusk rainbow",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Curios",
+      "season": "season1",
+      "kind": "rainbow",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s1.bird.0",
+      "name": "Peach chick",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Animals",
+      "season": "season1",
+      "kind": "bird",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s1.bird.1",
+      "name": "Snow chick",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Animals",
+      "season": "season1",
+      "kind": "bird",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s1.bird.2",
+      "name": "Lilac chick",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Animals",
+      "season": "season1",
+      "kind": "bird",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s1.bird.3",
+      "name": "Honey chick",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Animals",
+      "season": "season1",
+      "kind": "bird",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s1.bird.4",
+      "name": "Mint chick",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Animals",
+      "season": "season1",
+      "kind": "bird",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s1.bird.5",
+      "name": "Mocha chick",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Animals",
+      "season": "season1",
+      "kind": "bird",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s1.butterfly.0",
+      "name": "Rose butterfly",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Animals",
+      "season": "season1",
+      "kind": "butterfly",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s1.butterfly.1",
+      "name": "Pearl butterfly",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Animals",
+      "season": "season1",
+      "kind": "butterfly",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s1.butterfly.2",
+      "name": "Lilac butterfly",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Animals",
+      "season": "season1",
+      "kind": "butterfly",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s1.butterfly.3",
+      "name": "Amber butterfly",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Animals",
+      "season": "season1",
+      "kind": "butterfly",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s1.butterfly.4",
+      "name": "Mint butterfly",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Animals",
+      "season": "season1",
+      "kind": "butterfly",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s1.butterfly.5",
+      "name": "Dusk butterfly",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Animals",
+      "season": "season1",
+      "kind": "butterfly",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s2.leaf.0",
+      "name": "Dewdrop mint leaf",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Plants",
+      "season": "season2",
+      "kind": "leaf",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s2.leaf.1",
+      "name": "Daydream tea leaf",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Plants",
+      "season": "season2",
+      "kind": "leaf",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s2.leaf.2",
+      "name": "Starlight autumn leaf",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Plants",
+      "season": "season2",
+      "kind": "leaf",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s2.leaf.3",
+      "name": "Sunbeam sage leaf",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Plants",
+      "season": "season2",
+      "kind": "leaf",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s2.leaf.4",
+      "name": "Meadow lime leaf",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Plants",
+      "season": "season2",
+      "kind": "leaf",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s2.leaf.5",
+      "name": "Moonlit willow leaf",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Plants",
+      "season": "season2",
+      "kind": "leaf",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s2.flower.0",
+      "name": "Dewdrop daisy",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Plants",
+      "season": "season2",
+      "kind": "flower",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s2.flower.1",
+      "name": "Daydream cherry blossom",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Plants",
+      "season": "season2",
+      "kind": "flower",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s2.flower.2",
+      "name": "Starlight bluebell",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Plants",
+      "season": "season2",
+      "kind": "flower",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s2.flower.3",
+      "name": "Sunbeam sunflower",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Plants",
+      "season": "season2",
+      "kind": "flower",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s2.flower.4",
+      "name": "Meadow lavender",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Plants",
+      "season": "season2",
+      "kind": "flower",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s2.flower.5",
+      "name": "Moonlit poppy",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Plants",
+      "season": "season2",
+      "kind": "flower",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s2.mushroom.0",
+      "name": "Dewdrop forest mushroom",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Plants",
+      "season": "season2",
+      "kind": "mushroom",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s2.mushroom.1",
+      "name": "Daydream rosy mushroom",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Plants",
+      "season": "season2",
+      "kind": "mushroom",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s2.mushroom.2",
+      "name": "Starlight moon mushroom",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Plants",
+      "season": "season2",
+      "kind": "mushroom",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s2.mushroom.3",
+      "name": "Sunbeam golden mushroom",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Plants",
+      "season": "season2",
+      "kind": "mushroom",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s2.mushroom.4",
+      "name": "Meadow moss mushroom",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Plants",
+      "season": "season2",
+      "kind": "mushroom",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s2.mushroom.5",
+      "name": "Moonlit snow mushroom",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Plants",
+      "season": "season2",
+      "kind": "mushroom",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s2.fruit.0",
+      "name": "Dewdrop peach",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season2",
+      "kind": "fruit",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s2.fruit.1",
+      "name": "Daydream apple",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season2",
+      "kind": "fruit",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s2.fruit.2",
+      "name": "Starlight orange",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Food",
+      "season": "season2",
+      "kind": "fruit",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s2.fruit.3",
+      "name": "Sunbeam pear",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Food",
+      "season": "season2",
+      "kind": "fruit",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s2.fruit.4",
+      "name": "Meadow plum",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Food",
+      "season": "season2",
+      "kind": "fruit",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s2.fruit.5",
+      "name": "Moonlit lemon",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Food",
+      "season": "season2",
+      "kind": "fruit",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s2.berry.0",
+      "name": "Dewdrop strawberry",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season2",
+      "kind": "berry",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s2.berry.1",
+      "name": "Daydream blueberry",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season2",
+      "kind": "berry",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s2.berry.2",
+      "name": "Starlight raspberry",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Food",
+      "season": "season2",
+      "kind": "berry",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s2.berry.3",
+      "name": "Sunbeam blackberry",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Food",
+      "season": "season2",
+      "kind": "berry",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s2.berry.4",
+      "name": "Meadow cloudberry",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Food",
+      "season": "season2",
+      "kind": "berry",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s2.berry.5",
+      "name": "Moonlit gooseberry",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Food",
+      "season": "season2",
+      "kind": "berry",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s2.donut.0",
+      "name": "Dewdrop strawberry donut",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season2",
+      "kind": "donut",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s2.donut.1",
+      "name": "Daydream sugar donut",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season2",
+      "kind": "donut",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s2.donut.2",
+      "name": "Starlight lavender donut",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Food",
+      "season": "season2",
+      "kind": "donut",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s2.donut.3",
+      "name": "Sunbeam honey donut",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Food",
+      "season": "season2",
+      "kind": "donut",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s2.donut.4",
+      "name": "Meadow mint donut",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Food",
+      "season": "season2",
+      "kind": "donut",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s2.donut.5",
+      "name": "Moonlit chocolate donut",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Food",
+      "season": "season2",
+      "kind": "donut",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s2.cupcake.0",
+      "name": "Dewdrop peach cupcake",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season2",
+      "kind": "cupcake",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s2.cupcake.1",
+      "name": "Daydream vanilla cupcake",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season2",
+      "kind": "cupcake",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s2.cupcake.2",
+      "name": "Starlight blueberry cupcake",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Food",
+      "season": "season2",
+      "kind": "cupcake",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s2.cupcake.3",
+      "name": "Sunbeam caramel cupcake",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Food",
+      "season": "season2",
+      "kind": "cupcake",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s2.cupcake.4",
+      "name": "Meadow pistachio cupcake",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Food",
+      "season": "season2",
+      "kind": "cupcake",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s2.cupcake.5",
+      "name": "Moonlit cocoa cupcake",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Food",
+      "season": "season2",
+      "kind": "cupcake",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s2.dumpling.0",
+      "name": "Dewdrop cozy dumpling",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season2",
+      "kind": "dumpling",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s2.dumpling.1",
+      "name": "Daydream steamed bun",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season2",
+      "kind": "dumpling",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s2.dumpling.2",
+      "name": "Starlight sesame bun",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Food",
+      "season": "season2",
+      "kind": "dumpling",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s2.dumpling.3",
+      "name": "Sunbeam peach bao",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Food",
+      "season": "season2",
+      "kind": "dumpling",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s2.dumpling.4",
+      "name": "Meadow herby dumpling",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Food",
+      "season": "season2",
+      "kind": "dumpling",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s2.dumpling.5",
+      "name": "Moonlit moon bun",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Food",
+      "season": "season2",
+      "kind": "dumpling",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s2.toast.0",
+      "name": "Dewdrop berry toast",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season2",
+      "kind": "toast",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s2.toast.1",
+      "name": "Daydream butter toast",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season2",
+      "kind": "toast",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s2.toast.2",
+      "name": "Starlight honey toast",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Food",
+      "season": "season2",
+      "kind": "toast",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s2.toast.3",
+      "name": "Sunbeam cocoa toast",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Food",
+      "season": "season2",
+      "kind": "toast",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s2.toast.4",
+      "name": "Meadow mint toast",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Food",
+      "season": "season2",
+      "kind": "toast",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s2.toast.5",
+      "name": "Moonlit peach toast",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Food",
+      "season": "season2",
+      "kind": "toast",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s2.cup.0",
+      "name": "Dewdrop matcha cup",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season2",
+      "kind": "cup",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s2.cup.1",
+      "name": "Daydream berry tea",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Food",
+      "season": "season2",
+      "kind": "cup",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s2.cup.2",
+      "name": "Starlight cloud cocoa",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Food",
+      "season": "season2",
+      "kind": "cup",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s2.cup.3",
+      "name": "Sunbeam honey latte",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Food",
+      "season": "season2",
+      "kind": "cup",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s2.cup.4",
+      "name": "Meadow peach tea",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Food",
+      "season": "season2",
+      "kind": "cup",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s2.cup.5",
+      "name": "Moonlit moon milk",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Food",
+      "season": "season2",
+      "kind": "cup",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s2.bow.0",
+      "name": "Dewdrop rose ribbon",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "bow",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s2.bow.1",
+      "name": "Daydream cream ribbon",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "bow",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s2.bow.2",
+      "name": "Starlight lilac ribbon",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "bow",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s2.bow.3",
+      "name": "Sunbeam amber ribbon",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "bow",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s2.bow.4",
+      "name": "Meadow mint ribbon",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "bow",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s2.bow.5",
+      "name": "Moonlit velvet ribbon",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "bow",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s2.beanie.0",
+      "name": "Dewdrop rose knit",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "beanie",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s2.beanie.1",
+      "name": "Daydream oat knit",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "beanie",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s2.beanie.2",
+      "name": "Starlight lilac knit",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "beanie",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s2.beanie.3",
+      "name": "Sunbeam honey knit",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "beanie",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s2.beanie.4",
+      "name": "Meadow sage knit",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "beanie",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s2.beanie.5",
+      "name": "Moonlit cocoa knit",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "beanie",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s2.beret.0",
+      "name": "Dewdrop rose beret",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "beret",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s2.beret.1",
+      "name": "Daydream cloud beret",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "beret",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s2.beret.2",
+      "name": "Starlight lavender beret",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "beret",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s2.beret.3",
+      "name": "Sunbeam amber beret",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "beret",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s2.beret.4",
+      "name": "Meadow mint beret",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "beret",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s2.beret.5",
+      "name": "Moonlit mocha beret",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "beret",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s2.crown.0",
+      "name": "Dewdrop rose crown",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "crown",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s2.crown.1",
+      "name": "Daydream pearl crown",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "crown",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s2.crown.2",
+      "name": "Starlight amethyst crown",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "crown",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s2.crown.3",
+      "name": "Sunbeam honey crown",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "crown",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s2.crown.4",
+      "name": "Meadow emerald crown",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "crown",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s2.crown.5",
+      "name": "Moonlit copper crown",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Accessories",
+      "season": "season2",
+      "kind": "crown",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s2.star.0",
+      "name": "Dewdrop rose star",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "star",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s2.star.1",
+      "name": "Daydream cloud star",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "star",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s2.star.2",
+      "name": "Starlight twilight star",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "star",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s2.star.3",
+      "name": "Sunbeam honey star",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "star",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s2.star.4",
+      "name": "Meadow mint star",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "star",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s2.star.5",
+      "name": "Moonlit bronze star",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "star",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s2.moon.0",
+      "name": "Dewdrop rose moon",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "moon",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s2.moon.1",
+      "name": "Daydream pearl moon",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "moon",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s2.moon.2",
+      "name": "Starlight lilac moon",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "moon",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s2.moon.3",
+      "name": "Sunbeam golden moon",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "moon",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s2.moon.4",
+      "name": "Meadow sage moon",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "moon",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s2.moon.5",
+      "name": "Moonlit cocoa moon",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "moon",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s2.cloud.0",
+      "name": "Dewdrop pink cloud",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "cloud",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s2.cloud.1",
+      "name": "Daydream little cloud",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "cloud",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s2.cloud.2",
+      "name": "Starlight twilight cloud",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "cloud",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s2.cloud.3",
+      "name": "Sunbeam sunset cloud",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "cloud",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s2.cloud.4",
+      "name": "Meadow mint cloud",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "cloud",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s2.cloud.5",
+      "name": "Moonlit rain cloud",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "cloud",
+      "color": "F5E5C3"
+    },
+    {
+      "id": "free.s2.rainbow.0",
+      "name": "Dewdrop peach rainbow",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "rainbow",
+      "color": "B6A2DE"
+    },
+    {
+      "id": "free.s2.rainbow.1",
+      "name": "Daydream cloud rainbow",
+      "rarity": "Common",
+      "weight": 70,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "rainbow",
+      "color": "EDC26B"
+    },
+    {
+      "id": "free.s2.rainbow.2",
+      "name": "Starlight lilac rainbow",
+      "rarity": "Uncommon",
+      "weight": 35,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "rainbow",
+      "color": "A9CBA0"
+    },
+    {
+      "id": "free.s2.rainbow.3",
+      "name": "Sunbeam honey rainbow",
+      "rarity": "Rare",
+      "weight": 20,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "rainbow",
+      "color": "BDA18C"
+    },
+    {
+      "id": "free.s2.rainbow.4",
+      "name": "Meadow mint rainbow",
+      "rarity": "Epic",
+      "weight": 8,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "rainbow",
+      "color": "F6A9B8"
+    },
+    {
+      "id": "free.s2.rainbow.5",
+      "name": "Moonlit dusk rainbow",
+      "rarity": "Legendary",
+      "weight": 2,
+      "category": "Curios",
+      "season": "season2",
+      "kind": "rainbow",
+      "color": "F5E5C3"
+    }
+  ],
+  "lines": [
+    "One tiny step, then a little rest.",
+    "Your next good idea might be one sip away.",
+    "I\u2019m cheering for you, paws and all.",
+    "You and me? A pretty good team.",
+    "Small wins deserve soft landings.",
+    "Let\u2019s hop into the next little thing.",
+    "A gentler pace is still progress.",
+    "Thanks for keeping me company."
+  ]
+}

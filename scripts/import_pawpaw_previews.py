@@ -39,6 +39,7 @@ EYE_OVERRIDES = {
 # These landmarks refer to the neutral original frame, not the Paw-Paw pet.
 ORIGINAL_EYE_OVERRIDES = {
     "capybara": [(54.5,78.5,6),(139.5,78,6)],
+    "fox": [(51.5,93,5),(88.5,93,5)],
 }
 
 

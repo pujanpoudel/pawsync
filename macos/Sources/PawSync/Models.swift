@@ -162,6 +162,9 @@ enum PetStore {
     @Published var edgeTraversal: Bool { didSet { defaults.set(edgeTraversal, forKey: "edgeTraversal") } }
     @Published var musicReactive: Bool { didSet { defaults.set(musicReactive, forKey: "musicReactive") } }
     @Published var musicLite: Bool { didSet { defaults.set(musicLite, forKey: "musicLite") } }
+    @Published var petOpacity:Double {didSet{defaults.set(petOpacity,forKey:"petOpacity")}}
+    @Published var clickThrough:Bool {didSet{defaults.set(clickThrough,forKey:"clickThrough")}}
+    @Published var mirrorDock:Bool {didSet{defaults.set(mirrorDock,forKey:"mirrorDock")}}
     var onboarded: Bool { get { defaults.bool(forKey: "onboarded") } set { defaults.set(newValue, forKey: "onboarded") } }
     init() {
         companion = defaults.string(forKey: "companion") ?? "knight-cat"
@@ -184,6 +187,9 @@ enum PetStore {
         edgeTraversal = defaults.bool(forKey: "edgeTraversal")
         musicReactive = defaults.bool(forKey: "musicReactive")
         musicLite = defaults.bool(forKey: "musicLite")
+        petOpacity=min(1,max(0.2,defaults.object(forKey:"petOpacity") as? Double ?? 1))
+        clickThrough=defaults.bool(forKey:"clickThrough")
+        mirrorDock=defaults.bool(forKey:"mirrorDock")
     }
 }
 

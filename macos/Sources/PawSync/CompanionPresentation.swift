@@ -70,6 +70,20 @@ struct HatTransform:Codable,Equatable {
         file=directory.appendingPathComponent("Presentation/pets.json")
         state=LocalState.read(Snapshot.self,at:file,validate:{$0.version == 1 && $0.flipped.count <= 2000 && $0.hats.count <= 2000 && $0.hats.values.allSatisfy(\.valid) && (0.7...1.5).contains($0.hudScale) && $0.hideInApps.count <= 100 && $0.hideInApps.allSatisfy({$0.count <= 200})}) ?? Snapshot()
     }
+    // Include the item in the key so a crown's adjustment cannot displace glasses.
+    static func placementKey(pet:String,item:String)->String { pet+"::"+item }
+    func transform(pet:String,item:String)->HatTransform { state.hats[Self.placementKey(pet:pet,item:item)] ?? HatTransform() }
+    func setTransform(_ value:HatTransform,pet:String,item:String) {
+        guard value.valid else{return}
+        let key=Self.placementKey(pet:pet,item:item)
+        guard state.hats[key] != nil || state.hats.count<2000 else {error="The saved placement limit has been reached.";return}
+        state.hats[key]=value
+    }
+    func migratePlacement(pet:String,item:String) {
+        let key=Self.placementKey(pet:pet,item:item)
+        guard let legacy=state.hats[pet],state.hats[key]==nil else{return}
+        state.hats[key]=legacy;state.hats.removeValue(forKey:pet)
+    }
     func flip(_ id:String) { state.flipped[id] = !(state.flipped[id] ?? false) }
     private func save() { do { try LocalState.write(state,at:file); error="" } catch { self.error="Could not save pet presentation." } }
 }

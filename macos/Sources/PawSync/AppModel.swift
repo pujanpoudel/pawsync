@@ -6,6 +6,15 @@ import Combine
     let input = InputSupervisor()
     let activity = CompanionActivity()
     let wardrobe = PetWardrobe(preserveExistingPets: UserDefaults.standard.bool(forKey: "onboarded"))
+    let library:LibraryProgress
+    let librarySync:LibrarySyncService
+    let libraryContent:LibraryContentService
+    @Published var presentItemEditor=false
+    private let libraryToast=LibraryToast()
+    @Published var presentGifts=false
+    private var cheerTimer:Timer?
+    private var lastCheer=Date.distantPast
+    private var hiddenUntil:DispatchWorkItem?
     let catalog = PetCatalogService()
     let reactions = ReactionSettings()
     let presentation = PetPresentationStore()
@@ -24,7 +33,7 @@ import Combine
     private var quickActions:PetQuickActionsController!
     let windowEdges = WindowEdgeService()
     let music = MusicReactionService()
-    @Published var settingsSection: SettingsSection = .general
+    @Published var settingsSection: SettingsSection = .gallery
     @Published var quickAddReminder=false
     private var audioConfiguration = ""
     let configuration = AppConfiguration.load()
@@ -38,6 +47,7 @@ import Combine
     @Published var notice = ""
     @Published var revealedToken: String?
     @Published var onboarding: Bool
+    private var shutdownComplete=false
     private var subscriptions = Set<AnyCancellable>()
     private var validationTimer: Timer?
     private var trialTimer: Timer?
@@ -53,6 +63,9 @@ import Combine
         focus = FocusTimer(preferences: preferences)
         api = APIClient(config: configuration)
         wallet = PetWalletService(api: api)
+        libraryContent=LibraryContentService(api:api)
+        library=LibraryProgress(wardrobe:wardrobe,legacyXP:activity.snapshot.total,preservePets:preferences.onboarded ? PetStore.builtInIDs:[])
+        librarySync=LibrarySyncService(library:library,api:api)
         custom = CustomPetService(api: api, wallet: wallet)
         daily=DailyCompanionService(features:features)
         care=VirtualCareService(features:features)
@@ -109,6 +122,7 @@ import Combine
             guard let self,self.canUseApp else { return false }
             do {
                 let count=try self.fileInbox.catchFiles(urls)
+                self.library.record("catch")
                 self.overlay.catchFiles(count:count)
                 self.fileShelf.show(near:self.overlay.window)
                 return true
@@ -146,9 +160,9 @@ import Combine
         resources.onWarning = { [weak self] text in guard let self,self.canDeliverCompanionMessage else { return }; self.speech.show(title:"A little breather?",text:text) }
         practices.onEnded = { [weak self] in guard let self,self.canDeliverCompanionMessage else { return }; self.speech.show(title:"A little moment, just for you",text:"Thanks for taking a gentle pause with me."); self.overlay.wave() }
         overlay.onHatDrop = { [weak self] id,point in
-            guard let self, self.wardrobe.canEquipFreeHat(id), let pet=self.overlay.pet else { return false }
+            guard let self, self.canEquipAccessory(id), self.overlay.pet != nil else { return false }
             self.preferences.accessory=id; self.preferences.headAccessoriesVisible=true
-            self.presentation.state.hats[self.preferences.companion]=pet.accessoryPlacement(at:point); return true
+            self.applyPresentation(accessory:id); return true
         }
         speech.attach(to: overlay.window)
         hud.attach(to:overlay.window)
@@ -170,7 +184,7 @@ import Combine
             guard let self, self.preferences.edgeTraversal else { return nil }
             return self.windowEdges.focusedFrame()
         }
-        music.onSignal = { [weak self] audible, beat in self?.overlay.musicSignal(audible, beat: beat) }
+        music.onSignal = { [weak self] audible, beat in if audible,self?.library.state.counters["dance"] == nil {self?.library.record("dance")};self?.overlay.musicSignal(audible, beat: beat) }
         overlay.onVisibilityChanged = { [weak self] in
             self?.configureMusic()
             self?.resources.suspended = self?.overlay.isScreenSleeping == true || self?.overlay.isHidden == true
@@ -199,7 +213,7 @@ import Combine
             self.overlay.careSleeping = false
         }
         overlay.onPetting = { [weak self] in
-            guard let self else { return }; self.care.care("pet"); if !self.preferences.muted { self.playSound("meow") }
+            guard let self else { return }; self.library.record("pet");self.care.care("pet"); if !self.preferences.muted { self.playSound("meow") }
         }
         custom.onInstalled = { [weak self] id in self?.preferences.companion = id }
         catalog.onInstalled = { [weak self] id in self?.preferences.companion = id }
@@ -222,18 +236,28 @@ import Combine
             guard let self else { return }
             self.overlay.focusSleeping=value && self.features.contains("openpets.focus-buddy")
         }
-        focus.onCelebration = { [weak self] in self?.activity.completedFocus(); self?.overlay.celebrate() }
-        wardrobe.onReward = { [weak self] reward in
-            guard let self else { return }
-            self.notice = "New little treasures: \(reward)"
-            if !self.preferences.hidden, self.reminders.active == nil, !self.overlay.focusSleeping {
-                self.speech.show(title: "A little surprise!", text: "You earned \(reward). Take a peek in your wardrobe.")
-            }
+        focus.onCelebration = { [weak self] in self?.activity.completedFocus();self?.library.record("focus"); self?.overlay.celebrate() }
+        activity.onInput={ [weak self] in self?.library.registerInput() }
+        activity.onLevelUp=nil
+        activity.onGoalReached={ [weak self] in self?.overlay.celebrate() }
+        library.onAchievement={ [weak self] a in self?.libraryToast.show(a.title,subtitle:"Achievement discovered",icon:a.icon) }
+        library.onUnlock={ [weak self] ids in
+            guard let self else{return}
+            self.notice="New friends: "+ids.map{PetStore.builtInNames[$0] ?? $0}.joined(separator:", ")
+            self.overlay.celebrate()
+            if !self.overlay.isHidden,!self.overlay.isScreenSleeping {self.libraryToast.show("A new little friend",subtitle:self.notice,icon:"pawprint.fill")}
         }
-        activity.onLevelUp = { [weak self] in
-            guard let self else { return }; self.wardrobe.reconcile(level: self.activity.level); self.overlay.celebrate()
+        library.onSecret={ [weak self] title in self?.overlay.celebrate();self?.libraryToast.show(title,subtitle:"Secret combination discovered",icon:"wand.and.stars") }
+        library.ownsCollection={ [weak self] sku in self?.wallet.accessories.contains(sku)==true }
+        libraryContent.ownedSKUs={ [weak self] in self?.wallet.accessories ?? [] }
+        libraryContent.onInstalled={ [weak self] in self?.catalog.reloadInstalled();self?.library.reconcileCollections() }
+        library.reconcileCollections()
+        librarySync.onMerged={ [weak self] snapshot in
+            guard let self else{return};for (pet,hat) in snapshot.placements where pet.contains("::") && self.presentation.state.hats[pet]==nil {self.presentation.state.hats[pet]=hat}
         }
-        activity.onGoalReached = { [weak self] in self?.overlay.celebrate() }
+        library.onChanged={ [weak self] in self?.librarySync.changed() }
+        overlay.onDirectClick={ [weak self] in self?.cheer(manual:true) }
+        cheerTimer=Timer.scheduledTimer(withTimeInterval:90,repeats:true) { [weak self] _ in MainActor.assumeIsolated { self?.library.coolDown();self?.cheer() } };cheerTimer?.tolerance=15
         server.onStatus = { [weak self] status in
             DispatchQueue.main.async { guard let self, self.canUseApp else { return }; self.overlay.integration(status) }
         }
@@ -275,7 +299,8 @@ import Combine
             guard let self else { return }
             self.overlay.animate(for: 0.3)
             self.overlay.pet?.setAccessory(self.canEquipAccessory(sku) ? sku : "none")
-            self.applyPresentation()
+            if sku != "none",self.canEquipAccessory(sku) {self.library.record("dress");self.library.pairing(pet:self.preferences.companion,hat:sku)}
+            self.applyPresentation(accessory:sku)
         }.store(in: &subscriptions)
         preferences.$headAccessoriesVisible.dropFirst().sink { [weak self] visible in
             self?.overlay.pet?.setAccessoryVisibility(visible)
@@ -302,13 +327,16 @@ import Combine
         preferences.$musicLite.dropFirst().sink { [weak self] _ in
             DispatchQueue.main.async { self?.configureMusic(force: true) }
         }.store(in: &subscriptions)
-        wardrobe.reconcile(level: activity.level, announce: false)
+        library.choosePet(preferences.companion)
+        library.$state.map{state in state.activeTrack + ":" + String(state.tracks.first{$0.id==state.activeTrack}?.level ?? 1)}.removeDuplicates().sink{[weak self] _ in DispatchQueue.main.async{self?.updateCaption()}}.store(in:&subscriptions)
+        preferences.$petOpacity.removeDuplicates().sink{[weak self] value in self?.overlay.window.alphaValue=value}.store(in:&subscriptions)
+        preferences.$clickThrough.removeDuplicates().sink{[weak self] _ in DispatchQueue.main.async{self?.overlay.updatePassThrough()}}.store(in:&subscriptions)
         input.start(); loadPet(preferences.companion); configureServer()
         overlay.focusSleeping = focus.phase == .focus && !focus.paused && features.contains("openpets.focus-buddy")
         configureMusic()
-        Task { await wallet.refresh() }
+        Task {await wallet.refresh();await librarySync.sync();await libraryContent.refresh()}
         validationTimer = Timer.scheduledTimer(withTimeInterval: 3600, repeats: true) { [weak self] _ in
-            Task { @MainActor in await self?.wallet.refresh() }
+            Task { @MainActor in await self?.wallet.refresh();await self?.librarySync.sync();await self?.libraryContent.refresh() }
         }
         if !canUseApp {
             notice = "Ten-minute companion preview. Purchase and restore your license to unlock PawSync."
@@ -318,7 +346,8 @@ import Combine
         }
     }
     private func loadPet(_ id: String) {
-        guard wardrobe.canSelectPet(id) else { preferences.companion = "openpets-default"; notice = "This buddy joins at level \(PetWardrobe.unlockLevels[id] ?? 1). Keep making little progress!"; return }
+        guard library.canSelect(id) else { preferences.companion = "openpets-default"; notice = "This buddy joins at level \(LibraryProgress.petUnlock(id)). Keep making little progress!"; return }
+        library.choosePet(id)
         companionDefaultName = PetStore.builtInNames[id]?.components(separatedBy: " the ").first ?? (try? PetStore.load(id).name) ?? "PawSync"
         do { try overlay.loadPet(id) }
         catch {
@@ -332,14 +361,40 @@ import Combine
         care.select(id)
         updateCaption()
     }
+    func selectLibraryPet(_ id:String) {guard library.canSelect(id) else{return};preferences.companion=id}
+    func equipLibraryItem(_ id:String) {
+        guard canEquipAccessory(id) else{return}
+        preferences.accessory=id;preferences.headAccessoriesVisible=id != "none"
+    }
+    func openAllGifts() {let ids=library.openAll();notice="Collected \(ids.count) little treasures. Find them in Items.";settingsSection = .items}
+    func cheer(manual:Bool=false) {
+        guard manual || library.state.automaticCheers && Date().timeIntervalSince(lastCheer)>180 else{return}
+        guard canDeliverCompanionMessage,!presentGifts else{return}
+        lastCheer=Date()
+        let text=LibraryContent.lines.randomElement() ?? "I’m cheering for you, paws and all."
+        _=speech.show(title:"A little cheer",text:text)
+    }
+    func hideForHour() {
+        hiddenUntil?.cancel();preferences.hidden=true
+        let work=DispatchWorkItem{[weak self] in self?.preferences.hidden=false};hiddenUntil=work;DispatchQueue.main.asyncAfter(deadline:.now()+3600,execute:work)
+    }
+    func mirrorMode(_ enabled:Bool) {
+        presentation.state.flipped[preferences.companion]=enabled
+        preferences.mirrorDock=enabled;preferences.anchor = .dock
+        if enabled {library.record("mirror")}
+        overlay.reposition()
+    }
     func canEquipAccessory(_ id: String) -> Bool {
         if id == "none" { return true }
-        if FreeHat.all.contains(where: { $0.id == id }) { return wardrobe.canEquipFreeHat(id) }
+        if let item=FreeHat.all.first(where:{$0.id==id}) {return (item.requiresSKU==nil || wallet.accessories.contains(item.requiresSKU!)) && wardrobe.canEquipFreeHat(id)}
         return wallet.accessories.contains(id)
     }
-    func applyPresentation() {
-        let id=preferences.companion,state=presentation.state
-        overlay.pet?.presentation(flipped:state.flipped[id] ?? false,hudScale:state.hudScale,hat:state.hats[id] ?? HatTransform())
+    func applyPresentation(accessory:String?=nil) {
+        let id=preferences.companion,item=accessory ?? preferences.accessory
+        presentation.migratePlacement(pet:id,item:item)
+        let state=presentation.state
+        overlay.pet?.presentation(flipped:state.flipped[id] ?? false,hudScale:state.hudScale,hat:presentation.transform(pet:id,item:item))
+        for (pet,hat) in state.hats {library.updatePlacement(pet,hat)}
         speech.setScale(state.hudScale); hud.setScale(state.hudScale); overlay.animate(for:0.3)
     }
     func previewReaction(_ reaction:PetReaction) { overlay.react(reaction) }
@@ -364,9 +419,24 @@ import Combine
         if let battery=resources.sample.battery { metrics.append(HUDMetric(id:"battery",label:"Battery",value:"\(battery)%",icon:"battery.100percent")) }
         hud.submit(features.contains("openpets.system-resources") && !metrics.isEmpty ? HUDEntry(source:"resources",title:"Your Mac",priority:0,metrics:metrics) : nil,source:"resources")
     }
-    private func petContextMenu() -> NSMenu {
+    func petContextMenu() -> NSMenu {
         let menu=NSMenu()
         func item(_ title:String,_ action:Selector) { let entry=NSMenuItem(title:title,action:action,keyEquivalent:""); entry.target=self; menu.addItem(entry) }
+        func submenu(_ title:String,_ entries:[(String,String)],_ selector:Selector) {
+            let parent=NSMenuItem(title:title,action:nil,keyEquivalent:"");let sub=NSMenu();parent.submenu=sub
+            for (id,name) in entries {let e=NSMenuItem(title:name,action:selector,keyEquivalent:"");e.target=self;e.representedObject=id;sub.addItem(e)};menu.addItem(parent)
+        }
+        let pets=library.state.favoritePets.filter{library.canSelect($0)}
+        let fallback=PetStore.builtInIDs.filter{library.canSelect($0)}.prefix(8)
+        submenu("Change companion",(pets.isEmpty ? Array(fallback):pets).map{($0,PetStore.builtInNames[$0] ?? $0)},#selector(menuChoosePet(_:)))
+        let hats=library.state.favoriteHats.filter{wardrobe.ownedHats.contains($0)}
+        let available=FreeHat.all.filter{wardrobe.ownedHats.contains($0.id)}.prefix(12).map(\.id)
+        submenu("Change item",[("none","Bare ears")]+(hats.isEmpty ? Array(available):hats).map{id in (id,FreeHat.all.first{$0.id==id}?.name ?? id)},#selector(menuChooseHat(_:)))
+        submenu("Earn XP in",library.state.tracks.map{($0.id,$0.name + ($0.id == library.state.activeTrack ? " ✓":""))},#selector(menuEarn(_:)))
+        submenu("Opacity",[("1.0","100%"),("0.8","80%"),("0.6","60%"),("0.4","40%")],#selector(menuOpacity(_:)))
+        item("Adjust Item…",#selector(menuItemEditor));item(preferences.clickThrough ? "Turn off Click-Through":"Turn on Click-Through",#selector(menuClickThrough))
+        item("Hide for 1 Hour",#selector(menuHideHour));item("Reset Position",#selector(menuResetPosition))
+        item("Check for Updates…",#selector(menuUpdates));menu.addItem(.separator())
         item(preferences.reactionsPaused ? "Resume reactions" : "Pause reactions",#selector(menuPause))
         item("Add reminder…",#selector(menuAddReminder));item("Drink water reminder",#selector(menuWater))
         item("Pet your buddy",#selector(menuPet)); item("Say hello",#selector(menuHello))
@@ -376,6 +446,28 @@ import Combine
         menu.addItem(.separator()); item("Pet gallery…",#selector(menuGallery)); item("Settings…",#selector(menuSettings)); item("Hide pet",#selector(menuHide))
         return menu
     }
+    @objc private func menuChoosePet(_ item:NSMenuItem){if let id=item.representedObject as? String{selectLibraryPet(id)}}
+    @objc private func menuChooseHat(_ item:NSMenuItem){if let id=item.representedObject as? String{equipLibraryItem(id)}}
+    @objc private func menuEarn(_ item:NSMenuItem){if let id=item.representedObject as? String{library.earn(in:id)}}
+    @objc private func menuOpacity(_ item:NSMenuItem){if let text=item.representedObject as? String,let n=Double(text){preferences.petOpacity=n}}
+    @objc private func menuClickThrough(){preferences.clickThrough.toggle();overlay.updatePassThrough()}
+    @objc private func menuHideHour(){hideForHour()}
+    @objc private func menuResetPosition(){preferences.anchor = .dock;overlay.reposition()}
+    @objc private func menuItemEditor(){settingsSection = .items;presentItemEditor=true;openSettings?()}
+    @objc private func menuUpdates(){updates.check()}
+    func confirmResetEverything(){
+        let alert=NSAlert();alert.messageText="Reset local progress and preferences?";alert.informativeText="PawSync will save a backup, reset earned progress, free items, reminders, counters, preferences and privacy choices, then reopen for setup. Purchases and pet artwork remain. This does not revoke macOS permissions or reset cloud progress; use Reset Progress with sync enabled for that.";alert.addButton(withTitle:"Keep everything");alert.addButton(withTitle:"Reset & Reopen")
+        guard alert.runModal() == .alertSecondButtonReturn else{return}
+        do{
+            stop();try LibraryReset.archiveLocalState()
+            let helper=Process();helper.executableURL=Bundle.main.executableURL;helper.arguments=["--relaunch-after",String(ProcessInfo.processInfo.processIdentifier)];try helper.run();NSApp.terminate(nil)
+        }catch{notice="Reset could not finish: \(error.localizedDescription). Please reopen PawSync; your backed-up files are retained."}
+    }
+    func confirmProgressReset(){
+        let alert=NSAlert();alert.messageText="Start your Library progress over?";alert.informativeText="A backup is saved first. Earned pets, free items, achievements and gifts will reset. Purchases and settings stay. \(library.state.syncEnabled ? "Your account progress resets too.":"This resets progress on this Mac.")";alert.addButton(withTitle:"Keep my progress");alert.addButton(withTitle:"Reset Progress")
+        guard alert.runModal() == .alertSecondButtonReturn else{return}
+        Task{do{try await librarySync.resetProgress();preferences.companion="knight-cat";preferences.accessory="none";notice=librarySync.status}catch{notice="Progress was not reset. \(error.localizedDescription)"}}
+    }
     @objc private func menuPause() { preferences.reactionsPaused.toggle() }
     @objc private func menuPet() { overlay.reactToPetting(direction:5) }
     @objc private func menuAddReminder() { settingsSection = .reminders;quickAddReminder=true;openSettings?() }
@@ -383,8 +475,8 @@ import Combine
     @objc private func menuFiles() { fileShelf.show() }
     @objc private func menuHello() { sayHello(manual:true) }
     @objc private func menuFlip() { presentation.flip(preferences.companion) }
-    @objc private func menuWalk() { overlay.wanderNow() }
-    @objc private func menuJump() { overlay.jumpNow() }
+    @objc private func menuWalk() {library.record("walk");overlay.wanderNow() }
+    @objc private func menuJump() {library.record("jump");overlay.jumpNow() }
     @objc private func menuReminderDone() { completeReminder() }
     @objc private func menuSnooze() { reminders.snooze() }
     func startFocus() { guard canUseApp else { notice="Restore your purchase to start a Pomodoro session."; return }; focus.start() }
@@ -396,7 +488,7 @@ import Combine
     private func updateCaption() {
         let name = preferences.nickname.trimmingCharacters(in: .whitespacesAndNewlines)
         let hideBearCaption=["bear","pawpaw-bear"].contains(preferences.companion)
-        overlay.pet?.setCaption(hideBearCaption ? "" : "\(name.isEmpty ? companionDefaultName : String(name.prefix(24))) · Lv.\(activity.level)")
+        overlay.pet?.setCaption(hideBearCaption ? "" : "\(name.isEmpty ? companionDefaultName : String(name.prefix(24))) · Lv.\(library.active.level)")
         overlay.animate(for: 0.2)
     }
     private func licenseChanged() {
@@ -429,6 +521,7 @@ import Combine
     }
     func finishOnboarding() { preferences.onboarded = true; onboarding = false }
     func sayHello(manual: Bool = false) {
+        if manual {library.record("hello")}
         guard (manual || preferences.greetings), !overlay.isHidden, reminders.active == nil else { return }
         let hour = Calendar.current.component(.hour, from: Date())
         let salutation = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"
@@ -436,12 +529,14 @@ import Combine
         speech.show(title: "\(salutation)\(name.isEmpty ? "!" : ", \(String(name.prefix(24)))!")", text: "I’m here to keep you company. We’ll make room for little breaks together.")
         overlay.wave()
     }
-    func completeReminder() { reminders.complete(); if !overlay.focusSleeping { overlay.celebrate() } }
+    func completeReminder() { if let reminder=reminders.active {library.record(reminder.kind)};reminders.complete(); if !overlay.focusSleeping { overlay.celebrate() } }
     func playSound(_ name: String) {
         guard let url = Bundle.main.url(forResource: name, withExtension: "wav") else { return }
         NSSound(contentsOf: url, byReference: true)?.play()
     }
     func stop() {
+        guard !shutdownComplete else{return};shutdownComplete=true
+        library.stop();librarySync.stop();libraryToast.stop();cheerTimer?.invalidate();hiddenUntil?.cancel()
         fileInbox.empty()
         fileShelf.stop();hud.shutdown(); practices.stop(); daily.shutdown(); care.shutdown(); resources.shutdown(); countdown.shutdown()
         shortcuts.stop(); catalog.stop(); music.stop(); input.stop(); server.stop(); focus.shutdown(); overlay.stop()

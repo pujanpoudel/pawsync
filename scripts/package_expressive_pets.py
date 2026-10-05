@@ -8,9 +8,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     output = ROOT / "build/PawSync-expressive-pets.zip"
-    folders = ["macos/Resources/OpenPets", "macos/Resources/FileInteractions", "art/file-interactions", "art/pawpaw-reference", "art/pawpaw-fullbody", "art/knight-cat", "build/emotion-character-sheets"]
-    files = ["docs/expressive-pet-packs.md", "docs/pet-expression-report.md", "docs/pet-expression-report.json", "art/file-interaction-sources.json", "art/pawpaw-fullbody-sources.json", "macos/Sources/PawSync/PetEmotion.swift", "macos/Sources/PawSync/FramePetNode.swift", "macos/Sources/PawSync/PetCompanionChrome.swift", "macos/Sources/PawSync/CompanionAnimating.swift", "scripts/bake_file_interactions.py", "scripts/bake_fullbody_companions.py", "scripts/import_pawpaw_previews.py"]
-    files += ["scripts/bake_knight_cat.py","macos/Sources/PawSync/PetClickMotion.swift","macos/Sources/PawSync/KnightCatMotion.swift"]
+    folders = ["macos/Resources/Library", "macos/Resources/OpenPets", "macos/Resources/FileInteractions", "art/file-interactions", "art/pawpaw-reference", "art/pawpaw-fullbody", "art/knight-cat", "build/emotion-character-sheets"]
+    files = ["docs/library-features.md", "docs/expressive-pet-packs.md", "docs/pet-expression-report.md", "docs/pet-expression-report.json", "art/file-interaction-sources.json", "art/pawpaw-fullbody-sources.json", "macos/Sources/PawSync/PetEmotion.swift", "macos/Sources/PawSync/FramePetNode.swift", "macos/Sources/PawSync/PetCompanionChrome.swift", "macos/Sources/PawSync/CompanionAnimating.swift", "scripts/bake_file_interactions.py", "scripts/bake_fullbody_companions.py", "scripts/import_pawpaw_previews.py"]
+    files += ["macos/Sources/PawSync/LibraryAccessoryArt.swift","macos/Sources/PawSync/PetAccessoryFit.swift","macos/Sources/PawSync/PetWardrobe.swift","scripts/build_library_catalog.py","scripts/bake_knight_cat.py","macos/Sources/PawSync/PetClickMotion.swift","macos/Sources/PawSync/KnightCatMotion.swift"]
     proof=ROOT/"build/motion-proof/knight-cat-travel-facing.png"
     if proof.exists(): files.append(str(proof.relative_to(ROOT)))
     with zipfile.ZipFile(output,"w",zipfile.ZIP_DEFLATED) as archive:

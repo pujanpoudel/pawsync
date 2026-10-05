@@ -22,11 +22,13 @@ import SpriteKit
     private var lastStroke:TimeInterval = -1
     private var clickMood=0
     private(set) var receivingFiles=false
+    private var petID=""
     private var accessorySKU="none"
     private var hatTransform=HatTransform()
 
     init(manifest: PetManifest, directory: URL) throws {
         super.init()
+        petID=manifest.id
         try manifest.validate()
         shadow.fillColor = .black.withAlphaComponent(0.14)
         shadow.strokeColor = .clear
@@ -254,12 +256,23 @@ import SpriteKit
         if let node = PetAccessories.make(sku) { accessorySlot.addChild(node); updateAccessoryFit() }
     }
     private func updateAccessoryFit() {
-        let scale=1.16 * hatTransform.scale
+        guard let head=joints["head"] else{return}
+        let eyes=eyeLocations ?? [[0.31,0.60],[0.69,0.60]]
+        let cx=(eyes[0][0]+eyes[1][0])/2
+        var surface=head.size.height*(1-head.anchorPoint.y)
+        if let mask=alphaImages["head"],let rect=sourceRects["head"] {
+            let px=Int(rect.minX+rect.width*cx)
+            for y in Int(rect.minY)..<Int(rect.maxY) where mask.contains(x:px,y:y) {
+                surface=head.size.height*(1-(CGFloat(y)-rect.minY)/rect.height-head.anchorPoint.y);break
+            }
+        }
+        accessorySlot.position=CGPoint(x:head.size.width*(cx-head.anchorPoint.x),y:surface)
         if let node=accessorySlot.childNode(withName:"cosmetic") {
-            node.position=CGPoint(x:hatTransform.x,y:hatTransform.y - (accessorySKU == "accessory.glasses" ? 18 : 0))
-            node.setScale(scale);node.zRotation=hatTransform.rotation * .pi/180
+            let eyePoint=CGPoint(x:head.size.width*(cx-head.anchorPoint.x),y:head.size.height*(1-(eyes[0][1]+eyes[1][1])/2-head.anchorPoint.y))
+            PetWearableFit.apply(node,id:accessorySKU,petID:petID,headScale:head.size.width/70,eyePoint:eyePoint,eyeDistance:head.size.width*abs(eyes[1][0]-eyes[0][0]),slot:accessorySlot.position,transform:hatTransform)
             node.isHidden=accessorySlot.childNode(withName:"free-headphones") != nil
         }
+        accessorySlot.childNode(withName:"free-headphones")?.setScale(head.size.width/90)
     }
     func setAccessoryVisibility(_ visible: Bool) { accessorySlot.isHidden = !visible }
     func setCaption(_ text: String) { if caption.text != text { caption.text = text } }

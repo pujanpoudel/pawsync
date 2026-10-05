@@ -8,6 +8,16 @@ struct PetAccessoryFit {
     var scale:CGFloat
     var glassesDrop:CGFloat
 
+    // Reviewed iris centers in each imported pet's resting frame, in the
+    // common 192 × 208 coordinate space. These do not alter authored faces.
+    static func importedEyes(id:String)->(point:CGPoint,distance:CGFloat)? {
+        let faces:[String:(CGFloat,CGFloat,CGFloat,CGFloat)]=[
+            "openpets-default":(50,90,64,64),"openpets-snoopy":(85,101,39,39),
+            "openpets-clippit":(75,101,89,94),"openpets-tux":(70,123,82,82),
+            "openpets-wall-e":(70,107,27,28),"openpets-dobby":(79,111,50,50)]
+        guard let p=faces[id] else{return nil}
+        return (CGPoint(x:(p.0+p.1)/2-96,y:208-(p.2+p.3)/2),p.1-p.0)
+    }
     static func frame(id:String,row:Int,column:Int)->Self {
         let bases:[String:(CGFloat,CGFloat,CGFloat,CGFloat)] = [
             // crown y, accessory scale, eye adjustment, walking crown y
@@ -28,6 +38,7 @@ struct PetAccessoryFit {
             case 5: point=CGPoint(x:-28,y:125)
             default: break
             }
+            if ["bear","panda"].contains(id),[4,5].contains(row) {point.x=0}
             return Self(crown:point,scale:base.1,glassesDrop:base.2)
         }
         // The six bundled OpenPets companions have very different head shapes.
