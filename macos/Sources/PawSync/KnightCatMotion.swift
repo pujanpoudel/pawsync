@@ -22,7 +22,9 @@ enum KnightCatMotion {
             let cape=weight(x,y,[0.82,0.27],0.14,0.17)
             switch gesture {
             case .walk:
-                delta.x += (bootL-bootR)*s*0.032 + (right-left)*s*0.018
+                // In the left-facing source, a lifted boot swings left while
+                // its planted partner sweeps right, with the hands opposing.
+                delta.x += (bootR-bootL)*s*0.032 + (left-right)*s*0.018
                 delta.y += (bootL*max(0,s)+bootR*max(0,-s))*0.032
                 delta.x += cape*s*0.017
             case .tapLeft,.tapRight:

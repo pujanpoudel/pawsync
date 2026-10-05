@@ -16,8 +16,15 @@ import SpriteKit
     private var suspended=false
     private var facing:CGFloat=1
     private var flipped=false
+    private var travelling=false
     private let petID:String
     var isKnightCat:Bool { petID == "knight-cat" }
+    // Knight's source artwork faces left; the other full-body atlases face right.
+    private var artworkFacing:CGFloat { isKnightCat ? -1:1 }
+    var visualFacingDirection:CGFloat { artworkFacing * (sprite.xScale < 0 ? -1:1) }
+    private func updateFacing() {
+        sprite.xScale=travelling && profile?.fullBody == true ? facing * artworkFacing : (flipped ? -1:1)
+    }
     private let profile:PetExpressionProfile?
     private var poseProfiles:[Int:PetExpressionProfile]=[:]
     private let expression:PetExpressionNode
@@ -167,6 +174,7 @@ import SpriteKit
     private func neutral() { stopFrames(); animationState = .idle; show(row:0,column:frames.count == 11 ? 6 : 0) }
     func idle() {
         guard !sleeping,!receivingFiles else { return }
+        travelling=false;updateFacing()
         let hadExpression=expression.emotion != nil
         animationState = .idle
         if hasNativeFilePoses,heldCount>0 { neutral();showFilePose("hold") }
@@ -359,7 +367,7 @@ import SpriteKit
         DispatchQueue.main.asyncAfter(deadline:.now()+duration,execute:work);onNeedsRender?()
     }
     func setSleeping(_ value:Bool) {
-        guard value != sleeping else { return }; sleeping=value; stopFrames(); sprite.removeAllActions(); sprite.position = .zero; sprite.zRotation=0; sprite.setScale(1); sprite.xScale=flipped ? -1 : 1
+        guard value != sleeping else { return }; sleeping=value; travelling=false; stopFrames(); sprite.removeAllActions(); sprite.position = .zero; sprite.zRotation=0; sprite.setScale(1); updateFacing()
         sleepLabel.isHidden = !value; sprite.alpha=value ? 0.85 : 1
         neutral(); if value,profile != nil { show(row:0,column:5);expression.show(.sleepy) };if !value { idle() }; onNeedsRender?()
     }
@@ -393,9 +401,10 @@ import SpriteKit
     func setWalking(_ value:Bool) {
         guard !receivingFiles else { return }
         if value {
+            travelling=true;updateFacing()
             animationState = .running; begin(PetFrameSequence(row:(facing < 0) != flipped ? 2 : 1,frames:8,duration:1.06,iterations:nil))
             if profile?.fullBody == true {
-                sprite.xScale=facing * (flipped ? -1:1);sprite.warpGeometry=restingWarp
+                sprite.warpGeometry=restingWarp
                 if isKnightCat {
                     knightLimbs(.walk,duration:0.72,looping:true)
                     let rise=SKAction.moveTo(y:1.5,duration:0.18),fall=SKAction.moveTo(y:0,duration:0.18)
@@ -422,7 +431,10 @@ import SpriteKit
         } }
         return SKWarpGeometryGrid(columns:12,rows:16,sourcePositions:source,destinationPositions:target)
     }
-    func face(_ direction:CGFloat) { facing=direction < 0 ? -1 : 1;if profile?.fullBody == true { sprite.xScale=facing * (flipped ? -1:1) } }
+    func face(_ direction:CGFloat) {
+        if direction != 0 { facing=direction < 0 ? -1:1 }
+        travelling=true;updateFacing()
+    }
     func look(toward point:CGPoint) {
         guard !sleeping,!receivingFiles,animationState == .idle,let scene else { return }
         if profile != nil {
@@ -499,7 +511,7 @@ import SpriteKit
     func setAccessoryVisibility(_ visible:Bool) { accessories.isHidden = !visible; onNeedsRender?() }
     func setCaption(_ text:String) { guard caption.text != text else { return }; caption.text=text; onNeedsRender?() }
     func presentation(flipped:Bool,hudScale:Double,hat:HatTransform) {
-        self.flipped=flipped; hatTransform=hat; sprite.xScale=flipped ? -1 : 1; caption.setScale(hudScale)
+        self.flipped=flipped; hatTransform=hat; updateFacing(); caption.setScale(hudScale)
         updateAccessoryFit()
         onNeedsRender?()
     }

@@ -145,3 +145,10 @@ Resource implementation references Apple’s public [Mach statistics API](https:
 - Inverse mesh hit testing follows animated hands while allowing transparent surroundings to pass through. Native checks assert an actual moving typing hand, gait bounce, successful inverse mapping, full animation render duration, no continuous deadline while asleep, and an unpaused real overlay at 0.7 seconds into a click response.
 - Final universal build passes strict/deep signature verification. Emotion checks pass all 47 companions × 14 states; motion, asset and UI dispatch checks pass. UI checks produce 42 native previews. `knight-cat-fluid-motions.png` and the 120-frame `knight-cat-fluid.gif` show native rendered movement; GIF frame count/dimensions were checked.
 - The resource ZIPs include the new motion source and updated previews. Existing physical cross-app input/TCC, OS drag-out, Instruments budget and notarized-release limitations remain unchanged; those are not claimed as verified by offscreen checks.
+
+## Knight Cat backward walking — 5 October 2026
+
+- Knight Cat's unmirrored artwork faces left, but full-body locomotion assumed it faced right. Facing now accounts for that source direction. Walking/jumping face actual travel independently of the saved Flip preference; presentation refreshes preserve travel facing, and stopping/sleeping restores the resting preference.
+- Reversed the Knight boot stride phase: lifted boots swing forward, planted boots sweep backward, and hands move opposite the boots. Cape sway remains unchanged.
+- Universal development build passes strict/deep signature verification. Native motion checks cover both directions with Flip on/off, preference refresh during travel, idle restoration, jump facing and both boot phases. Emotion checks pass 47 companions × 14 states; asset checks pass. One offscreen SpriteKit no-drawables warning occurred; motion assertions and proof capture passed.
+- Reviewed `build/motion-proof/knight-cat-travel-facing.png`. Refreshed the native animation previews and portable resource ZIPs. These are native/rendered checks; physical cross-app input and release notarization are not part of this fix.

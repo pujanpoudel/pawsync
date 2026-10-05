@@ -198,6 +198,7 @@ import UniformTypeIdentifiers
             importedAccessories.append((spec.name,images))
         }
         try writeGrid(importedAccessories,columns:["Sprout","Bow","Beanie","Glasses"],to:directory.appendingPathComponent("openpets-accessory-fit.png"))
+        try knightTravelFacing(renderer:renderer,directory:directory)
         let temporary=FileManager.default.temporaryDirectory.appendingPathComponent("PawSync-activity-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at:temporary) }
         let activity=CompanionActivity(directory:temporary); var levels=0,goals=0
@@ -208,7 +209,51 @@ import UniformTypeIdentifiers
         let restored=CompanionActivity(directory:temporary); defer { restored.stop() }
         try require(restored.snapshot.total == 700 && restored.snapshot.today == 700,"Pending activity was not saved on shutdown.")
         try overlayTravel()
-        print("Motion checks passed: nine frame-animated originals and nine fallback rigs rendered; interrupted walk/dance/reminder/jump settle without drift; imported authored frame timing, completion, suspension and static-idle draw checks; batched activity persistence. Proof sheets: \(directory.path)")
+        print("Motion checks passed: Knight Cat walks/jumps facing travel in both directions with either Flip preference; lifted boots swing forward and planted boots sweep backward; original and imported motion, interruption, frame timing, suspension, real overlay travel and batched activity persistence. Proof sheets: \(directory.path)")
+    }
+    private static func knightTravelFacing(renderer:Renderer,directory:URL) throws {
+        guard let spec=PetStore.imports.first(where:{$0.id == "knight-cat"}),
+              let profile=PetExpressionProfile.load(spec.directory),let feet=profile.footCenters else {
+            throw PawError.message("Missing Knight Cat walking assets.")
+        }
+        func displacement(_ foot:[Double],phase:Double)->SIMD2<Float> {
+            let grid=KnightCatMotion.geometry(.walk,phase:phase,profile:profile)
+            let column=Int((foot[0]*Double(KnightCatMotion.columns)).rounded())
+            let row=Int((foot[1]*Double(KnightCatMotion.rows)).rounded())
+            let index=row*(KnightCatMotion.columns+1)+column
+            return grid.destPosition(at:index)-grid.sourcePosition(at:index)
+        }
+        for (phase,lifted,planted) in [(0.25,0,1),(0.75,1,0)] {
+            let swing=displacement(feet[lifted],phase:phase),stance=displacement(feet[planted],phase:phase)
+            try require(swing.x < -0.01 && swing.y > 0.01,"Knight's lifted boot swings backward in the left-facing source.")
+            try require(stance.x > 0.01,"Knight's planted boot sweeps forward instead of backward.")
+        }
+        var rows:[(String,[CGImage])]=[]
+        for flipped in [false,true] { for direction:CGFloat in [-1,1] {
+            renderer.scene.removeAllChildren()
+            let node=try FramePetNode(spec:spec);node.position=CGPoint(x:130,y:24);renderer.scene.addChild(node)
+            node.presentation(flipped:flipped,hudScale:1,hat:HatTransform())
+            let restDirection:CGFloat=flipped ? 1:-1
+            try require(node.visualFacingDirection == restDirection,"Knight's resting Flip preference changed.")
+            node.face(direction);node.setWalking(true)
+            renderer.advance(0.18);var images=[try renderer.capture()]
+            try require(node.visualFacingDirection == direction,"Knight walks backward with Flip=\(flipped).")
+            // Presentation is refreshed by Settings and overlay callbacks during travel.
+            node.presentation(flipped:!flipped,hudScale:1,hat:HatTransform())
+            try require(node.visualFacingDirection == direction,"A presentation refresh reversed Knight's walk.")
+            renderer.advance(0.36);images.append(try renderer.capture())
+            node.presentation(flipped:flipped,hudScale:1,hat:HatTransform());node.setWalking(false)
+            try require(node.visualFacingDirection == restDirection,"Knight did not restore Flip after walking.")
+            node.face(direction);node.play(.jumping,looping:false,relaxed:false)
+            node.presentation(flipped:flipped,hudScale:1,hat:HatTransform())
+            try require(node.visualFacingDirection == direction,"Knight jumps backward with Flip=\(flipped).")
+            renderer.advance(0.2);images.append(try renderer.capture())
+            node.setWalking(false);renderer.advance(0.02);images.append(try renderer.capture())
+            try require(node.visualFacingDirection == restDirection,"Knight did not restore Flip after jumping.")
+            node.setRenderingSuspended(true)
+            rows.append(("\(direction < 0 ? "← Left":"Right →") · Flip \(flipped ? "on":"off")",images))
+        } }
+        try writeGrid(rows,columns:["Walk: first step","Walk: opposite step","Jump direction","Restored idle"],to:directory.appendingPathComponent("knight-cat-travel-facing.png"))
     }
     private static func overlayTravel() throws {
         let preferences=Preferences()
