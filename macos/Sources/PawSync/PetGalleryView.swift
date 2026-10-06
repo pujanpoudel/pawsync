@@ -36,10 +36,10 @@ struct PetGalleryView: View {
                                         if let image=catalog.installedThumbnails[pet.id] {
                                             Image(nsImage:image).resizable().scaledToFit().frame(height:100)
                                         } else { Image(systemName:"pawprint.fill").font(.title2).foregroundStyle(.purple).frame(height:100) }
-                                        Text(pet.name).font(.system(size:13,weight:.semibold)).lineLimit(1)
+                                        Text(model.petName(pet.id)).font(.system(size:13,weight:.semibold)).lineLimit(1)
                                         Text(pet.origin == "Paw-Paw preview" ? "Paw-Paw preview":pet.origin == "PawSync original" ? "PawSync":"OpenPets").font(.caption2).foregroundStyle(.secondary)
                                     }.frame(maxWidth:.infinity).contentShape(Rectangle())
-                                }.buttonStyle(.plain).accessibilityLabel("Preview \(pet.name)")
+                                }.buttonStyle(.plain).accessibilityLabel("Preview \(model.petName(pet.id))")
                                 Button(preferences.companion == pet.id ? "Selected" : "Use pet") { preferences.companion=pet.id }.disabled(preferences.companion == pet.id)
                             }.padding(12).background(Color.purple.opacity(preferences.companion == pet.id ? 0.10 : 0.035),in:RoundedRectangle(cornerRadius:12))
                                 .onAppear { catalog.loadInstalledThumbnail(pet) }
@@ -98,7 +98,8 @@ struct PetGalleryView: View {
         switch item {
         case .installed(let pet):
             VStack(alignment:.leading,spacing:14) {
-                Text(pet.name).font(.title2.bold())
+                Text(model.petName(pet.id)).font(.title2.bold())
+                PetNameEditor(model:model,id:pet.id).id(pet.id)
                 Group {
                     if let image=catalog.installedDetailImages[pet.id] ?? catalog.installedThumbnails[pet.id] { Image(nsImage:image).resizable().scaledToFit() }
                     else if catalog.imageFailures.contains("installed-detail-\(pet.id)") { Label("Preview unavailable",systemImage:"pawprint.fill").foregroundStyle(.secondary) }

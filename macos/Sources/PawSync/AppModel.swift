@@ -52,7 +52,6 @@ import Combine
     private var subscriptions = Set<AnyCancellable>()
     private var validationTimer: Timer?
     private var trialTimer: Timer?
-    private var companionDefaultName = "PawSync"
     var openSettings: (() -> Void)?
     var canUseApp: Bool { wallet.licensed || configuration.environment == "development" }
 
@@ -73,6 +72,16 @@ import Combine
         resources=ResourceMonitor(features:features)
         onboarding = !preferences.onboarded
         super.init()
+        if !preferences.nickname.isEmpty {
+            if presentation.name(for:preferences.companion) != nil || presentation.setName(preferences.nickname,for:preferences.companion) {preferences.nickname=""}
+        }
+        overlay.companionName = { [weak self] in
+            guard let self else{return "Buddy"}
+            return self.presentation.name(for:self.preferences.companion) ?? self.originalPetName(self.preferences.companion).components(separatedBy:" the ").first ?? "Buddy"
+        }
+        presentation.$state.map(\.names).removeDuplicates().dropFirst().sink { [weak self] _ in
+            DispatchQueue.main.async {guard let self else{return};self.objectWillChange.send();self.updateCaption()}
+        }.store(in:&subscriptions)
         fileInbox.objectWillChange.sink { [weak self] _ in
             DispatchQueue.main.async { guard let self else { return };self.overlay.setHeldFileCount(self.fileInbox.files.count) }
         }.store(in:&subscriptions)
@@ -248,7 +257,7 @@ import Combine
         library.onAchievement={ [weak self] a in self?.libraryToast.show(a.title,subtitle:"Achievement discovered",icon:a.icon) }
         library.onUnlock={ [weak self] ids in
             guard let self else{return}
-            self.notice="New friends: "+ids.map{PetStore.builtInNames[$0] ?? $0}.joined(separator:", ")
+            self.notice="New friends: "+ids.map{self.petName($0)}.joined(separator:", ")
             self.overlay.celebrate()
             if !self.overlay.isHidden,!self.overlay.isScreenSleeping {self.libraryToast.show("A new little friend",subtitle:self.notice,icon:"pawprint.fill")}
         }
@@ -317,7 +326,6 @@ import Combine
         }.store(in: &subscriptions)
         input.$running.sink { [weak self] running in self?.overlay.setInputMonitoring(running) }.store(in: &subscriptions)
         preferences.$petScale.dropFirst().sink { [weak self] value in self?.overlay.setScale(value) }.store(in: &subscriptions)
-        preferences.$nickname.dropFirst().sink { [weak self] _ in DispatchQueue.main.async { self?.updateCaption() } }.store(in: &subscriptions)
         preferences.$reactionsPaused.dropFirst().sink { [weak self] _ in DispatchQueue.main.async { self?.overlay.refreshAppearance() } }.store(in: &subscriptions)
         preferences.$movement.dropFirst().sink { [weak self] _ in DispatchQueue.main.async { self?.overlay.stopWalking() } }.store(in: &subscriptions)
         preferences.$hidden.dropFirst().sink { [weak self] hidden in if hidden { self?.speech.dismiss(); self?.reminders.complete() }
@@ -353,7 +361,6 @@ import Combine
     private func loadPet(_ id: String) {
         guard library.canSelect(id) else { preferences.companion = "openpets-default"; notice = "This buddy joins at level \(LibraryProgress.petUnlock(id)). Keep making little progress!"; return }
         library.choosePet(id)
-        companionDefaultName = PetStore.builtInNames[id]?.components(separatedBy: " the ").first ?? (try? PetStore.load(id).name) ?? "PawSync"
         do { try overlay.loadPet(id) }
         catch {
             notice = error.localizedDescription
@@ -367,6 +374,12 @@ import Combine
         updateCaption()
     }
     func selectLibraryPet(_ id:String) {guard library.canSelect(id) else{notice="This friend joins at level \(LibraryProgress.petUnlock(id)). Keep earning to unlock them.";return};notice="";preferences.companion=id}
+    func originalPetName(_ id:String)->String {PetStore.builtInNames[id] ?? custom.customPets.first{$0.id==id}?.name ?? (try? PetStore.load(id).name) ?? id}
+    func petName(_ id:String)->String {presentation.name(for:id) ?? originalPetName(id)}
+    @discardableResult func renamePet(_ id:String,to name:String)->Bool {
+        let cleaned=PetPresentationStore.cleanName(name)
+        return presentation.setName(cleaned == originalPetName(id) ? "":cleaned,for:id)
+    }
     func equipLibraryItem(_ id:String) {
         guard canEquipAccessory(id) else{notice="This item is waiting in a future gift. Collected items can be worn right away.";return}
         notice=""
@@ -435,7 +448,7 @@ import Combine
         }
         let pets=library.state.favoritePets.filter{library.canSelect($0)}
         let fallback=PetStore.builtInIDs.filter{library.canSelect($0)}.prefix(8)
-        submenu("Change companion",(pets.isEmpty ? Array(fallback):pets).map{($0,PetStore.builtInNames[$0] ?? $0)},#selector(menuChoosePet(_:)))
+        submenu("Change companion",(pets.isEmpty ? Array(fallback):pets).map{($0,petName($0))},#selector(menuChoosePet(_:)))
         let hats=library.state.favoriteHats.filter{wardrobe.ownedHats.contains($0)}
         let available=FreeHat.all.filter{wardrobe.ownedHats.contains($0.id)}.prefix(12).map(\.id)
         submenu("Change item",[("none","Bare ears")]+(hats.isEmpty ? Array(available):hats).map{id in (id,FreeHat.all.first{$0.id==id}?.name ?? id)},#selector(menuChooseHat(_:)))
@@ -493,9 +506,9 @@ import Combine
     @objc private func menuSettings() { openSettings?() }
     @objc private func menuHide() { preferences.hidden=true }
     private func updateCaption() {
-        let name = preferences.nickname.trimmingCharacters(in: .whitespacesAndNewlines)
+        let name = presentation.name(for:preferences.companion) ?? originalPetName(preferences.companion).components(separatedBy:" the ").first ?? "PawSync"
         let hideBearCaption=["bear","pawpaw-bear"].contains(preferences.companion)
-        overlay.pet?.setCaption(hideBearCaption ? "" : "\(name.isEmpty ? companionDefaultName : String(name.prefix(24))) · Lv.\(library.active.level)")
+        overlay.pet?.setCaption(hideBearCaption ? "" : "\(String(name.prefix(40))) · Lv.\(library.active.level)")
         overlay.animate(for: 0.2)
     }
     private func licenseChanged() {

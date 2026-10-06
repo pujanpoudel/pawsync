@@ -62,13 +62,31 @@ struct HatTransform:Codable,Equatable {
     var valid:Bool { x.isFinite && y.isFinite && scale.isFinite && rotation.isFinite && abs(x) <= 100 && abs(y) <= 100 && (0.4...2).contains(scale) && abs(rotation) <= 90 }
 }
 @MainActor final class PetPresentationStore:ObservableObject {
-    struct Snapshot:Codable { var version=1; var flipped:[String:Bool]=[:]; var hats:[String:HatTransform]=[:]; var hudScale:Double=1; var hideInApps:[String]=[]; var walkSpeed:Double?=nil; var wanderInterval:Double?=nil }
-    @Published var state:Snapshot { didSet { save() } }
+    struct Snapshot:Codable { var version=1; var flipped:[String:Bool]=[:]; var hats:[String:HatTransform]=[:]; var hudScale:Double=1; var hideInApps:[String]=[]; var walkSpeed:Double?=nil; var wanderInterval:Double?=nil; var names:[String:String]?=nil }
+    @Published var state:Snapshot { didSet { if !publishingSavedName {save()} } }
     @Published private(set) var error=""
     private let file:URL
+    private var publishingSavedName=false
     init(directory:URL=PetStore.root) {
         file=directory.appendingPathComponent("Presentation/pets.json")
-        state=LocalState.read(Snapshot.self,at:file,validate:{$0.version == 1 && $0.flipped.count <= 2000 && $0.hats.count <= 2000 && $0.hats.values.allSatisfy(\.valid) && (0.7...1.5).contains($0.hudScale) && $0.hideInApps.count <= 100 && $0.hideInApps.allSatisfy({$0.count <= 200})}) ?? Snapshot()
+        state=LocalState.read(Snapshot.self,at:file,validate:{$0.version == 1 && $0.flipped.count <= 2000 && $0.hats.count <= 2000 && $0.hats.values.allSatisfy(\.valid) && (0.7...1.5).contains($0.hudScale) && $0.hideInApps.count <= 100 && $0.hideInApps.allSatisfy({$0.count <= 200}) && ($0.names ?? [:]).count <= 2000 && ($0.names ?? [:]).allSatisfy({!$0.key.isEmpty && $0.key.count<=200 && !$0.value.isEmpty && $0.value == Self.cleanName($0.value)})}) ?? Snapshot()
+    }
+    static func cleanName(_ name:String)->String {
+        let printable=String(String.UnicodeScalarView(name.unicodeScalars.filter{!CharacterSet.controlCharacters.contains($0)}))
+        return String(printable.trimmingCharacters(in:.whitespacesAndNewlines).prefix(40))
+    }
+    func name(for id:String)->String? {state.names?[id]}
+    @discardableResult func setName(_ name:String,for id:String)->Bool {
+        guard !id.isEmpty,id.count<=200 else{return false}
+        let value=Self.cleanName(name)
+        var names=state.names ?? [:]
+        guard value.isEmpty || names[id] != nil || names.count<2000 else{error="The saved name limit has been reached.";return false}
+        if value.isEmpty {names.removeValue(forKey:id)} else {names[id]=value}
+        guard names != (state.names ?? [:]) else{return true}
+        var next=state;next.names=names
+        // Persist before publishing so a failed write never reports a saved name.
+        do {try LocalState.write(next,at:file);publishingSavedName=true;state=next;publishingSavedName=false;error="";return true}
+        catch {self.error="Could not save your pet’s name. Please try again.";return false}
     }
     // Include the item in the key so a crown's adjustment cannot displace glasses.
     static func placementKey(pet:String,item:String)->String { pet+"::"+item }

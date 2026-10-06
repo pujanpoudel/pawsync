@@ -132,6 +132,7 @@ import QuartzCore
     private var resumeReaction = false
     private let statusLabel = SKLabelNode(fontNamed: NSFont.systemFont(ofSize:11,weight:.semibold).fontName)
     var onPetting: (() -> Void)?
+    var companionName:(()->String)?
     var onDirectClick:(()->Void)?
     var onPetWake: (() -> Void)?
     var onWake: (() -> Void)?
@@ -417,7 +418,7 @@ import QuartzCore
         let a=view.convert(scene.convertPoint(toView:bounds.origin),to:nil)
         let b=view.convert(scene.convertPoint(toView:CGPoint(x:bounds.maxX,y:bounds.maxY)),to:nil)
         let frame=window.convertToScreen(CGRect(x:min(a.x,b.x),y:min(a.y,b.y),width:abs(b.x-a.x),height:abs(b.y-a.y)))
-        let name=(PetStore.builtInNames[preferences.companion] ?? "Buddy").components(separatedBy:" the ").first ?? "Buddy"
+        let name=companionName?() ?? "Buddy"
         return PetChromeAnchor(pet:frame,visible:window.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? window.frame,palette:.companion(preferences.companion),name:name)
     }
     func hitHeldFiles(fromView point:CGPoint)->Bool { pet?.containsHeldFilesPoint(scene.convertPoint(fromView:point)) ?? false }

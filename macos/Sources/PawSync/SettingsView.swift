@@ -72,7 +72,7 @@ struct SettingsView: View {
                     if !library.state.gifts.isEmpty {Button {model.presentGifts=true} label:{Label("\(library.state.gifts.count) gifts waiting",systemImage:"gift.fill")}.buttonStyle(CozyButton(prominent:true))}
                     HStack {
                         if let image=PetStore.preview(preferences.companion){Image(nsImage:image).resizable().scaledToFit().frame(width:44,height:50)}
-                        VStack(alignment:.leading,spacing:4){Text(PetStore.builtInNames[preferences.companion] ?? custom.customPets.first{$0.id==preferences.companion}?.name ?? "Your buddy").font(.system(size:11,weight:.semibold,design:.rounded)).lineLimit(1);Text("Keeping you company").font(.system(size:10)).foregroundStyle(LibraryStyle.muted)}
+                        VStack(alignment:.leading,spacing:4){Text(model.petName(preferences.companion)).font(.system(size:11,weight:.semibold,design:.rounded)).lineLimit(1);Text("Keeping you company").font(.system(size:10)).foregroundStyle(LibraryStyle.muted)}
                     }
                 }.padding(.bottom,20)
             }.padding(.horizontal,16).frame(width:202).background(LibraryStyle.paper)
@@ -188,11 +188,12 @@ struct SettingsView: View {
                 HStack(spacing:20) {
                     if let image=PetStore.preview(preferences.companion) { Image(nsImage:image).resizable().scaledToFit().frame(width:105,height:115) }
                     VStack(alignment:.leading,spacing:8) {
-                        Text(preferences.nickname.isEmpty ? PetStore.builtInNames[preferences.companion] ?? "Your companion" : preferences.nickname).font(.title2.bold())
+                        Text(model.petName(preferences.companion)).font(.title2.bold())
                         Text("A little company for your day.").foregroundStyle(.secondary)
                         Button("Choose a companion") { section = .gallery }
                     }; Spacer()
                 }
+                PetNameEditor(model:model,id:preferences.companion).id(preferences.companion)
                 HStack {
                     Button("Say hello") { model.sayHello(manual:true) }
                     Button("Pet") { model.overlay.reactToPetting(direction:4) }
@@ -238,13 +239,13 @@ struct SettingsView: View {
         VStack(alignment:.leading,spacing:12) {
             Text("PawSync originals").font(.headline)
             LazyVGrid(columns:[GridItem(.adaptive(minimum:145),spacing:12)],spacing:12) {
-                ForEach(PetStore.imports.filter{$0.origin == "PawSync original"}) { pet in companionCard(pet.name,id:pet.id,icon:"pawprint.fill",color:.orange) }
-                ForEach(PetStore.rigIDs,id:\.self) { id in companionCard(PetStore.rigNames[id]!,id:id,icon:"pawprint.fill",color:.orange) }
+                ForEach(PetStore.imports.filter{$0.origin == "PawSync original"}) { pet in companionCard(model.petName(pet.id),id:pet.id,icon:"pawprint.fill",color:.orange) }
+                ForEach(PetStore.rigIDs,id:\.self) { id in companionCard(model.petName(id),id:id,icon:"pawprint.fill",color:.orange) }
             }
             if !custom.customPets.isEmpty {
                 Picker("Your custom pets",selection:$preferences.companion) {
                     Text("Choose a pet").tag(preferences.companion)
-                    ForEach(custom.customPets,id:\.id) { Text($0.name).tag($0.id) }
+                    ForEach(custom.customPets,id:\.id) { Text(model.petName($0.id)).tag($0.id) }
                 }
             }
         }
@@ -252,7 +253,6 @@ struct SettingsView: View {
     private var advancedAppearance:some View {
         VStack(alignment:.leading,spacing:18) {
             card {
-                TextField("Pet nickname",text:$preferences.nickname)
                 Toggle("Greet me when I return",isOn:$preferences.greetings)
                 TextField("Your name (optional)",text:$preferences.userName)
                 Picker("Screen anchor",selection:$preferences.anchor) { ForEach(ScreenAnchor.allCases) { Text($0.rawValue).tag($0) } }

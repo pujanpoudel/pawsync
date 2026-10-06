@@ -138,7 +138,7 @@ import SwiftUI
         guard let menu=companionMenu else { return };menu.removeAllItems()
         let ids=(PetStore.builtInIDs+PetStore.customPets().map(\.id)).filter{model.library.canSelect($0)}
         for id in ids {
-            let entry=NSMenuItem(title:PetStore.builtInNames[id] ?? id,action:#selector(chooseCompanion(_:)),keyEquivalent:"")
+            let entry=NSMenuItem(title:model.petName(id),action:#selector(chooseCompanion(_:)),keyEquivalent:"")
             entry.target=self;entry.representedObject=id;entry.state=model.preferences.companion == id ? .on:.off;menu.addItem(entry)
         }
     }

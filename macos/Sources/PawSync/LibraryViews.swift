@@ -60,10 +60,9 @@ struct LibraryGalleryView:View {
     @LState private var search=""
     @LState private var favorites=false
     @LState private var preview:String?
-    private var names:[String:String] {PetStore.builtInNames.merging(Dictionary(uniqueKeysWithValues:model.custom.customPets.map{($0.id,$0.name)})){_,new in new}}
     private var ids:[String] {
         (["knight-cat"]+PetStore.rigIDs+model.catalog.installed.map(\.id).filter{$0 != "knight-cat"}+model.custom.customPets.map(\.id)).filter {id in
-            (track==nil || LibraryProgress.track(for:id)==track) && (!favorites || library.state.favoritePets.contains(id)) && (search.isEmpty || (names[id] ?? id).localizedCaseInsensitiveContains(search))
+            (track==nil || LibraryProgress.track(for:id)==track) && (!favorites || library.state.favoritePets.contains(id)) && (search.isEmpty || model.petName(id).localizedCaseInsensitiveContains(search) || model.originalPetName(id).localizedCaseInsensitiveContains(search))
         }
     }
     var body:some View {
@@ -90,7 +89,7 @@ struct LibraryGalleryView:View {
         }
     }
     private func petCard(_ id:String)->some View {
-        let unlocked=library.canSelect(id),active=preferences.companion==id,name=names[id] ?? id
+        let unlocked=library.canSelect(id),active=preferences.companion==id,name=model.petName(id)
         return VStack(spacing:0) {
             Button {model.selectLibraryPet(id)} label: {
                 VStack(alignment:.leading,spacing:7) {
@@ -116,11 +115,39 @@ struct PetPreviewSheet:View {
     var body:some View {
         VStack(spacing:18) {
             if let image=PetStore.preview(id){Image(nsImage:image).resizable().scaledToFit().frame(height:220)}
-            Text(PetStore.builtInNames[id] ?? model.custom.customPets.first{$0.id==id}?.name ?? id).font(.system(size:26,weight:.bold,design:.rounded))
+            Text(model.petName(id)).font(.system(size:26,weight:.bold,design:.rounded))
+            PetNameEditor(model:model,id:id).id(id)
             Text(library.canSelect(id) ? "A friend for little wins and gentle breaks.":"Keep earning on this companion’s track. Joins at level \(LibraryProgress.petUnlock(id)).").foregroundStyle(LibraryStyle.muted).multilineTextAlignment(.center)
             HStack {Button("Keep me company"){model.selectLibraryPet(id);onClose()}.buttonStyle(CozyButton(prominent:true)).disabled(!library.canSelect(id));Button("Done",action:onClose).buttonStyle(CozyButton())}
             if library.canSelect(id) {HStack {Button("Cuddle"){model.selectLibraryPet(id);DispatchQueue.main.async{model.overlay.reactToPetClick()}};Button("Walk"){model.selectLibraryPet(id);model.library.record("walk");DispatchQueue.main.async{model.overlay.wanderNow()}};Button("Jump"){model.selectLibraryPet(id);model.library.record("jump");DispatchQueue.main.async{model.overlay.jumpNow()}}}.buttonStyle(CozyButton())}
         }.padding(30).frame(width:430).background(LibraryStyle.cream).foregroundStyle(LibraryStyle.ink).onExitCommand(perform:onClose)
+    }
+}
+struct PetNameEditor:View {
+    @ObservedObject var model:AppModel
+    var id:String
+    @LState private var draft=""
+    @LState private var error=""
+    private var changed:Bool {PetPresentationStore.cleanName(draft) != model.petName(id)}
+    var body:some View {
+        VStack(alignment:.leading,spacing:7) {
+            HStack(spacing:9) {
+                Text("Name").font(.system(size:13,weight:.semibold,design:.rounded))
+                TextField(model.originalPetName(id),text:$draft).textFieldStyle(.roundedBorder)
+                    .accessibilityLabel("Pet name").onSubmit(save)
+                    .onChange(of:draft){_,value in if value.count>40 {draft=String(value.prefix(40))}}
+                Button("Save",action:save).buttonStyle(CozyButton(prominent:true)).disabled(!changed)
+                if model.presentation.name(for:id) != nil {
+                    Button("Reset") {if model.renamePet(id,to:""){draft=model.petName(id);error=""}else{error=model.presentation.error}}
+                        .buttonStyle(CozyButton()).help("Restore the original pet name")
+                }
+            }
+            if !error.isEmpty {Text(error).font(.caption).foregroundStyle(.red)}
+        }.onAppear{draft=model.petName(id)}
+    }
+    private func save() {
+        if model.renamePet(id,to:draft) {draft=model.petName(id);error=""}
+        else {error=model.presentation.error}
     }
 }
 struct LibraryItemsView:View {

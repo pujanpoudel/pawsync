@@ -42,6 +42,8 @@ Items use the bundled `Library/catalog.json` schema. Paid-track items specify th
 
 ## Validation and practical limits
 
+Each companion can have its own name. Use **Settings → Companion → Name → Save**, or the pet’s **ⓘ** details in **Pets**. Return saves too; **Reset** (or saving an empty name) restores the original name. Names support emoji, are limited to 40 characters, and persist locally by pet ID in `Presentation/pets.json`. Original, OpenPets, imported and photo-created pets all use the same naming path. The Library, current-companion sidebar, menus and pet-attached UI use the saved name; Library search also keeps matching the original name. Renaming does not alter pet resources, ownership or progress. Existing global nicknames migrate to the companion selected on upgrade.
+
 `--check-library build/library-proof` exercises the progression, gifts, achievements, merge/reset and wearable catalog, and captures the actual native Library screens and six contact sheets covering all 47 bundled pets. Existing motion, asset, expression and control checks cover the rendering and interaction regressions. Backend tests run on isolated real PostgreSQL schemas, including paid-art authorization and reset replay protection.
 
 Screenshots and native action checks do not establish physical Input Monitoring acceptance, notarized distribution, live payment fulfillment or the Instruments CPU/RAM budgets. The artist collection in the supplied reference needs its separately supplied licensed art and configured product; the mechanism is implemented, those inputs are not fabricated.
