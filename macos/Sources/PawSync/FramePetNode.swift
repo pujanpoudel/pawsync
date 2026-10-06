@@ -145,7 +145,7 @@ import SpriteKit
         if currentRow == 6 { return poseProfiles[3] ?? profile }
         return profile
     }
-    private func stopFrames() { frameTimer?.invalidate();frameTimer=nil;sequence=nil;typingUntil=nil;gazeReset?.cancel();gazeReset=nil;expressionReset?.cancel();expressionReset=nil;expression.clear();for key in ["paw-tap","click-perk","emotion","file-arms","cuddle","gait","celebration","knight-limbs","knight-breathe","knight-blink","knight-body"] { sprite.removeAction(forKey:key) };sprite.warpGeometry=nil;inputMotionUntil=0;sprite.position = .zero;sprite.zRotation=0;sprite.yScale=1 }
+    private func stopFrames() { frameTimer?.invalidate();frameTimer=nil;sequence=nil;typingUntil=nil;gazeReset?.cancel();gazeReset=nil;expressionReset?.cancel();expressionReset=nil;expression.clear();for key in ["paw-tap","click-perk","emotion","file-arms","cuddle","cuddle-pose","gait","celebration","knight-limbs","knight-breathe","knight-blink","knight-body"] { sprite.removeAction(forKey:key) };sprite.warpGeometry=nil;inputMotionUntil=0;sprite.position = .zero;sprite.zRotation=0;sprite.yScale=1 }
     private func begin(_ clip:PetFrameSequence) {
         gazeReset?.cancel(); gazeReset=nil
         if sequence == clip,frameTimer != nil { return }
@@ -268,7 +268,25 @@ import SpriteKit
         // Two kitten-like springy hops for direct affection, separate from ambient clicks
         // and the system-audio dance (which alone wears headphones).
         sprite.run(PetClickMotion.hops(rest:.zero),withKey:"cuddle")
-        if isKnightCat {
+        if petID == "bunny" {
+            // The catch pose has extra resting forepaws. For affection use the
+            // authored crouch/airborne frames, moving the existing forelimbs.
+            let crouch=SKAction.run { [weak self] in
+                guard let self else{return};self.show(row:4,column:0)
+                self.expression.useProfile(nil,preserveEmotion:true)
+            }
+            let airborne=SKAction.run { [weak self] in
+                guard let self else{return};self.show(row:4,column:2)
+                // The airborne face is in profile; keep its original eyes.
+                self.expression.useProfile(nil,preserveEmotion:true)
+            }
+            let land=SKAction.run { [weak self] in
+                guard let self else{return}
+                if self.heldCount>0 {self.showFilePose("hold",preserveEmotion:true)}
+                else {self.show(row:0,column:0)}
+            }
+            sprite.run(.repeat(.sequence([crouch,.wait(forDuration:0.14),airborne,.wait(forDuration:0.38),land,.wait(forDuration:0.09)]),count:2),withKey:"cuddle-pose")
+        } else if isKnightCat {
             knightLimbs(.affection,duration:1.22)
         } else if hasNativeFilePoses {
             let reach=SKAction.run { [weak self] in self?.showFilePose("receive",preserveEmotion:true) }

@@ -37,11 +37,20 @@ import UniformTypeIdentifiers
             pet.cuddle();renderer.advance(0.3)
             try require(pet.requiresContinuousRendering,"Direct affection was not animated for \(spec.name).")
             try require(pet.affectionLift > 8,"Direct-click kitten hop did not leave the ground for \(spec.name).")
+            if spec.id == "bunny" {
+                try require(pet.displayedFilePose == nil && pet.currentFrame.row == 4 && pet.currentFrame.column == 2,"Rabbit click hop reused the extra-paw catching pose.")
+            }
             images.append(try renderer.capture());pet.typing();renderer.advance(0.1);pet.idle()
             try require(pet.affectionLift == 0,"Typing did not interrupt the click hop for \(spec.name).")
             pet.cuddle();renderer.advance(PetClickMotion.duration+0.1)
             try require(abs(pet.affectionLift)<0.01,"Direct-click hop did not land for \(spec.name).")
             pet.idle()
+            if spec.id == "bunny" {
+                var hops:[CGImage]=[];pet.cuddle()
+                for step in [0.02,0.18,0.12,0.23,0.24,0.13,0.48] {renderer.advance(step);hops.append(try renderer.capture())}
+                try MotionChecks.writeGrid([(spec.name,hops)],columns:["Crouch","Takeoff","First hop","Landing","Second takeoff","Second hop","Rest"],to:directory.appendingPathComponent("bunny-click-hop.png"))
+                pet.idle()
+            }
             if spec.id == "knight-cat" {
                 try require(pet.hasNativeFilePoses && PetExpressionProfile.load(spec.directory)?.fullBody == true,"Knight Cat is missing full-body or catching resources.")
                 var hops:[CGImage]=[];pet.cuddle()

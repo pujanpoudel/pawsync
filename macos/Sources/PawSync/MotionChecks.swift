@@ -265,10 +265,27 @@ import UniformTypeIdentifiers
         try controller.loadPet("openpets-default")
         try require(controller.view.hitTest(CGPoint(x:140,y:136)) === controller.view,"The pet's opaque center did not receive view clicks.")
         try require(controller.view.hitTest(CGPoint(x:3,y:250)) == nil,"Transparent space intercepted background clicks.")
+        // Resolve the anchor after loading the user's selected scale; the
+        // initial panel was positioned before its size changed.
+        controller.reposition(resetPosition:true)
         let start=controller.window.frame.origin
         controller.wanderNow()
         RunLoop.main.run(until:Date().addingTimeInterval(1.2))
         try require(abs(controller.window.frame.minX-start.x) > 12,"The Walk control did not move the real overlay window.")
+        let typingPosition=controller.window.frame.origin
+        controller.typing()
+        controller.reposition(focusedPoint:CGPoint(x:controller.window.frame.midX,y:controller.window.frame.midY))
+        RunLoop.main.run(until:Date().addingTimeInterval(0.2))
+        try require(hypot(controller.window.frame.minX-typingPosition.x,controller.window.frame.minY-typingPosition.y)<0.01,"Typing or the same-display focus refresh sent the roaming pet home.")
+        let firstPaw=(controller.pet as? FramePetNode)?.lastTappedPaw
+        controller.typing()
+        try require((controller.pet as? FramePetNode)?.lastTappedPaw != firstPaw,"Typing at the roaming position did not alternate paw taps.")
+        controller.wanderNow();RunLoop.main.run(until:Date().addingTimeInterval(0.25))
+        let clickPosition=controller.window.frame.origin
+        controller.click(at:CGPoint(x:controller.window.frame.minX-20,y:controller.window.frame.midY))
+        controller.reposition(focusedPoint:CGPoint(x:controller.window.frame.midX,y:controller.window.frame.midY))
+        RunLoop.main.run(until:Date().addingTimeInterval(0.2))
+        try require(hypot(controller.window.frame.minX-clickPosition.x,controller.window.frame.minY-clickPosition.y)<0.01,"Clicking or the same-display focus refresh sent the roaming pet home.")
         let bottom=controller.window.frame.minY
         controller.jumpNow()
         RunLoop.main.run(until:Date().addingTimeInterval(0.5))
@@ -278,5 +295,7 @@ import UniformTypeIdentifiers
         RunLoop.main.run(until:Date().addingTimeInterval(0.7))
         try require(!controller.view.isPaused,"The real overlay paused before Knight Cat's second hop.")
         try require(controller.view.preferredFramesPerSecond == 60,"Knight Cat's interactive motion is not running at 60 FPS.")
+        controller.reposition(resetPosition:true)
+        try require(hypot(controller.window.frame.minX-start.x,controller.window.frame.minY-start.y)<0.01,"Reset Position did not restore the selected anchor.")
     }
 }

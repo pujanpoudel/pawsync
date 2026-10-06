@@ -163,6 +163,7 @@ import QuartzCore
     private var appObservers: [NSObjectProtocol] = []
     private var screen: NSScreen?
     private var freeOrigin: CGPoint?
+    private var roamingOrigin: CGPoint?
     private var settingsVisible = false
     private var wardrobeDragging = false
     private var hatDragGeneration = 0
@@ -270,13 +271,14 @@ import QuartzCore
         let mainTop = NSScreen.screens.first?.frame.maxY ?? 0
         return CGRect(x: rect.minX, y: mainTop - rect.maxY, width: rect.width, height: rect.height)
     }
-    func reposition(focusedPoint: CGPoint? = nil) {
+    func reposition(focusedPoint: CGPoint? = nil, resetPosition:Bool=false) {
         temporarilyHidden = shouldTemporarilyHide?() ?? false
         let front = frontWindowFrame()
         let point = focusedPoint ?? front.map { CGPoint(x: $0.midX, y: $0.midY) } ?? NSEvent.mouseLocation
         guard let focused = NSScreen.screens.first(where: { $0.frame.contains(point) }) ?? NSScreen.main else { return }
         stopWalking()
-        if screen !== focused { freeOrigin = nil }
+        if screen !== focused { freeOrigin = nil;roamingOrigin=nil }
+        if resetPosition {roamingOrigin=nil}
         screen = focused
         let visible = focused.visibleFrame
         let local = CGRect(origin: .zero, size: visible.size)
@@ -292,7 +294,10 @@ import QuartzCore
         }
         origin.x = max(0, min(local.width - width, origin.x)); origin.y = max(0, min(local.height - height, origin.y))
         // The transparent panel is only pet-sized, never a display-sized input shield.
-        window.setFrame(CGRect(x: visible.minX + origin.x, y: visible.minY + origin.y, width: width, height: height), display: false)
+        // App activation and Space changes refresh the overlay, but must not
+        // send a roaming pet home when the user clicks or starts typing.
+        let destination=roamingOrigin.map{Self.clampedOrigin($0,in:visible,size:scene.size)} ?? CGPoint(x:visible.minX+origin.x,y:visible.minY+origin.y)
+        window.setFrame(CGRect(origin:destination,size:scene.size), display: false)
         pet?.setRenderingSuspended(isHidden || screenSleeping || preferences.reactionsPaused)
         if isHidden { window.orderOut(nil); view.isPaused = true }
         else if !settingsVisible { window.orderFrontRegardless() }
@@ -302,6 +307,7 @@ import QuartzCore
     }
     func movePet(by delta: CGSize) {
         stopWalking(); preferences.movement = .stay
+        roamingOrigin=nil
         preferences.anchor = .free
         guard let visible = screen?.visibleFrame else { return }
         freeOrigin = CGPoint(x: max(0, min(visible.width - scene.size.width, window.frame.minX - visible.minX + delta.width)), y: max(0, min(visible.height - scene.size.height, window.frame.minY - visible.minY + delta.height)))
@@ -463,6 +469,7 @@ import QuartzCore
     func stopWalking() {
         movementGeneration += 1;travelTimer?.invalidate();travelTimer=nil
         guard walking else { return }
+        roamingOrigin=window.frame.origin
         animationDeadline=Date()
         walking = false; pet?.setWalking(false); restorePresentation?(); updatePassThrough()
         view.preferredFramesPerSecond=(pet as? FramePetNode)?.isKnightCat == true ? 60:pet is FramePetNode ? 30:60
@@ -488,7 +495,7 @@ import QuartzCore
                 let elapsed=ProcessInfo.processInfo.systemUptime-started
                 let raw=min(1,max(0,elapsed/duration)),t=CGFloat(jump ? (1-cos(raw * .pi))/2:raw),u=1-t
                 let point=jump ? CGPoint(x:u*u*start.x+2*u*t*control.x+t*t*target.x,y:u*u*start.y+2*u*t*control.y+t*t*target.y):CGPoint(x:start.x+(target.x-start.x)*t,y:start.y+(target.y-start.y)*t)
-                self.window.setFrameOrigin(point);self.updatePassThrough()
+                self.roamingOrigin=point;self.window.setFrameOrigin(point);self.updatePassThrough()
                 if raw>=1 {
                     timer.invalidate();self.travelTimer=nil;self.window.setFrameOrigin(target);self.walking=false
                     self.view.preferredFramesPerSecond=(self.pet as? FramePetNode)?.isKnightCat == true ? 60:self.pet is FramePetNode ? 30:60

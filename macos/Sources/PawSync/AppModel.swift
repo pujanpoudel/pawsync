@@ -298,7 +298,7 @@ import Combine
         resources.$sample.sink { [weak self] _ in DispatchQueue.main.async { self?.refreshHUD() } }.store(in:&subscriptions)
         presentation.$state.map(\.hideInApps).removeDuplicates().dropFirst().sink { [weak self] _ in DispatchQueue.main.async { self?.overlay.reposition() } }.store(in:&subscriptions)
         preferences.$anchor.dropFirst().sink { [weak self] _ in
-            DispatchQueue.main.async { self?.overlay.reposition() }
+            DispatchQueue.main.async { self?.overlay.reposition(resetPosition:true) }
         }.store(in: &subscriptions)
         preferences.$hidden.dropFirst().sink { [weak self] _ in
             DispatchQueue.main.async { self?.overlay.reposition() }
@@ -402,7 +402,7 @@ import Combine
         presentation.state.flipped[preferences.companion]=enabled
         preferences.mirrorDock=enabled;preferences.anchor = .dock
         if enabled {library.record("mirror")}
-        overlay.reposition()
+        overlay.reposition(resetPosition:true)
     }
     func canEquipAccessory(_ id: String) -> Bool {
         if id == "none" { return true }
@@ -472,7 +472,7 @@ import Combine
     @objc private func menuOpacity(_ item:NSMenuItem){if let text=item.representedObject as? String,let n=Double(text){preferences.petOpacity=n}}
     @objc private func menuClickThrough(){preferences.clickThrough.toggle();overlay.updatePassThrough()}
     @objc private func menuHideHour(){hideForHour()}
-    @objc private func menuResetPosition(){preferences.anchor = .dock;overlay.reposition()}
+    @objc private func menuResetPosition(){preferences.anchor = .dock;overlay.reposition(resetPosition:true)}
     @objc private func menuItemEditor(){settingsSection = .items;presentItemEditor=true;openSettings?()}
     @objc private func menuUpdates(){updates.check()}
     func confirmResetEverything(){
