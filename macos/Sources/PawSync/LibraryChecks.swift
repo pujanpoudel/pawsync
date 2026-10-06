@@ -14,6 +14,9 @@ import SpriteKit
         try require(FreeHat.all.count==228,"Expected 228 actual free vector items.")
         try require(FreeHat.all.filter{$0.track=="season2"}.count==108,"Season 2 does not have 108 items.")
         try require(Set(FreeHat.all.map(\.id)).count==FreeHat.all.count,"Duplicate item IDs.")
+        try require(SettingsSection.sidebar == [.gallery,.items,.achievements,.createPet,.wellness,.settings],"Redundant navigation returned to the sidebar.")
+        try require(PetStore.imports.filter{LibraryPetGroup.group(for:$0.id) == .openpets}.count == 6,"The original OpenPets companions are missing from their group.")
+        try require(LibraryProgress.track(for:"community-my-pet") == nil,"A personal import became locked behind an earned track.")
         try require(LibraryAchievement.all.count==30 && SecretPair.all.count==7,"Missing achievements or secrets.")
         try require(LibraryProgress.petUnlock("pawpaw-season2-opossum")==39,"Season 2 does not end at level 39.")
         try require(game.canSelect("knight-cat") && !game.canSelect("pawpaw-season2-opossum"),"New-install unlock gating is wrong.")
@@ -80,7 +83,7 @@ import SpriteKit
     private static func screens(directory:URL) throws {
         let model=AppModel();defer{model.stop()};model.onboarding=false
         // Do not click real user controls or alter their inventory during previews.
-        for section in [SettingsSection.gallery,.items,.achievements,.season2,.general,.activity] {
+        for section in [SettingsSection.gallery,.items,.achievements,.createPet,.wellness,.settings] {
             model.settingsSection=section
             let host=NSHostingView(rootView:SettingsView(model:model))
             let window=NSWindow(contentRect:CGRect(x:0,y:0,width:1060,height:780),styleMask:[.borderless],backing:.buffered,defer:false)

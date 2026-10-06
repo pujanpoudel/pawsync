@@ -160,6 +160,9 @@ MainActor.assumeIsolated {
         let deadline=Date().addingTimeInterval(10)
         while NSRunningApplication(processIdentifier:pid) != nil,Date()<deadline {Thread.sleep(forTimeInterval:0.15)}
         let launcher=Process();launcher.executableURL=URL(fileURLWithPath:"/usr/bin/open");launcher.arguments=["-n",Bundle.main.bundleURL.path];try? launcher.run();exit(0)
+    } else if let index=CommandLine.arguments.firstIndex(of:"--check-photo-pet"),CommandLine.arguments.indices.contains(index+1) {
+        do{try PhotoPetChecks.run(directory:URL(fileURLWithPath:CommandLine.arguments[index+1]))}
+        catch{fputs("Photo-pet check failed: \(error.localizedDescription)\n",stderr);exit(1)}
     } else if let index=CommandLine.arguments.firstIndex(of:"--check-library"),CommandLine.arguments.indices.contains(index+1) {
         do{try LibraryChecks.run(directory:URL(fileURLWithPath:CommandLine.arguments[index+1]))}
         catch{fputs("Library check failed: \(error.localizedDescription)\n",stderr);exit(1)}

@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-04",
+  "date": "2026-10-06",
   "source": "Local bundled manifests, measured face profiles and PetEmotion.swift; user-installed/custom pets excluded.",
   "totals": {
     "bundled_companions": 47,
@@ -687,7 +687,7 @@
     {
       "id": "surprised",
       "name": "Surprised",
-      "description": "Small dark bead eyes with warm highlights; brief boop/file receiving.",
+      "description": "Original illustrated eyes preserved, with a small brow lift; brief boop/file receiving.",
       "new": false
     },
     {
@@ -711,7 +711,7 @@
     {
       "id": "sleepy",
       "name": "Sleepy",
-      "description": "Closed relaxed eye arcs; idle/focus sleep.",
+      "description": "Closed relaxed eye arcs; explicit/focus sleep.",
       "new": false
     },
     {

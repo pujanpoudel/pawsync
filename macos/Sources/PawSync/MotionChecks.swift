@@ -10,7 +10,7 @@ import UniformTypeIdentifiers
         let renderer:SKRenderer
         let queue:any MTLCommandQueue
         let texture:any MTLTexture
-        let scene=SKScene(size:CGSize(width:260,height:260))
+        let scene=SKScene(size:CGSize(width:260,height:300))
         var time:TimeInterval=1
         init() throws {
             guard let device=MTLCreateSystemDefaultDevice(),let queue=device.makeCommandQueue() else { throw PawError.message("Metal is unavailable for the motion check.") }
@@ -18,7 +18,7 @@ import UniformTypeIdentifiers
             let descriptor=MTLTextureDescriptor.texture2DDescriptor(pixelFormat:.rgba8Unorm,width:260,height:260,mipmapped:false)
             descriptor.usage = .renderTarget; descriptor.storageMode = .shared
             guard let texture=device.makeTexture(descriptor:descriptor) else { throw PawError.message("Could not create a render target.") }
-            self.texture=texture; scene.backgroundColor=NSColor(calibratedRed:0.97,green:0.96,blue:0.99,alpha:1); renderer.scene=scene
+            self.texture=texture; scene.scaleMode = .aspectFit;scene.backgroundColor=NSColor(calibratedRed:0.97,green:0.96,blue:0.99,alpha:1); renderer.scene=scene
             renderer.update(atTime:time)
         }
         func advance(_ duration:TimeInterval) {

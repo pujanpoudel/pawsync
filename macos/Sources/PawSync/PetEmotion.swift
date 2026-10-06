@@ -50,7 +50,7 @@ struct PetExpressionProfile:Decodable {
                 let group=SKNode();group.position=CGPoint(x:(eye.point[0]-0.5)*192,y:(1-eye.point[1])*208);addChild(group)
                 let r=CGFloat(eye.radius)
                 let fur=NSColor(calibratedRed:eye.fur[0],green:eye.fur[1],blue:eye.fur[2],alpha:1)
-                if value != .focused {
+                if value != .focused && value != .surprised {
                     let cover=SKShapeNode(ellipseOf:CGSize(width:r*2.75,height:r*2.8));cover.fillColor=fur;cover.strokeColor = .clear;group.addChild(cover)
                 }
                 func line(_ from:CGPoint,_ to:CGPoint,_ control:CGPoint,width:CGFloat=1.7) {
@@ -63,10 +63,9 @@ struct PetExpressionProfile:Decodable {
                 case .sleepy,.shy,.cozy:
                     line(CGPoint(x:-r,y:0),CGPoint(x:r,y:0),CGPoint(x:0,y:-r*0.75))
                 case .surprised:
-                    // Keep the companion's soft, dark bead eyes when surprised.
-                    // Large white sclera made everyday clicks/file catches look alarmed.
-                    let pupil=SKShapeNode(ellipseOf:CGSize(width:r*1.65,height:r*2.05));pupil.fillColor=palette.ink;pupil.strokeColor = .clear;group.addChild(pupil)
-                    let glint=SKShapeNode(circleOfRadius:max(0.45,r*0.16));glint.position=CGPoint(x:-r*0.25,y:r*0.38);glint.fillColor=NSColor(calibratedRed:1,green:0.94,blue:0.83,alpha:0.8);glint.strokeColor = .clear;group.addChild(glint)
+                    // Preserve the illustrated eyes exactly. A light brow lift
+                    // reads as surprise without replacing irises or adding sclera.
+                    line(CGPoint(x:-r*0.7,y:r*1.9),CGPoint(x:r*0.7,y:r*1.9),CGPoint(x:0,y:r*2.3),width:1.1)
                 case .curious:
                     let pupil=SKShapeNode(ellipseOf:CGSize(width:r*1.8,height:r*2));pupil.fillColor=palette.ink;pupil.strokeColor = .clear;group.addChild(pupil)
                     line(CGPoint(x:-r,y:r*1.8),CGPoint(x:r,y:r*1.8),CGPoint(x:0,y:r*2.5),width:1.2)

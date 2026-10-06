@@ -106,8 +106,8 @@ import QuartzCore
 
 @MainActor final class OverlayController: NSObject {
     let window = DesktopOverlayWindow()
-    let view = PetInteractionView(frame: CGRect(x: 0, y: 0, width: 280, height: 260))
-    let scene = CompanionScene(size: CGSize(width: 280, height: 260))
+    let view = PetInteractionView(frame: CGRect(x: 0, y: 0, width: 280, height: 300))
+    let scene = CompanionScene(size: CGSize(width: 280, height: 300))
     private(set) var pet: (SKNode & CompanionAnimating)?
     let preferences: Preferences
     var showSettings: (() -> Void)?
@@ -148,7 +148,6 @@ import QuartzCore
     var focusSleeping = false { didSet { updateSleep() } }
     var careSleeping = false { didSet { if careSleeping != oldValue { updateSleep() } } }
     private var screenSleeping = false
-    private var idleSleeping = false
     private var menuSleeping = false
     var isMenuSleeping:Bool { menuSleeping }
     private var lastInput = Date()
@@ -179,7 +178,7 @@ import QuartzCore
     var isScreenSleeping: Bool { screenSleeping }
     var canRoam = true
 
-    static func clampedOrigin(_ point: CGPoint, in visible: CGRect, size: CGSize = CGSize(width: 280, height: 260)) -> CGPoint {
+    static func clampedOrigin(_ point: CGPoint, in visible: CGRect, size: CGSize = CGSize(width: 280, height: 300)) -> CGPoint {
         CGPoint(x: max(visible.minX, min(visible.maxX - size.width, point.x)), y: max(visible.minY, min(visible.maxY - size.height, point.y)))
     }
 
@@ -320,7 +319,7 @@ import QuartzCore
         if window.ignoresMouseEvents == hit { window.ignoresMouseEvents = !hit }
         let scenePoint = scene.convertPoint(fromView: viewPoint)
         let near = hypot(local.x-scene.size.width/2, local.y-scene.size.height*0.45) < 130
-        if currentReaction == .idle, near, !focusSleeping, !careSleeping, !idleSleeping, !preferences.reactionsPaused, canRoam {
+        if currentReaction == .idle, near, !focusSleeping, !careSleeping, !menuSleeping, !preferences.reactionsPaused, canRoam {
             if nearbySince == nil { nearbySince = Date() }
             if Date().timeIntervalSince(nearbySince!) > 0.6, Date() > nextCursorReaction {
                 nextCursorReaction = Date().addingTimeInterval(3)
@@ -361,7 +360,6 @@ import QuartzCore
     }
     private func didReceiveInput() {
         lastInput = Date()
-        if idleSleeping { idleSleeping = false; updateSleep() }
     }
     func reactToPetClick() {
         stopWalking(); stopDance(); interruptReaction(); didReceiveInput()
@@ -403,7 +401,9 @@ import QuartzCore
     func setScale(_ scale: Double) {
         stopWalking()
         let scale = max(0.4,min(1.8,scale))
-        let size = CGSize(width: 280*scale, height: 260*scale)
+        // Reserve transparent headroom for correctly sized hats and the click hop.
+        // The sprite's scale and 32-point ground position remain unchanged.
+        let size = CGSize(width: 280*scale, height: 300*scale)
         scene.size = size; view.frame = CGRect(origin: .zero, size: size)
         let visible = screen?.visibleFrame ?? window.frame
         let origin = Self.clampedOrigin(window.frame.origin, in: visible, size: size)
@@ -449,12 +449,12 @@ import QuartzCore
     }
     func wave() { stopWalking(); stopDance(); animate(for: 1.5); pet?.wave() }
     func jumpNow() {
-        guard !isHidden, !screenSleeping, !focusSleeping, !careSleeping, let visible = screen?.visibleFrame else { return }
+        guard !isHidden, !screenSleeping, !focusSleeping, !careSleeping, !menuSleeping, let visible = screen?.visibleFrame else { return }
         let target = Self.clampedOrigin(CGPoint(x: window.frame.minX + (window.frame.midX > visible.midX ? -140 : 140), y: window.frame.minY), in: visible, size: scene.size)
         travel(to: target, jump: true)
     }
     func wanderNow() {
-        guard !focusSleeping,!careSleeping,!isHidden,!screenSleeping else { return }
+        guard !focusSleeping,!careSleeping, !menuSleeping,!isHidden,!screenSleeping else { return }
         currentReaction = .idle; resumeReaction=false; statusLabel.text=nil
         pet?.removeAction(forKey:"mapped-reaction")
         nextWander = .distantPast; wanderIfNeeded(force: true)
@@ -499,7 +499,7 @@ import QuartzCore
     }
 
     private func wanderIfNeeded(force: Bool = false) {
-        guard currentReaction == .idle, canRoam, !walking, !dancing, !screenSleeping, (force || companionUIActive?() != true), (force || !settingsVisible), !isHidden, !focusSleeping, !careSleeping, !idleSleeping, !isInteracting, !preferences.reactionsPaused,
+        guard currentReaction == .idle, canRoam, !walking, !dancing, !screenSleeping, (force || companionUIActive?() != true), (force || !settingsVisible), !isHidden, !focusSleeping, !careSleeping, !menuSleeping, !isInteracting, !preferences.reactionsPaused,
               force || (preferences.movement != .stay && Date().timeIntervalSince(lastInput) > 3), Date() >= nextWander,
               let visible = screen?.visibleFrame else { return }
         var y = window.frame.minY
@@ -546,7 +546,6 @@ import QuartzCore
     func deliverReminder(_ item: PetReminder, completion: @escaping () -> Void) {
         stopDance(); stopWalking()
         guard !isHidden, !screenSleeping, let visible = screen?.visibleFrame else { completion(); return }
-        idleSleeping = false
         // Priority reminders temporarily wake the focus pet without ending the focus timer.
         pet?.setSleeping(false)
         let target = Self.clampedOrigin(CGPoint(x: visible.midX-scene.size.width/2, y: visible.minY), in: visible, size: scene.size)
@@ -570,7 +569,7 @@ import QuartzCore
     }
     func setMenuSleeping(_ value:Bool) { menuSleeping=value;updateSleep() }
     private func updateSleep() {
-        let asleep=focusSleeping || careSleeping || idleSleeping || menuSleeping
+        let asleep=focusSleeping || careSleeping || menuSleeping
         if asleep { stopWalking(); stopDance() }
         animate(for: 1); pet?.setSleeping(asleep); restorePresentation?()
     }
@@ -588,21 +587,22 @@ import QuartzCore
     }
     private func heartbeat() {
         guard !screenSleeping, !isHidden, !preferences.reactionsPaused else { stopWalking(); stopDance(); view.isPaused = true; return }
-        if Date().timeIntervalSince(lastInput) >= 15, !idleSleeping,!receivingFiles { idleSleeping = true; updateSleep() }
-        if currentReaction == .idle,!focusSleeping,!careSleeping,!idleSleeping,!dancing,!walking,!isInteracting {
+        // Inactivity leaves the companion awake so its authored idle and roaming
+        // animations can continue. Manual/focus sleep and display sleep are separate.
+        if currentReaction == .idle,!focusSleeping,!careSleeping, !menuSleeping,!dancing,!walking,!isInteracting {
             (pet as? FramePetNode)?.ambientBreath()
         }
-        if currentReaction == .idle, musicAudible, canRoam, !focusSleeping, !careSleeping, !idleSleeping, !isInteracting, Date().timeIntervalSince(lastInput) > 1.5 {
+        if currentReaction == .idle, musicAudible, canRoam, !focusSleeping, !careSleeping, !menuSleeping, !isInteracting, Date().timeIntervalSince(lastInput) > 1.5 {
             stopWalking()
             if !dancing { dancing = true; pet?.setDancing(true, beat: musicBeat) }
             animate(for: 1.2)
         }
-        if currentReaction.loops, !focusSleeping, !careSleeping, !idleSleeping, canRoam, !walking, !isInteracting {
+        if currentReaction.loops, !focusSleeping, !careSleeping, !menuSleeping, canRoam, !walking, !isInteracting {
             if resumeReaction, Date().timeIntervalSince(lastInput) > 1.5 { resumeReaction = false; playCurrentReaction() }
             if !(pet is FramePetNode) { animate(for:1.2) }
         }
         if Date() > animationDeadline { view.isPaused = true }
-        if !(pet is FramePetNode),currentReaction == .idle, !focusSleeping, !careSleeping, !idleSleeping, !dancing, !walking, canRoam, Date() > nextBreath {
+        if !(pet is FramePetNode),currentReaction == .idle, !focusSleeping, !careSleeping, !menuSleeping, !dancing, !walking, canRoam, Date() > nextBreath {
             nextBreath = Date().addingTimeInterval(15); animate(for: 2.4); pet?.idle()
         }
         if preferences.anchor == .activeWindow, preferences.movement == .stay { reposition() }

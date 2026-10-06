@@ -11,6 +11,7 @@ struct PetGalleryView: View {
     @ObservedObject var model: AppModel
     @ObservedObject var catalog: PetCatalogService
     @ObservedObject var preferences: Preferences
+    var showInstalled=true
     @GalleryState private var query = ""
     @GalleryState private var category = "all"
     @GalleryState private var originals = false
@@ -27,7 +28,7 @@ struct PetGalleryView: View {
         VStack(alignment:.leading,spacing:18) {
             GroupBox("More little friends") {
                 LazyVStack(alignment:.leading,spacing:12) {
-                    LazyVGrid(columns:[GridItem(.adaptive(minimum:140),spacing:12)],spacing:12) {
+                    if showInstalled { LazyVGrid(columns:[GridItem(.adaptive(minimum:140),spacing:12)],spacing:12) {
                         ForEach(catalog.installed) { pet in
                             VStack(spacing:9) {
                                 Button { preview = .installed(pet) } label: {
@@ -43,6 +44,7 @@ struct PetGalleryView: View {
                             }.padding(12).background(Color.purple.opacity(preferences.companion == pet.id ? 0.10 : 0.035),in:RoundedRectangle(cornerRadius:12))
                                 .onAppear { catalog.loadInstalledThumbnail(pet) }
                         }
+                    }
                     }
                     DisclosureGroup("Import your own pets") {
                         HStack { Button("ZIP or folder…") { catalog.chooseImport() }; Button("From Codex") { catalog.importCodexPets() } }.disabled(catalog.busyID != nil)

@@ -1,6 +1,6 @@
 # PawSync pet and expression report
 
-Snapshot: 4 October 2026. Source: bundled manifests, face profiles, authored pose resources and the native animation code. User-installed and cloud-generated custom pets are additional and are excluded from these fixed counts.
+Snapshot: 6 October 2026. Source: bundled manifests, face profiles, authored pose resources and the native animation code. User-installed and cloud-generated custom pets are additional and are excluded from these fixed counts.
 
 ## Inventory
 
@@ -72,11 +72,11 @@ Knight Cat uses the user-provided armored kitten reference, with silver armor, a
 
 - **Happy**: Smiling eye arcs and soft blush; ordinary positive reactions.
 - **Curious**: Two attentive open eyes with gently raised brows; cursor interest.
-- **Surprised**: Small dark bead eyes with warm highlights; brief boop/file receiving.
+- **Surprised**: Original illustrated eyes preserved, with a small brow lift; brief boop/file receiving.
 - **Affectionate**: Closed smiling eyes, blush and small hearts; petting and cuddles.
 - **Shy**: Lowered lids, blush and a slight lean; gentle ambient reaction.
 - **Sad**: Soft lowered eyes and a small tear; expression preview.
-- **Sleepy**: Closed relaxed eye arcs; idle/focus sleep.
+- **Sleepy**: Closed relaxed eye arcs; explicit/focus sleep.
 - **Excited**: Bright closed-eye smile and sparkles; rapid typing.
 - **Proud**: Smiling eyes, blush and sparkles; a successful file catch.
 - **Focused**: Retains the original eyes with subtle concentration brows; typing.
@@ -94,13 +94,13 @@ Knight Cat uses the user-provided armored kitten reference, with silver armor, a
 - Walking: a bounded on-screen move, with an alternating lower-limb/flipper gait on the full-body adaptations. Jumping remains a finite arced move.
 - Music: separate audio-triggered dance with the free built-in headphones.
 - Files: arms-open receive pose, cancellation back to rest/hold, proud catch and a subtle held note. References stay temporary and original filenames/locations remain unchanged.
-- Sleep and reminders: existing idle/focus sleep, screen-sleep render suspension and in-character reminder delivery remain available.
+- Sleep and reminders: explicit/focus sleep, screen-sleep render suspension and in-character reminder delivery remain available. Inactivity no longer sleeps or dims the companion.
 
 ## Corrected presentation
 
 Pudding the Capybara uses measured wide-set eye landmarks in the neutral, receive and hold artwork. Its nostrils are no longer used as expression anchors. Full-body adaptations have reviewed eye landmarks, including masks, side-facing eyes and asymmetric heads; the receive pose registers its facial landmarks against the reviewed neutral face.
 
-Both Cocoa the Bear and the Paw-Paw-derived Bear omit their desktop name/level caption. Pet names remain visible in Companion/Gallery, and level/XP remain in Settings → Advanced → Activity.
+Both Cocoa the Bear and the Paw-Paw-derived Bear omit their desktop name/level caption. Pet names remain visible in Companion/Gallery, and level/XP remain in Settings → Progress.
 
 All 31 adaptations now show complete bodies with feet, flippers or tails appropriate to the animal, rather than the website’s original half-body peeking silhouette. The original downloaded website references remain unchanged under `art/pawpaw-reference/`. The new four-pose sheets and exact built-in imagegen prompts are under `art/pawpaw-fullbody/` and `art/pawpaw-fullbody-sources.json`.
 

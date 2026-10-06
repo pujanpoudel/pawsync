@@ -122,6 +122,9 @@ enum PetStore {
     }
     static func preview(_ id: String) -> NSImage? {
         if let cached=previews.object(forKey:id as NSString) { return cached }
+        if UUID(uuidString:id) != nil,let image=NSImage(contentsOf:pets.appendingPathComponent(id).appendingPathComponent("preview.png")) {
+            previews.setObject(image,forKey:id as NSString,cost:220*220*4);return image
+        }
         if let spec=frameOriginal(id) ?? imports.first(where:{$0.id == id}),let data=try? Data(contentsOf:spec.directory.appendingPathComponent("spritesheet.webp"),options:.mappedIfSafe),let png=try? GalleryImageDecoder.render(data,sheet:true,rows:spec.rows,detail:true),let image=NSImage(data:png) {
             previews.setObject(image,forKey:id as NSString,cost:192*208*4); return image
         }

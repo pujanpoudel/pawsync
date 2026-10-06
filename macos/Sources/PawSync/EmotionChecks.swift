@@ -20,6 +20,10 @@ import UniformTypeIdentifiers
             if spec.source == "PawSync" || spec.origin == "Paw-Paw preview" {
                 try require(PetExpressionProfile.load(spec.directory) != nil,"Missing or invalid facial landmarks for \(spec.name).")
             }
+            if let profile=PetExpressionProfile.load(spec.directory) {
+                let face=PetExpressionNode(profile:profile,id:spec.id);face.show(.surprised)
+                try require(face.children.flatMap(\.children).compactMap{$0 as? SKShapeNode}.allSatisfy{$0.fillColor.alphaComponent == 0},"Surprise replaced the original eyes for \(spec.name).")
+            }
             if spec.origin == "Paw-Paw preview" {
                 try require(PetExpressionProfile.load(spec.directory)?.fullBody == true && pet.hasNativeFilePoses,"\(spec.name) still uses a partial-body preview or lacks authored catching poses.")
                 pet.face(-1);pet.setWalking(true);renderer.advance(0.3);pet.setWalking(false);pet.face(1)

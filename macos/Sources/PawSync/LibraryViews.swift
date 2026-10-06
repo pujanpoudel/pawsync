@@ -42,6 +42,16 @@ struct LibraryXPStrip:View {
         }.padding(17).background(LibraryStyle.purple.opacity(0.07),in:RoundedRectangle(cornerRadius:18))
     }
 }
+enum LibraryPetGroup:String,CaseIterable,Identifiable {
+    case openpets="OpenPets", originals="PawSync originals", animals="Animal friends", custom="Your creations & imports"
+    var id:String {rawValue}
+    static func group(for id:String)->Self {
+        if id.hasPrefix("openpets-"){return .openpets}
+        if id == "knight-cat" || PetStore.rigIDs.contains(id){return .originals}
+        if id.hasPrefix("pawpaw-"){return .animals}
+        return .custom
+    }
+}
 struct LibraryGalleryView:View {
     @ObservedObject var model:AppModel
     @ObservedObject var library:LibraryProgress
@@ -50,43 +60,52 @@ struct LibraryGalleryView:View {
     @LState private var search=""
     @LState private var favorites=false
     @LState private var preview:String?
+    private var names:[String:String] {PetStore.builtInNames.merging(Dictionary(uniqueKeysWithValues:model.custom.customPets.map{($0.id,$0.name)})){_,new in new}}
     private var ids:[String] {
-        (["knight-cat"]+PetStore.rigIDs+PetStore.imports.map(\.id).filter{$0 != "knight-cat"}).filter {id in
-            (track==nil || LibraryProgress.track(for:id)==track) && (!favorites || library.state.favoritePets.contains(id)) && (search.isEmpty || (PetStore.builtInNames[id] ?? id).localizedCaseInsensitiveContains(search))
+        (["knight-cat"]+PetStore.rigIDs+model.catalog.installed.map(\.id).filter{$0 != "knight-cat"}+model.custom.customPets.map(\.id)).filter {id in
+            (track==nil || LibraryProgress.track(for:id)==track) && (!favorites || library.state.favoritePets.contains(id)) && (search.isEmpty || (names[id] ?? id).localizedCaseInsensitiveContains(search))
         }
     }
     var body:some View {
         VStack(alignment:.leading,spacing:20) {
-            LibraryXPStrip(library:library,track:track)
             HStack {
                 HStack {Image(systemName:"magnifyingglass");TextField("Find a little friend",text:$search).textFieldStyle(.plain)}.padding(11).background(LibraryStyle.paper,in:Capsule()).overlay(Capsule().stroke(LibraryStyle.purple.opacity(0.12)))
                 Picker("Show companions",selection:$favorites) {Text("All").tag(false);Text("Favorites").tag(true)}.pickerStyle(.segmented).labelsHidden().frame(width:160)
             }
+            Text("Click a friend to bring them to your desktop. The ⓘ button opens their details.").font(.caption).foregroundStyle(LibraryStyle.muted)
             if ids.isEmpty {ContentUnavailableView("No little friends here yet",systemImage:"pawprint",description:Text("Try another name or add a favorite."))}
-            LazyVGrid(columns:[GridItem(.adaptive(minimum:145),spacing:13)],spacing:13) {
-                ForEach(ids,id:\.self) {id in
-                    let unlocked=library.canSelect(id),active=preferences.companion==id
-                    VStack(spacing:0) {
-                        ZStack(alignment:.topTrailing) {
-                            Button {preview=id} label: {
-                                Group {if let image=PetStore.preview(id){Image(nsImage:image).resizable().scaledToFit()}else{Image(systemName:"pawprint.fill").font(.largeTitle)}}
-                                    .frame(maxWidth:.infinity).frame(height:104).padding(.top,12).opacity(unlocked ? 1:0.3).contentShape(Rectangle())
-                            }.buttonStyle(.plain).accessibilityLabel("Preview \(PetStore.builtInNames[id] ?? id)")
-                            Button {library.favorite(id,pet:true)} label:{Image(systemName:library.state.favoritePets.contains(id) ? "star.fill":"star").font(.system(size:12)).padding(10)}.buttonStyle(.plain).foregroundStyle(LibraryStyle.purple).accessibilityLabel("Favorite \(PetStore.builtInNames[id] ?? id)")
-                        }
-                        VStack(alignment:.leading,spacing:6) {
-                            Text(PetStore.builtInNames[id] ?? id).font(.system(size:12,weight:.bold,design:.rounded)).lineLimit(1)
-                            HStack {Text(id=="knight-cat" ? "Our main companion":library.state.tracks.first{$0.id==LibraryProgress.track(for:id)}?.name ?? "OpenPets").font(.system(size:10)).foregroundStyle(LibraryStyle.muted);Spacer(minLength:0)}
-                            Button(active ? "Your buddy":unlocked ? "Keep me company":"Joins at LVL \(LibraryProgress.petUnlock(id))") {model.selectLibraryPet(id)}.font(.system(size:10,weight:.semibold,design:.rounded)).foregroundStyle(active ? LibraryStyle.purple:LibraryStyle.ink).disabled(!unlocked || active).buttonStyle(.plain).padding(.top,3).frame(maxWidth:.infinity,alignment:.leading)
-                        }.padding(12)
-                    }.background(LibraryStyle.paper,in:RoundedRectangle(cornerRadius:19)).overlay(RoundedRectangle(cornerRadius:19).stroke(active ? LibraryStyle.purple:LibraryStyle.purple.opacity(0.13),style:StrokeStyle(lineWidth:active ? 1.6:1,dash:unlocked ? []:[4,4])))
+            ForEach(LibraryPetGroup.allCases) {group in
+                let members=ids.filter{LibraryPetGroup.group(for:$0)==group}
+                if !members.isEmpty {
+                    HStack {Text(group.rawValue).font(.system(size:18,weight:.bold,design:.rounded));Text("\(members.count)").font(.caption).foregroundStyle(LibraryStyle.muted);Spacer()}
+                    LazyVGrid(columns:[GridItem(.adaptive(minimum:145),spacing:13)],spacing:13) {
+                        ForEach(members,id:\.self) {id in petCard(id)}
+                    }
                 }
             }
             Text("\(ids.count) companions · Stars keep your favorites close.").font(.caption).foregroundStyle(LibraryStyle.muted)
-            if track==nil {DisclosureGroup("Custom companions & imports") {PetGalleryView(model:model,catalog:model.catalog,preferences:preferences)}}
+            DisclosureGroup("Browse more OpenPets or import a pet") {PetGalleryView(model:model,catalog:model.catalog,preferences:preferences,showInstalled:false)}
         }.sheet(isPresented:Binding(get:{preview != nil},set:{if !$0 {preview=nil}})) {
             if let id=preview {PetPreviewSheet(model:model,library:library,preferences:preferences,id:id,onClose:{preview=nil})}
         }
+    }
+    private func petCard(_ id:String)->some View {
+        let unlocked=library.canSelect(id),active=preferences.companion==id,name=names[id] ?? id
+        return VStack(spacing:0) {
+            Button {model.selectLibraryPet(id)} label: {
+                VStack(alignment:.leading,spacing:7) {
+                    Group {if let image=PetStore.preview(id){Image(nsImage:image).resizable().scaledToFit()}else{Image(systemName:"pawprint.fill").font(.largeTitle)}}
+                        .frame(maxWidth:.infinity).frame(height:104).opacity(unlocked ? 1:0.4)
+                    Text(name).font(.system(size:12,weight:.bold,design:.rounded)).lineLimit(1)
+                    Text(active ? "Your buddy":unlocked ? "Click to choose":"Joins at LVL \(LibraryProgress.petUnlock(id))").font(.system(size:10,weight:.medium)).foregroundStyle(active ? LibraryStyle.purple:LibraryStyle.muted)
+                }.padding(12).frame(maxWidth:.infinity,alignment:.leading).contentShape(Rectangle())
+            }.buttonStyle(.plain).accessibilityLabel("Choose \(name)")
+            HStack {
+                Button {library.favorite(id,pet:true)} label:{Image(systemName:library.state.favoritePets.contains(id) ? "star.fill":"star").frame(width:28,height:26)}.accessibilityLabel("Favorite \(name)")
+                Spacer()
+                Button {preview=id} label:{Image(systemName:"info.circle").frame(width:28,height:26)}.accessibilityLabel("Details about \(name)").help("About this pet")
+            }.buttonStyle(.plain).foregroundStyle(LibraryStyle.purple).font(.system(size:13)).padding(.horizontal,7).padding(.bottom,6)
+        }.background(LibraryStyle.paper,in:RoundedRectangle(cornerRadius:19)).overlay(RoundedRectangle(cornerRadius:19).stroke(active ? LibraryStyle.purple:LibraryStyle.purple.opacity(0.13),style:StrokeStyle(lineWidth:active ? 1.6:1,dash:unlocked ? []:[4,4])))
     }
 }
 struct PetPreviewSheet:View {
@@ -97,7 +116,7 @@ struct PetPreviewSheet:View {
     var body:some View {
         VStack(spacing:18) {
             if let image=PetStore.preview(id){Image(nsImage:image).resizable().scaledToFit().frame(height:220)}
-            Text(PetStore.builtInNames[id] ?? id).font(.system(size:26,weight:.bold,design:.rounded))
+            Text(PetStore.builtInNames[id] ?? model.custom.customPets.first{$0.id==id}?.name ?? id).font(.system(size:26,weight:.bold,design:.rounded))
             Text(library.canSelect(id) ? "A friend for little wins and gentle breaks.":"Keep earning on this companion’s track. Joins at level \(LibraryProgress.petUnlock(id)).").foregroundStyle(LibraryStyle.muted).multilineTextAlignment(.center)
             HStack {Button("Keep me company"){model.selectLibraryPet(id);onClose()}.buttonStyle(CozyButton(prominent:true)).disabled(!library.canSelect(id));Button("Done",action:onClose).buttonStyle(CozyButton())}
             if library.canSelect(id) {HStack {Button("Cuddle"){model.selectLibraryPet(id);DispatchQueue.main.async{model.overlay.reactToPetClick()}};Button("Walk"){model.selectLibraryPet(id);model.library.record("walk");DispatchQueue.main.async{model.overlay.wanderNow()}};Button("Jump"){model.selectLibraryPet(id);model.library.record("jump");DispatchQueue.main.async{model.overlay.jumpNow()}}}.buttonStyle(CozyButton())}
@@ -137,8 +156,8 @@ struct LibraryItemsView:View {
                         ForEach(items) {hat in
                             let owned=wardrobe.ownedHats.contains(hat.id),active=preferences.accessory==hat.id && preferences.headAccessoriesVisible
                             VStack(alignment:.leading,spacing:7) {
-                                HStack {Spacer();Button {library.favorite(hat.id,pet:false)} label:{Image(systemName:library.state.favoriteHats.contains(hat.id) ? "star.fill":"star").font(.system(size:10))}.buttonStyle(.plain).accessibilityLabel("Favorite \(hat.name)")}
-                                Button {if owned {model.equipLibraryItem(hat.id)} else {previewItem=hat}} label:{
+                                HStack {Button {previewItem=hat} label:{Image(systemName:"info.circle").frame(width:24,height:24)}.buttonStyle(.plain).accessibilityLabel("Details about \(hat.name)");Spacer();Button {library.favorite(hat.id,pet:false)} label:{Image(systemName:library.state.favoriteHats.contains(hat.id) ? "star.fill":"star").font(.system(size:10))}.buttonStyle(.plain).accessibilityLabel("Favorite \(hat.name)")}
+                                Button {model.equipLibraryItem(hat.id)} label:{
                                     VStack(alignment:.leading,spacing:7) {
                                         Image(nsImage:WearablePreview.image(hat.id)).resizable().scaledToFit().frame(maxWidth:.infinity).frame(height:60).opacity(owned ? 1:0.78)
                                         Text(hat.name).font(.system(size:11,weight:.bold,design:.rounded)).lineLimit(2).frame(height:29,alignment:.topLeading)
@@ -158,8 +177,12 @@ struct LibraryItemsView:View {
             VStack(spacing:18) {
                 Text(item.name).font(.system(size:25,weight:.bold,design:.rounded))
                 ItemPetPreview(id:preferences.companion,sku:item.id,transform:HatTransform(),flipped:false).frame(width:280,height:260)
-                Text("A little gift to discover as you level up.").foregroundStyle(LibraryStyle.muted)
-                Button("Keep exploring"){previewItem=nil}.buttonStyle(CozyButton(prominent:true)).keyboardShortcut(.defaultAction)
+                Text("\(item.group) · \(item.rarity)").font(.caption).foregroundStyle(LibraryStyle.muted)
+                Text(wardrobe.ownedHats.contains(item.id) ? "Fits your current friend automatically. You can adjust the placement whenever you like.":"A little gift to discover as you level up.").foregroundStyle(LibraryStyle.muted).multilineTextAlignment(.center)
+                HStack {
+                    if wardrobe.ownedHats.contains(item.id) {Button("Wear it"){model.equipLibraryItem(item.id);previewItem=nil}.buttonStyle(CozyButton(prominent:true))}
+                    Button("Done"){previewItem=nil}.buttonStyle(CozyButton()).keyboardShortcut(.defaultAction)
+                }
             }.padding(30).background(LibraryStyle.cream).foregroundStyle(LibraryStyle.ink)
         }
     }
@@ -269,7 +292,7 @@ struct ItemEditorView:View {
 import SpriteKit
 struct ItemPetPreview:NSViewRepresentable {
     var id:String,sku:String,transform:HatTransform,flipped:Bool
-    func makeNSView(context:Context)->SKView {let v=SKView();v.allowsTransparency=true;v.preferredFramesPerSecond=30;let s=SKScene(size:CGSize(width:280,height:260));s.backgroundColor = .clear;s.scaleMode = .aspectFit;v.presentScene(s);return v}
+    func makeNSView(context:Context)->SKView {let v=SKView();v.allowsTransparency=true;v.preferredFramesPerSecond=30;let s=SKScene(size:CGSize(width:280,height:300));s.backgroundColor = .clear;s.scaleMode = .aspectFit;v.presentScene(s);return v}
     func updateNSView(_ v:SKView,context:Context) {
         guard let s=v.scene else{return}
         var node=s.children.first as? (SKNode & CompanionAnimating)

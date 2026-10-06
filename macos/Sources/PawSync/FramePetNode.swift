@@ -259,6 +259,11 @@ import SpriteKit
         let moods:[PetEmotion]=[.delighted,.playful,.affectionate,.cozy]
         let mood=moods[clickMood % moods.count];clickMood+=1
         neutral();if hasNativeFilePoses,heldCount>0 { showFilePose("hold") }
+        // Start the authored OpenPets hand-up clip before adding the hop: begin
+        // resets old actions, so doing this afterward would cancel the spring.
+        if profile == nil && !hasNativeFilePoses {
+            begin(PetFrameSequence(row:PetAnimation.waving.row,frames:PetAnimation.waving.frames,duration:0.61,iterations:2))
+        }
         animationState = .review;expression.show(mood)
         // Two kitten-like springy hops for direct affection, separate from ambient clicks
         // and the system-audio dance (which alone wears headphones).
@@ -368,7 +373,7 @@ import SpriteKit
     }
     func setSleeping(_ value:Bool) {
         guard value != sleeping else { return }; sleeping=value; travelling=false; stopFrames(); sprite.removeAllActions(); sprite.position = .zero; sprite.zRotation=0; sprite.setScale(1); updateFacing()
-        sleepLabel.isHidden = !value; sprite.alpha=value ? 0.85 : 1
+        sleepLabel.isHidden = !value; sprite.alpha=1
         neutral(); if value,profile != nil { show(row:0,column:5);expression.show(.sleepy) };if !value { idle() }; onNeedsRender?()
     }
     func celebrate() {
@@ -486,6 +491,25 @@ import SpriteKit
             if (-1...1).allSatisfy({dx in alpha.contains(x:ox+max(0,min(width-1,sampleX+dx)),y:oy+row)}) {return (1-CGFloat(row)/CGFloat(height))*208}
         };return nil
     }
+    private func foreheadWidth(at crown:CGPoint)->CGFloat? {
+        let pose=displayedFilePose.flatMap{filePoses[$0]}
+        let width=pose == nil ? Int(cell.width):192,height=pose == nil ? Int(cell.height):208
+        let ox=pose == nil ? currentColumn*width:0,oy=pose == nil ? currentRow*height:0
+        let alpha=pose?.mask ?? mask
+        let cx=max(0,min(width-1,Int((crown.x/192+0.5)*CGFloat(width))))
+        // Sample below tufts at several depths. A single row can measure a
+        // capybara's tiny hair tuft instead of the forehead underneath it.
+        var span:CGFloat=0
+        for depth:CGFloat in [10,18,24] {
+            let y=max(0,min(height-1,Int((1-(crown.y-depth)/208)*CGFloat(height))))
+            guard alpha.contains(x:ox+cx,y:oy+y) else{continue}
+            var left=cx,right=cx
+            while left>0 && alpha.contains(x:ox+left-1,y:oy+y){left-=1}
+            while right<width-1 && alpha.contains(x:ox+right+1,y:oy+y){right+=1}
+            span=max(span,CGFloat(right-left+1)*192/CGFloat(width))
+        }
+        return span>0 ? max(24,min(110,span)):nil
+    }
     private func updateAccessoryFit() {
         let fit=PetAccessoryFit.frame(id:petID,row:currentRow,column:currentColumn)
         let activeProfile=displayedFilePose.flatMap{filePoses[$0]?.profile} ?? frameProfile
@@ -529,7 +553,7 @@ import SpriteKit
                 let rest=PetAccessoryFit.frame(id:petID,row:0,column:0)
                 eyePoint=CGPoint(x:base.x+fit.crown.x-rest.crown.x,y:base.y+fit.crown.y-rest.crown.y)
             }
-            PetWearableFit.apply(node,id:accessorySKU,petID:petID,headScale:headScale,eyePoint:eyePoint,eyeDistance:eyeDistance,slot:accessories.position,transform:hatTransform)
+            PetWearableFit.apply(node,id:accessorySKU,petID:petID,headScale:headScale,eyePoint:eyePoint,eyeDistance:eyeDistance,slot:accessories.position,transform:hatTransform,foreheadWidth:foreheadWidth(at:accessories.position))
             node.isHidden=accessories.childNode(withName:"free-headphones") != nil
         }
         accessories.childNode(withName:"free-headphones")?.setScale(CGFloat(measuredFit ? activeProfile?.accessoryScale ?? Double(fit.scale):Double(fit.scale)))

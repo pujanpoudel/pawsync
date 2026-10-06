@@ -44,6 +44,7 @@ import Combine
     let api: APIClient
     let wallet: PetWalletService
     let custom: CustomPetService
+    let photoCreator=PhotoPetCreator()
     @Published var notice = ""
     @Published var revealedToken: String?
     @Published var onboarding: Bool
@@ -216,6 +217,10 @@ import Combine
             guard let self else { return }; self.library.record("pet");self.care.care("pet"); if !self.preferences.muted { self.playSound("meow") }
         }
         custom.onInstalled = { [weak self] id in self?.preferences.companion = id }
+        photoCreator.onInstalled = { [weak self] id in
+            self?.custom.reloadPets();self?.catalog.reloadInstalled()
+            self?.preferences.companion=id;self?.settingsSection = .gallery
+        }
         catalog.onInstalled = { [weak self] id in self?.preferences.companion = id }
         catalog.onRemoved = { [weak self] id in
             guard let self else { return }; if self.preferences.companion == id { self.preferences.companion = "openpets-default" }
@@ -361,15 +366,17 @@ import Combine
         care.select(id)
         updateCaption()
     }
-    func selectLibraryPet(_ id:String) {guard library.canSelect(id) else{return};preferences.companion=id}
+    func selectLibraryPet(_ id:String) {guard library.canSelect(id) else{notice="This friend joins at level \(LibraryProgress.petUnlock(id)). Keep earning to unlock them.";return};notice="";preferences.companion=id}
     func equipLibraryItem(_ id:String) {
-        guard canEquipAccessory(id) else{return}
+        guard canEquipAccessory(id) else{notice="This item is waiting in a future gift. Collected items can be worn right away.";return}
+        notice=""
         preferences.accessory=id;preferences.headAccessoriesVisible=id != "none"
     }
     func openAllGifts() {let ids=library.openAll();notice="Collected \(ids.count) little treasures. Find them in Items.";settingsSection = .items}
     func cheer(manual:Bool=false) {
         guard manual || library.state.automaticCheers && Date().timeIntervalSince(lastCheer)>180 else{return}
-        guard canDeliverCompanionMessage,!presentGifts else{return}
+        let canCheer=canUseApp && !overlay.isHidden && !overlay.isScreenSleeping && !overlay.focusSleeping && reminders.active == nil && !speech.isReminder
+        guard canCheer,(manual || !speech.isVisible),!presentGifts else{return}
         lastCheer=Date()
         let text=LibraryContent.lines.randomElement() ?? "I’m cheering for you, paws and all."
         _=speech.show(title:"A little cheer",text:text)
@@ -536,6 +543,7 @@ import Combine
     }
     func stop() {
         guard !shutdownComplete else{return};shutdownComplete=true
+        photoCreator.stop()
         library.stop();librarySync.stop();libraryToast.stop();cheerTimer?.invalidate();hiddenUntil?.cancel()
         fileInbox.empty()
         fileShelf.stop();hud.shutdown(); practices.stop(); daily.shutdown(); care.shutdown(); resources.shutdown(); countdown.shutdown()

@@ -173,7 +173,7 @@ final class SameOriginDelegate: NSObject, URLSessionTaskDelegate {
         let panel = NSOpenPanel(); panel.allowedContentTypes = [.jpeg, .png, .heic]; panel.allowsMultipleSelection = false
         if panel.runModal() == .OK, let url = panel.url { select(url) }
     }
-    private func validate(_ url: URL) throws -> Data {
+    func validate(_ url: URL) throws -> Data {
         let size = try url.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey])
         guard size.isRegularFile == true, (size.fileSize ?? 0) <= 15 * 1024 * 1024, (size.fileSize ?? 0) > 0 else { throw PawError.message("Choose an image smaller than 15 MB.") }
         let data = try Data(contentsOf: url)
@@ -187,6 +187,7 @@ final class SameOriginDelegate: NSObject, URLSessionTaskDelegate {
         }
         return data
     }
+    func reloadPets() {customPets=PetStore.customPets();PetStore.invalidateImports()}
     func generate() async {
         guard let url = selectedURL, !busy else { return }
         guard wallet.licensed, wallet.credits > 0 || canRetry else { error = "Restore your license and add generation credits to continue."; return }

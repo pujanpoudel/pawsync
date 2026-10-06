@@ -6,7 +6,7 @@ The native development build contains 47 frame companions: ten PawSync originals
 
 PawSync originals and the full-body reference adaptations have measured facial landmarks for happy, curious, surprised, affectionate, shy, sad, sleepy, excited, proud, focused, playful, delighted, cozy and grumpy expressions. The renderer preserves fur patterns and draws lids, pupils, blush and occasional hearts/sparkles over the real face. Existing OpenPets characters without measured facial landmarks keep their authored reaction frames, with limited accent overlays.
 
-Surprise and file receiving use gently enlarged dark bead eyes with tiny warm highlights, without white sclera rings, to keep everyday reactions soft rather than startled.
+Surprise and file receiving preserve the original illustrated eyes exactly, adding only a gentle brow lift. Paired blinking and closed-eye smiles retain their existing behavior.
 
 Typing alternates left/right paws; rapid typing adds enthusiasm. Ordinary mouse clicks cycle through short boop, curiosity, happy, shy and proud reactions. Petting shows affection. These are finite reactions, independent of the double-tap quick-action menu.
 
@@ -22,7 +22,7 @@ File poses use their own transparency masks and face/accessory anchors, so exten
 
 The pocket now keeps original file URLs in memory for the current app session. It never copies, renames, moves or deletes a dropped original. The exact filename, including Unicode and whitespace, remains unchanged. Successful outgoing drags release that entry; cancelled drags retain it. The visible Clear all button releases every reference without deleting any originals. The outgoing operation copies the original to the user's chosen destination rather than moving the source. Dismissal of a pocket removes its view; removing an entry only releases the reference. Quitting clears all references.
 
-Earlier builds stored UUID-prefixed copies under Application Support/PawSync/PetInbox. Those earlier copies are preserved and excluded from the new temporary pocket. If present, Advanced → Companion tools offers “Show earlier copies in Finder” for recovery. No automatic deletion or renaming of those files occurs.
+Earlier builds stored UUID-prefixed copies under Application Support/PawSync/PetInbox. Those earlier copies are preserved and excluded from the new temporary pocket. If present, Settings → Advanced → Companion tools offers “Show earlier copies in Finder” for recovery. No automatic deletion or renaming of those files occurs.
 
 ## Resources and archives
 

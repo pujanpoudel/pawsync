@@ -77,7 +77,7 @@ struct SecretPair:Identifiable {
     private var publish:DispatchWorkItem?,saveTimer:Timer?,coolWork:DispatchWorkItem?
     private var lastEvent:TimeInterval=0,lastHot:TimeInterval=0,rhythm=0
     var active:ProgressTrack { state.tracks.first{$0.id==state.activeTrack} ?? state.tracks[0] }
-    static func track(for pet:String)->String? { if let entry=LibraryContent.pets.first(where:{"community-"+$0.id==pet}),let collection=entry.collection{return collection};return pet.hasPrefix("pawpaw-season2-") ? "season2":pet.hasPrefix("pawpaw-") ? "season1":pet.hasPrefix("openpets-") ? nil:"originals" }
+    static func track(for pet:String)->String? { if let entry=LibraryContent.pets.first(where:{"community-"+$0.id==pet}),let collection=entry.collection{return collection};return pet.hasPrefix("pawpaw-season2-") ? "season2":pet.hasPrefix("pawpaw-") ? "season1":pet.hasPrefix("openpets-") || pet.hasPrefix("community-") ? nil:"originals" }
     static func petUnlock(_ pet:String)->Int {
         if let entry=LibraryContent.pets.first(where:{"community-"+$0.id==pet}) {return entry.unlockLevel ?? 1}
         if pet == "knight-cat" { return 1 }

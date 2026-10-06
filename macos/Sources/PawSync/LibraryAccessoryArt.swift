@@ -77,11 +77,11 @@ import SpriteKit
         let b=node.calculateAccumulatedFrame()
         node.userData=["artWidth":Double(b.width),"artBottom":Double(b.minY),"artTop":Double(b.maxY)]
     }
-    static func apply(_ node:SKNode,id:String,petID:String,headScale:CGFloat,eyePoint:CGPoint?,eyeDistance:CGFloat?,slot:CGPoint,transform:HatTransform) {
+    static func apply(_ node:SKNode,id:String,petID:String,headScale:CGFloat,eyePoint:CGPoint?,eyeDistance:CGFloat?,slot:CGPoint,transform:HatTransform,foreheadWidth:CGFloat?=nil) {
         let kind=FreeHat.all.first{$0.id==id}?.kind ?? (id == "free.bow" ? "bow":id == "free.beanie" ? "beanie":id == "free.crown" ? "crown":id == "accessory.hat" ? "hat":"perch")
         let width=node.userData?["artWidth"] as? Double ?? 65,bottom=node.userData?["artBottom"] as? Double ?? 0
-        let headWidth=max(24,70*headScale)
         let cap=["beanie","beret","hat"].contains(kind)
+        let headWidth=max(24,(cap || kind == "crown") ? foreheadWidth ?? 70*headScale:70*headScale)
         let ratio:CGFloat=kind == "bow" ? 0.48:cap ? 0.93:kind == "crown" ? 0.72:0.55
         var scale=headWidth*ratio/max(1,CGFloat(width)),offset=CGPoint.zero
         if id == "accessory.glasses",let eyePoint,let eyeDistance {
@@ -90,7 +90,11 @@ import SpriteKit
         } else {
             offset.y = -CGFloat(bottom)*scale*transform.scale-1.5*headScale
             if kind == "bow" { offset.x=headWidth*0.32;offset.y -= headWidth*0.17 }
-            if cap { offset.y -= 2*headScale }
+            // Hats embrace the forehead instead of sitting above the silhouette.
+            if cap { offset.y -= headWidth*0.12 }
+            // Robots and paperclip friends have very little forehead. Keep the
+            // lower brim above their optics instead of obscuring their eyes.
+            if cap,let eyePoint {offset.y=max(offset.y,eyePoint.y-slot.y+6*headScale-CGFloat(bottom)*scale*transform.scale)}
             if petID == "bunny",kind == "bow" {offset.y += headWidth*0.45}
         }
         node.position=CGPoint(x:offset.x+transform.x,y:offset.y+transform.y)

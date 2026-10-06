@@ -128,6 +128,7 @@ import SpriteKit
         motionMode=mode
     }
     private func blink(slow:Bool=false) {
+        guard UUID(uuidString:petID) == nil || eyeLocations != nil else{return}
         guard joints["head"]?.childNode(withName:"blink") == nil else { return }
         let node=closedEyes(); node.name="blink"; node.alpha=0; joints["head"]?.addChild(node)
         node.run(.sequence([.fadeIn(withDuration:slow ? 0.18 : 0.06),.wait(forDuration:slow ? 0.25 : 0.06),.fadeOut(withDuration:slow ? 0.3 : 0.10),.removeFromParent()]))
