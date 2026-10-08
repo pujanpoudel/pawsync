@@ -2,7 +2,7 @@ from __future__ import annotations
 import copy, hashlib, json, random, shutil, time, uuid
 from datetime import datetime
 from pathlib import Path
-from PySide6.QtCore import Qt, QSize, QUrl, Signal, QTimer
+from PySide6.QtCore import Qt, QSize, QUrl, Signal, QTimer, QSignalBlocker
 from PySide6.QtGui import QPixmap, QIcon, QDesktopServices
 from PySide6.QtWidgets import (QMainWindow,QWidget,QVBoxLayout,QHBoxLayout,QGridLayout,QLabel,QPushButton,QLineEdit,QListWidget,QListWidgetItem,QStackedWidget,QScrollArea,QFrame,QComboBox,QCheckBox,QSlider,QSpinBox,QDialog,QFormLayout,QDialogButtonBox,QMessageBox,QFileDialog,QTabWidget,QProgressBar,QDateTimeEdit,QGroupBox)
 from .assets import ASSETS, Pet
@@ -117,9 +117,9 @@ class Library(QMainWindow):
         for spec in self.c.content['items']:
             if self.item_search.text().lower() not in spec['name'].lower():continue
             if self.item_category.currentText()!='All categories' and self.item_category.currentText()!=spec.get('category','Other'):continue
-            if self.item_favorites.isChecked() and spec['id'] not in self.state.progress['favoriteHats']:continue
+            if self.item_favorites.isChecked() and spec['id'] not in (self.state.progress['favoriteHats']+self.state.value.get('paidFavoriteHats',[])):continue
             f=ClickCard();v=QVBoxLayout(f);v.setContentsMargins(9,10,9,9);image=QLabel();image.setAlignment(Qt.AlignCenter);image.setPixmap(QPixmap(str(ASSETS/spec['file'])).scaled(110,110,Qt.KeepAspectRatio,Qt.SmoothTransformation));v.addWidget(image);v.addWidget(label(spec['name'],13,True));owned=self.state.can_equip(spec['id'],self.c.backend.owned);v.addWidget(label('Wearing' if self.state.prefs['accessory']==spec['id'] else 'Click to wear' if owned else 'Paid pack' if spec.get('requiresSKU') else 'Earn in gifts',11))
-            row=QHBoxLayout();row.addWidget(button('★' if spec['id'] in self.state.progress['favoriteHats'] else '☆',lambda checked=False,s=spec:self.state.favorite(s['id'],False)));row.addStretch();row.addWidget(button('ⓘ',lambda checked=False,s=spec:info(self,s['name'],s.get('category','Other')+' · '+s.get('season','PawSync')+'\n'+('Owned' if self.state.can_equip(s['id'],self.c.backend.owned) else 'Keep earning gifts to unlock this item.'))));v.addLayout(row);f.activated.connect(lambda s=spec:self.equip(s['id']));self.item_grid.addWidget(f,index//5,index%5);index+=1
+            row=QHBoxLayout();row.addWidget(button('★' if spec['id'] in (self.state.progress['favoriteHats']+self.state.value.get('paidFavoriteHats',[])) else '☆',lambda checked=False,s=spec:self.state.favorite(s['id'],False)));row.addStretch();row.addWidget(button('ⓘ',lambda checked=False,s=spec:info(self,s['name'],s.get('category','Other')+' · '+s.get('season','PawSync')+'\n'+('Owned' if self.state.can_equip(s['id'],self.c.backend.owned) else 'Keep earning gifts to unlock this item.'))));v.addLayout(row);f.activated.connect(lambda s=spec:self.equip(s['id']));self.item_grid.addWidget(f,index//5,index%5);index+=1
         self.item_grid.setRowStretch(index//5+1,1);self.gift_button.setText(f"Open gifts ({len(self.state.progress['gifts'])})");self.gift_button.setEnabled(bool(self.state.progress['gifts']))
     def equip(self,id):
         if not self.state.can_equip(id,self.c.backend.owned):self.notify('This item has not been unlocked yet.');return
@@ -236,7 +236,7 @@ class Library(QMainWindow):
             except ValueError as e:error.setText(str(e))
         buttons.accepted.connect(save);dialog.exec()
     def make_settings(self):
-        tabs=QTabWidget();general=QWidget();g=QVBoxLayout(general);pet=self.catalog.by_id.get(self.state.prefs['companion'],self.catalog.pets[0]);self.rename_field=QLineEdit(self.state.name(pet));self.rename_field.setMaxLength(40);g.addWidget(label('Your companion’s name',17,True));g.addWidget(self.rename_field);g.addWidget(button('Save name',lambda:self.state.rename(self.c.pet.pet.id,self.rename_field.text(),self.c.pet.pet.name),True))
+        tabs=QTabWidget();general=QWidget();g=QVBoxLayout(general);pet=self.catalog.by_id.get(self.state.prefs['companion'],self.catalog.pets[0]);self.rename_field=QLineEdit(self.state.name(pet));self.rename_field.setMaxLength(40);self.rename_field.setProperty('petId',pet.id);g.addWidget(label('Your companion’s name',17,True));g.addWidget(self.rename_field);g.addWidget(button('Save name',lambda:self.state.rename(self.c.pet.pet.id,self.rename_field.text(),self.c.pet.pet.name),True))
         self.setting_controls={}
         def check(layout,title,key,fn=None):
             control=QCheckBox(title);control.setChecked(self.state.prefs[key]);control.toggled.connect(lambda value:self.guarded(lambda:(fn(value) if fn else None,self.state.set(key,value))));layout.addWidget(control);self.setting_controls[key]=control;return control
@@ -279,7 +279,13 @@ class Library(QMainWindow):
         elif index==4:self.populate_reminders()
         elif index==5:
             self.level_summary.setText('\n'.join(f"{t['name']} · Level {t['xp']//500+1} · {t['xp']%500}/500 XP" for t in self.state.progress['tracks']))
-            if not self.rename_field.hasFocus():self.rename_field.setText(self.state.name(pet))
+            if self.rename_field.property('petId')!=pet.id or not self.rename_field.hasFocus():self.rename_field.setText(self.state.name(pet));self.rename_field.setProperty('petId',pet.id)
+            for key,control in self.setting_controls.items():
+                blocker=QSignalBlocker(control)
+                if isinstance(control,QCheckBox):control.setChecked(self.state.prefs[key])
+                elif isinstance(control,QSlider):control.setValue(round(self.state.prefs[key]*100))
+                elif isinstance(control,QComboBox):control.setCurrentText(self.state.prefs[key])
+                del blocker
 
     def make_extra_tools(self,layout):
         self.extra_tool_cards={}

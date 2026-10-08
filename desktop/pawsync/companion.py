@@ -183,7 +183,8 @@ class Companion(QWidget):
             elif self.native_pose('receive') and self.art.profile:
                 self.pose='receive' if .14<=cycle<.52 else 'hold' if self.holding else None
             elif self.art.profile is None: self.column=int(elapsed/.15)%4
-        elif self.mode in ('Typing','Wave','Success','Failed'): self.column=int(elapsed/.14)% (5 if self.mode=='Success' else 4 if self.mode=='Wave' else 6)
+        elif self.mode=='Typing':self.column=(self.taps%2)+2*min(2,int(elapsed/.14))
+        elif self.mode in ('Wave','Success','Failed'): self.column=int(elapsed/.14)% (5 if self.mode=='Success' else 4 if self.mode=='Wave' else 6)
         if not self.travel and elapsed>=self.duration:
             if self.mode=='Dance' and self.dancing: self.started=now
             else: self.rest();self.frame_timer.stop()
@@ -196,6 +197,8 @@ class Companion(QWidget):
             phase=min(elapsed,1.4)%.61; lift=22*max(0,math.sin((phase-.14)/.38*math.pi)) if .14<=phase<=.52 else 0
             painter.translate(0,-lift);painter.translate(96,208);painter.scale(1,.95 if phase<.14 else 1.03 if lift else 1);painter.translate(-96,-208)
         elif self.mode=='Typing': painter.translate(0,math.sin(min(elapsed,.25)/.25*math.pi)*2)
+        elif self.mode=='Click':
+            pulse=math.sin(min(1,elapsed/self.duration)*math.pi);direction=-1 if QCursor.pos().x()<self.x()+self.width()/2 else 1;painter.translate(96,175);painter.rotate(direction*pulse*3);painter.scale(1+pulse*.015,1+pulse*.025);painter.translate(-96,-175)
         elif self.mode=='IdleBlink':
             phase=min(1,elapsed/.85);painter.translate(96,208);painter.scale(1,1-.025*math.sin(phase*math.pi));painter.translate(-96,-208)
         elif self.mode=='Dance': painter.translate(0,-abs(math.sin(elapsed*math.pi*4))*9)
