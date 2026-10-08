@@ -29,7 +29,7 @@ for _ in range(2):
     xtest.fake_input(sender,X.ButtonPress,1);xtest.fake_input(sender,X.ButtonRelease,1);sender.sync();wait(.07)
 wait(.15);assert c.quick.isVisible(),'Real desktop double-click did not open quick actions'
 # All six screens render with the same resources.
-c.library.show();wait(.2);out=Path('/workspace/build/linux-desktop-preview');out.mkdir(parents=True,exist_ok=True)
+c.library.show();wait(.2);out=Path(__file__).resolve().parents[1]/'build/linux-desktop-preview';out.mkdir(parents=True,exist_ok=True)
 for page in c.library.pages:c.library.open_page(page);wait(.15);c.library.grab().save(str(out/(page.replace(' ','-')+'.png')))
 print('PASS: external X11 keys/clicks, roaming freeze, shaped-window routing, double-click menu, six Library screens')
 sender.close();c.shutdown();outside.close();c.pet.close()

@@ -53,7 +53,7 @@ def transparent_part(source):
     image=source.convert('RGBA');width,height=image.size;px=image.load()
     # Remove only connected flat border matte; preserve white within eyes/fur.
     corner=px[0,0];queue=deque([(x,0) for x in range(width)]+[(x,height-1) for x in range(width)]+[(0,y) for y in range(height)]+[(width-1,y) for y in range(height)]);seen=set()
-    def matte(pixel): return pixel[3]<20 or sum(abs(pixel[c]-corner[c]) for c in range(3))<70
+    def matte(pixel): return pixel[3]<20 or (corner[3]>=20 and sum(abs(pixel[c]-corner[c]) for c in range(3))<70)
     while queue:
         x,y=queue.popleft()
         if (x,y) in seen: continue

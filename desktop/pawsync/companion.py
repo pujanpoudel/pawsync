@@ -38,7 +38,7 @@ class Artwork:
         return self.profile
     def paint(self,painter,row=0,column=0,pose=None,emotion=None,item=None,transform=None,blink=False,dance=False,tap=0):
         if self.pet.rig:
-            self.paint_rig(painter,tap,emotion,blink); profile=None
+            self.paint_rig(painter,tap,emotion,blink,pose); profile=None
         else:
             painter.drawImage(QRectF(0,0,192,208),self.frame(row,column,pose))
             profile=self.profile_for(row,column,pose)
@@ -46,6 +46,8 @@ class Artwork:
             if self.pet.id=='bunny' and row==4 or row in (1,2): profile=None
             self.face(painter,profile,'Cozy' if blink else emotion)
         crown=(96,38); sf=1.
+        if self.pet.rig:
+            head=self.pet.rig['parts']['head'];size=head.get('display_size',[150,125]);offset=head.get('parent_offset',[0,42]);crown=(96+offset[0],170-offset[1]-(1-head['anchor'][1])*size[1]+8);sf=size[0]/140
         if profile and (pose or profile.get('full_body')):
             crown=(profile['crown'][0]*192,profile['crown'][1]*208)
             sf=profile.get('accessory_scale',1)
@@ -68,14 +70,18 @@ class Artwork:
             painter.save();painter.translate(*crown);painter.setPen(QPen(PURPLE,5,Qt.SolidLine,Qt.RoundCap));painter.setBrush(Qt.NoBrush)
             path=QPainterPath(QPointF(-27,24));path.cubicTo(-27,-11,27,-11,27,24);painter.drawPath(path)
             painter.setBrush(PURPLE);painter.setPen(QPen(INK,1.5));painter.drawRoundedRect(QRectF(-34,17,12,23),5,5);painter.drawRoundedRect(QRectF(22,17,12,23),5,5);painter.restore()
-    def paint_rig(self,painter,tap,emotion,blink):
+    def paint_rig(self,painter,tap,emotion,blink,pose=None):
         parts=self.pet.rig['parts']; origin=QPointF(96,170)
         body=parts['body']; body_pos=origin
         for key in ['tail','body','head','left_paw','right_paw']:
             part=parts[key];size=part.get('display_size',{'body':[120,96],'head':[150,125],'left_paw':[32,40],'right_paw':[32,40],'tail':[70,45]}[key]);offset=part.get('parent_offset',[0,0]);anchor=part['anchor']
             x=body_pos.x()+offset[0];y=body_pos.y()-offset[1]
             painter.save();painter.translate(x,y)
-            if key in ('left_paw','right_paw') and tap: painter.rotate((1 if key=='left_paw' else -1)*tap*20)
+            if key in ('left_paw','right_paw'):
+                if pose in ('receive','hold'):painter.rotate((-1 if key=='left_paw' else 1)*(55 if pose=='receive' else 28))
+                elif tap:painter.rotate((1 if key=='left_paw' else -1)*tap*20)
+            elif key=='head' and emotion in ('Cozy','Affectionate','Delighted'):painter.rotate(4*math.sin(time.monotonic()*3))
+            elif key=='tail' and tap:painter.rotate(tap*12)
             image=self.parts[key];source=QRectF(*part['texture_rect']) if part.get('texture_rect') else QRectF(image.rect())
             painter.drawImage(QRectF(-anchor[0]*size[0],-(1-anchor[1])*size[1],*size),image,source);painter.restore()
     @staticmethod
@@ -160,7 +166,7 @@ class Companion(QWidget):
         elif kind=='Wave': self.row=3;self.duration=.9
         self.frame_timer.start();self.update_visual()
     def rest(self):
-        self.mode='Idle';self.row=0;self.column=6 if self.pet and self.pet.rows==11 else 0;self.pose='hold' if self.holding and self.native_pose('hold') else None;self.emotion=None
+        self.mode='Idle';self.row=0;self.column=6 if self.pet and self.pet.rows==11 else 0;self.pose='hold' if self.holding and (self.native_pose('hold') or self.pet.rig) else None;self.emotion=None
     def native_pose(self,pose): return self.pet and (RESOURCES/'FileInteractions'/self.pet.id/(pose+'.png')).exists()
     def advance(self,now=None):
         now=time.monotonic() if now is None else now
@@ -203,7 +209,7 @@ class Companion(QWidget):
         item=next((i for i in self.content['items'] if i['id']==self.state.prefs['accessory']),None) if self.state.prefs['headAccessoriesVisible'] else None
         if item and not self.state.can_equip(item['id'],self.owned):item=None
         transform=self.state.progress['placements'].get(self.pet.id+'::'+self.state.prefs['accessory'])
-        self.art.paint(painter,self.row,self.column,self.pose,'Sleepy' if self.sleeping else self.emotion,item,transform,dance=self.dancing and self.state.prefs['headAccessoriesVisible'],tap=math.sin(elapsed*18) if self.mode=='Typing' else 0)
+        self.art.paint(painter,self.row,self.column,self.pose,'Sleepy' if self.sleeping else self.emotion,item,transform,dance=self.dancing and self.state.prefs['headAccessoriesVisible'],tap=math.sin(elapsed*(18 if self.mode=='Typing' else 8)) if self.mode in ('Typing','Walk','Dance') else 0)
         if self.mode=='Failed':
             painter.setPen(QPen(INK,2));painter.setBrush(QColor('#d8af80'));painter.drawRoundedRect(QRectF(34,145,124,58),8,8);painter.drawLine(96,146,96,160)
         if self.sleeping: painter.setPen(PURPLE);painter.drawText(QPointF(145,36),'z z')
@@ -269,7 +275,7 @@ class Companion(QWidget):
         super().enterEvent(event)
     def dragEnterEvent(self,event):
         if event.mimeData().hasUrls() and all(u.isLocalFile() for u in event.mimeData().urls()):
-            self.stop_travel();self.receiving=True;self.pose='receive' if self.native_pose('receive') else None;self.emotion='Happy';self.update_visual();event.acceptProposedAction()
+            self.stop_travel();self.receiving=True;self.pose='receive' if self.native_pose('receive') or self.pet.rig else None;self.emotion='Happy';self.update_visual();event.acceptProposedAction()
     def dragLeaveEvent(self,event): self.receiving=False;self.rest();self.update_visual()
     def dropEvent(self,event):
         urls=[u.toLocalFile() for u in event.mimeData().urls() if u.isLocalFile()];self.receiving=False;self.dropped.emit(urls);self.rest();self.update_visual();event.acceptProposedAction()

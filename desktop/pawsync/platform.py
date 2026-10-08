@@ -36,7 +36,16 @@ def foreground_rect():
         window=user.GetForegroundWindow(); pid=w.DWORD(); user.GetWindowThreadProcessId(window,ctypes.byref(pid))
         if pid.value==os.getpid(): return None
         rect=w.RECT()
-        if user.GetWindowRect(window,ctypes.byref(rect)): return (rect.left,rect.top,rect.right-rect.left,rect.bottom-rect.top)
+        if user.GetWindowRect(window,ctypes.byref(rect)):
+            class MONITORINFOEX(ctypes.Structure):_fields_=[('cbSize',w.DWORD),('rcMonitor',w.RECT),('rcWork',w.RECT),('dwFlags',w.DWORD),('szDevice',w.WCHAR*32)]
+            user.MonitorFromWindow.argtypes=[w.HWND,w.DWORD];user.MonitorFromWindow.restype=w.HANDLE;user.GetMonitorInfoW.argtypes=[w.HANDLE,ctypes.POINTER(MONITORINFOEX)]
+            monitor=MONITORINFOEX();monitor.cbSize=ctypes.sizeof(monitor)
+            if user.GetMonitorInfoW(user.MonitorFromWindow(window,2),ctypes.byref(monitor)):
+                screen=next((s for s in QApplication.screens() if s.name()==monitor.szDevice),None)
+                if screen:
+                    ratio=screen.devicePixelRatio();geometry=screen.geometry()
+                    return (round(geometry.x()+(rect.left-monitor.rcMonitor.left)/ratio),round(geometry.y()+(rect.top-monitor.rcMonitor.top)/ratio),round((rect.right-rect.left)/ratio),round((rect.bottom-rect.top)/ratio))
+            return (rect.left,rect.top,rect.right-rect.left,rect.bottom-rect.top)
     elif sys.platform.startswith('linux') and os.environ.get('DISPLAY'):
         try:
             from Xlib import display
