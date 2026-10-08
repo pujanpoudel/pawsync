@@ -19,11 +19,12 @@ from .integrations import Loopback, Music
 from .popups import FilePocket, Speech, QuickActions
 from .jobs import launch
 from .ui import Library
+from .tools import Tools
 
 class Controller(QObject):
     def __init__(self,app):
-        super().__init__();self.app=app;self.content=json.loads((ASSETS/'content.json').read_text());self.state=State(self.content);self.catalog=Catalog(self.state.root);self.vault=Vault();self.backend=Backend(self.vault);self.input=InputMonitor();self.hooks=Loopback(self.vault);self.music=Music();self.pet=Companion(self.state,self.catalog,self.content)
-        self.pocket=FilePocket(self.pet);self.speech=Speech(self.pet);self.quick=QuickActions(self.pet,[('Chat ♡',self.chat),('Files',self.pocket.reveal),('Reminder',lambda:self.library.edit_reminder()),('Focus',self.start_focus),('Library',lambda:self.library.open_page('Pets'))]);self.library=Library(self)
+        super().__init__();self.closed=False;self.app=app;self.content=json.loads((ASSETS/'content.json').read_text());self.state=State(self.content);self.catalog=Catalog(self.state.root);self.tools=Tools(self.state,self.content);self.vault=Vault();self.backend=Backend(self.vault);self.input=InputMonitor();self.hooks=Loopback(self.vault);self.music=Music();self.pet=Companion(self.state,self.catalog,self.content)
+        self.pocket=FilePocket(self.pet);self.speech=Speech(self.pet);self.quick=QuickActions(self.pet,[('Chat ♡',self.chat),('Files',self.pocket.reveal),('Reminder',lambda:self.library.edit_reminder()),('Focus',self.start_focus),('Library',lambda:self.library.open_page('Pets'))]);self.library=Library(self);self.tools.said.connect(self.say)
         self.input.typing.connect(lambda:self.activity('Typing'));self.input.click.connect(lambda:self.activity('Click'))
         self.pet.double_tapped.connect(self.quick.reveal);self.pet.clicked.connect(self.cuddle);self.pet.petted.connect(lambda:self.state.record('pet'));self.pet.dropped.connect(self.catch);self.pet.pocket_requested.connect(self.pocket.reveal);self.pocket.count_changed.connect(self.holding)
         self.speech.snoozed.connect(self.state.snooze);self.speech.chat_sent.connect(self.respond);self.state.toast.connect(lambda title,detail:self.say(title+' ♡','Happy'))
@@ -48,7 +49,7 @@ class Controller(QObject):
         mute=self.menu.addAction('Mute');mute.setCheckable(True);mute.setChecked(self.state.prefs['muted']);mute.triggered.connect(lambda value:self.state.set('muted',value));hidden=self.menu.addAction('Hide pet');hidden.setCheckable(True);hidden.setChecked(self.state.prefs['hidden']);hidden.triggered.connect(self.hide_pet)
         self.menu.addAction('Hide for 1 hour',self.hide_hour);self.menu.addAction('Start Pomodoro',self.start_focus);self.menu.addAction('Reminders',lambda:self.library.open_page('Wellness'));self.menu.addAction('Reset position',lambda:self.pet.reanchor(True));self.menu.addAction('Check for updates…',self.check_updates);self.menu.addSeparator();self.menu.addAction('Quit',self.app.quit)
     def enable_input(self):
-        if self.backend.licensed:self.input.start()
+        if not self.closed and self.backend.licensed:self.input.start()
     def activity(self,kind):
         if not self.backend.licensed:return
         self.state.input();self.pet.react(kind)
@@ -56,6 +57,7 @@ class Controller(QObject):
         if self.current_reminder:self.speech.hide();self.current_reminder=None;return
         self.state.record('hello');self.say(random.choice(self.content['lines']),'Cuddle')
     def say(self,message,emotion='Happy'):
+        if self.closed:return
         if not self.state.prefs['hidden']:self.pet.react(emotion);self.speech.say(message)
     def chat(self):self.pet.stop_travel();self.speech.say('Hi, little friend! I’m listening ♡',chat=True)
     def respond(self,text):
@@ -72,7 +74,8 @@ class Controller(QObject):
         self.focus_end=time.time()+25*60;self.break_end=0;self.pet.stop_travel();self.pet.sleeping=True;self.pet.frame_timer.stop();self.pet.rest();self.pet.update_visual();self.state.value['focus']={'ends':self.focus_end};self.state.save();self.library.open_page('Wellness')
     def stop_focus(self):self.focus_end=0;self.break_end=0;self.pet.sleeping=False;self.pet.rest();self.pet.update_visual();self.state.value['focus']={};self.state.save()
     def tick(self):
-        now=time.time()
+        now=time.time();self.tools.tick(bool(self.focus_end))
+        if hasattr(self.library,'timer_readout'):self.library.timer_readout.setText(self.tools.timer_text())
         if self.focus_end and now>=self.focus_end:
             self.focus_end=0;self.break_end=now+300;self.pet.sleeping=False;self.state.record('focus');self.state.value['focus']={};self.say('A lovely little focus session! Time for a gentle break ♡','Success');self.chime()
         if self.break_end and now>=self.break_end:self.break_end=0;self.say('Ready for another little step? ♡')
@@ -133,6 +136,7 @@ class Controller(QObject):
         try:self.vault.put('license','');self.backend.licensed=self.backend.config.get('environment')=='development';self.backend.owned=[];self.backend.credits=None;self.enforce_license();self.library.wallet_status.setText('Signed out')
         except ValueError as error:self.library.notify(str(error))
     def enforce_license(self):
+        self.pet.owned=self.backend.owned
         if not self.backend.licensed:self.pet.hide();self.input.stop();self.music.stop();self.hooks.stop();self.library.notify('Restore your purchase to unlock your companion.')
         else:self.pet.refresh()
     def start_background(self):
@@ -151,6 +155,8 @@ class Controller(QObject):
     def flush(self):
         if self.state.dirty:self.state.save()
     def shutdown(self):
+        if self.closed:return
+        self.closed=True;self.timer.stop();self.save_timer.stop();self.pet.heartbeat.stop();self.pet.frame_timer.stop()
         self.input.stop();self.music.stop();self.hooks.stop();self.sleep.stop();self.state.save();self.tray.hide();self.pocket.clear()
 
 

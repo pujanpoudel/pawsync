@@ -8,9 +8,10 @@ class InputMonitor(QObject):
     typing=Signal(); click=Signal(); status_changed=Signal(str)
     def __init__(self):
         super().__init__(); self.running=False; self.status='Reactions inside PawSync are available.'; self.thread=None
-        self.context=None; self.display=None; self.process=None; self.thread_id=None
+        self.context=None; self.display=None; self.process=None; self.thread_id=None;self.stop_event=threading.Event()
     def start(self):
         if self.running: return
+        self.stop_event.clear()
         if sys.platform=='win32': self.thread=threading.Thread(target=self._windows,daemon=True)
         elif sys.platform.startswith('linux') and os.environ.get('XDG_SESSION_TYPE')!='wayland': self.thread=threading.Thread(target=self._x11,daemon=True)
         else:
@@ -68,6 +69,7 @@ class InputMonitor(QObject):
             module=kernel.GetModuleHandleW(None)
             hooks=[user.SetWindowsHookExW(13,keyboard,module,0),user.SetWindowsHookExW(14,mouse,module,0)]
             if not all(hooks): raise RuntimeError('Input hook unavailable')
+            if self.stop_event.is_set():return
             self.running=True; self._status('Global typing and clicks are active (Windows).')
             message=w.MSG()
             while user.GetMessageW(c.byref(message),None,0,0)>0:
@@ -95,6 +97,7 @@ class InputMonitor(QObject):
         process.start()
     def _helper_stopped(self): self.process=None; self.running=False; self._status('Input helper stopped. Reactions inside PawSync still work.')
     def stop(self):
+        self.stop_event.set()
         if self.process: self.process.terminate(); self.process.waitForFinished(1000); self.process=None
         if self.display and self.context:
             try: self.display.record_disable_context(self.context); self.display.flush()

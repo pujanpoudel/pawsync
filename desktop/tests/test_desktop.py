@@ -36,7 +36,7 @@ def test_file_pocket_original_name_no_copy_and_drag_urls(qtbot,state,catalog,con
 def test_pet_accepts_file_drag_and_drop(qtbot,state,catalog,content,tmp_path):
     pet=Companion(state,catalog,content);qtbot.addWidget(pet);source=tmp_path/'a.txt';source.write_text('a');mime=QMimeData();mime.setUrls([QUrl.fromLocalFile(str(source))]);spy=QSignalSpy(pet.dropped)
     enter=QDragEnterEvent(QPoint(140,180),Qt.CopyAction,mime,Qt.LeftButton,Qt.NoModifier);pet.dragEnterEvent(enter);assert enter.isAccepted() and pet.receiving
-    drop=QDropEvent(QPoint(140,180),Qt.CopyAction,mime,Qt.LeftButton,Qt.NoModifier);pet.dropEvent(drop);assert spy.count()==1 and spy.at(0)[0]==[str(source)]
+    drop=QDropEvent(QPoint(140,180),Qt.CopyAction,mime,Qt.LeftButton,Qt.NoModifier);pet.dropEvent(drop);assert spy.count()==1 and [Path(v) for v in spy.at(0)[0]]==[source]
 
 def test_idle_never_sleeps_or_dims_and_hidden_pauses(qtbot,state,catalog,content):
     state.set('movement','Stay');pet=Companion(state,catalog,content);qtbot.addWidget(pet);pet.last_activity=0;pet.idle_tick()

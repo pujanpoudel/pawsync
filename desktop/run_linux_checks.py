@@ -13,7 +13,7 @@ try:
     wm=subprocess.Popen(['openbox'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
     subprocess.run([sys.executable,'-m','pytest','desktop/tests','-q'],check=True)
     subprocess.run([sys.executable,'desktop/test_linux_runtime.py'],check=True)
-    subprocess.run(['desktop/dist/PawSync/PawSync','--smoke-test'],check=True,timeout=30)
+    if '--source-only' not in sys.argv:subprocess.run(['desktop/dist/PawSync/PawSync','--smoke-test'],check=True,timeout=30)
 finally:
     if wm:wm.terminate();wm.wait(timeout=5)
     xvfb.terminate();xvfb.wait(timeout=5)

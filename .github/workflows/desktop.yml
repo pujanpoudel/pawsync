@@ -28,6 +28,14 @@ jobs:
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libxkbcommon-x11-0 libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-shape0 libxcb-xinerama0 libxcb-randr0 libxcb-xfixes0 libxcb-sync1 libxcb-util1 libxcb-xkb1 libpulse0 xvfb xauth openbox xdotool dbus-x11
       - run: uv run --project desktop python -m pytest desktop/tests -q
+      - name: Windows global input adapter
+        if: runner.os == 'Windows'
+        env:
+          PAWSYNC_TEST_GLOBAL_INPUT: '1'
+        run: uv run --project desktop python -m pytest desktop/tests/test_platform_input.py -q
+      - name: Linux real desktop interactions
+        if: runner.os == 'Linux'
+        run: QT_QPA_PLATFORM=xcb uv run --project desktop python desktop/run_linux_checks.py --source-only
       - run: uv run --project desktop python scripts/build_desktop.py
       - name: Linux packaged launch
         if: runner.os == 'Linux'

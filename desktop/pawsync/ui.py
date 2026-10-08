@@ -71,7 +71,7 @@ class Library(QMainWindow):
     def add_page(self,widget): self.stack.addWidget(widget)
     def make_pets(self):
         widget=QWidget();layout=QVBoxLayout(widget);row=QHBoxLayout();self.pet_search=QLineEdit();self.pet_search.setPlaceholderText('Find a friend');self.pet_group=QComboBox();self.pet_group.addItems(['All pets','OpenPets','PawSync originals','Animal friends','Your creations & imports']);self.pet_favorites=QCheckBox('Favorites');row.addWidget(self.pet_search);row.addWidget(self.pet_group);row.addWidget(self.pet_favorites);layout.addLayout(row)
-        self.pet_grid_widget=QWidget();self.pet_grid=QGridLayout(self.pet_grid_widget);self.pet_grid.setSpacing(14);layout.addWidget(scroll(self.pet_grid_widget));layout.addWidget(button('Import an OpenPets ZIP',self.import_pet));self.add_page(widget)
+        self.pet_grid_widget=QWidget();self.pet_grid=QGridLayout(self.pet_grid_widget);self.pet_grid.setSpacing(14);layout.addWidget(scroll(self.pet_grid_widget));imports=QHBoxLayout();imports.addWidget(button('Import ZIP',self.import_pet));imports.addWidget(button('Import folder',self.import_folder));imports.addWidget(button('From Codex',self.import_codex));layout.addLayout(imports);self.add_page(widget)
         for signal in (self.pet_search.textChanged,self.pet_group.currentTextChanged,self.pet_favorites.toggled): signal.connect(self.populate_pets)
         self.populate_pets()
     def clear_layout(self,layout):
@@ -203,7 +203,7 @@ class Library(QMainWindow):
         v.addWidget(label('Reminders',20,True));v.addLayout(presets);v.addWidget(button('Add a reminder',self.edit_reminder));self.reminder_widget=QWidget();self.reminder_layout=QVBoxLayout(self.reminder_widget);v.addWidget(self.reminder_widget)
         tools,tv=card();tv.addWidget(label('Little ways to reset',18,True));row=QHBoxLayout()
         for title,fn in [('Breathe',lambda:self.c.say('Breathe in for 4… hold for 4… breathe out for 6. You’re doing okay ♡','Cozy')),('Fortune',lambda:self.c.say(random.choice(['A small step today becomes a lovely path tomorrow.','A kind pause can change the whole afternoon.']),'Happy')),('Magic 8 ball',lambda:self.c.say(random.choice(['All paws point to yes!','Take a little pause and ask again.','Trust your tiny next step.']),'Curious'))]:row.addWidget(button(title,fn))
-        tv.addLayout(row);mood=QComboBox();mood.addItems(['How are you feeling?','Happy','Okay','Tired','Anxious']);mood.currentTextChanged.connect(lambda value:self.log_mood(value));tv.addWidget(mood);v.addWidget(tools);v.addStretch();self.add_page(scroll(widget));self.populate_reminders()
+        tv.addLayout(row);mood=QComboBox();mood.addItems(['How are you feeling?','Happy','Okay','Tired','Anxious']);mood.currentTextChanged.connect(lambda value:self.log_mood(value));tv.addWidget(mood);v.addWidget(tools);v.addStretch();self.add_page(scroll(widget));self.populate_reminders();self.make_extra_tools(v);self.c.tools.changed.connect(self.refresh_tools)
     def log_mood(self,value):
         if value=='How are you feeling?':return
         self.state.value['moods'][datetime.now().strftime('%Y-%m-%d')]=value;self.state.record('mood');self.state.save();self.c.say('I’m here with you. Let’s take this day one little step at a time ♡','Affectionate')
@@ -245,7 +245,10 @@ class Library(QMainWindow):
         advanced=QWidget();ad=QVBoxLayout(advanced);ad.addWidget(label('Privacy & connections',20,True));self.input_status=label(self.c.input.status);ad.addWidget(self.input_status);self.c.input.status_changed.connect(self.input_status.setText);ad.addWidget(button('Enable global typing / clicks',self.c.enable_input));ad.addWidget(button('Stop global input',self.c.input.stop));ad.addWidget(button('Enable Linux input helper (Wayland)',self.c.input.enable_helper));ad.addWidget(label('Input monitors use event occurrences only. No key codes, typed text or audio are logged. Linux helper authorization is separate and optional.'))
         check(ad,'Dance to system audio (processed in memory only)','music',self.c.set_music);check(ad,'Traverse frontmost window edges','edgeTraversal');check(ad,'Local developer hooks · 127.0.0.1:9876','integrations',self.c.set_integrations);ad.addWidget(button('Regenerate hook token',self.c.regenerate_token));ad.addWidget(button('Copy integration template',self.c.copy_template));slider(ad,'Opacity (never changes automatically)','opacity',30,100,100);check(ad,'Click-through companion','clickThrough');tests=QHBoxLayout();tests.addWidget(button('Typing',lambda:self.c.pet.react('Typing')));tests.addWidget(button('Click',lambda:self.c.pet.react('Cuddle')));tests.addWidget(button('Walk',self.c.pet.roam));tests.addWidget(button('Jump',lambda:self.c.pet.roam(True)));ad.addLayout(tests)
         ad.addWidget(label('Available native integration modules',17,True))
-        for feature in self.c.content.get('features',[]):ad.addWidget(label(feature['name']+(' · local companion tools' if feature['enabled'] else ' · not enabled in this release'),12))
+        for feature in self.c.content.get('features',[]):
+            if feature['phase']==2:
+                control=QCheckBox(feature['name']);control.setChecked(self.c.tools.enabled(feature['id']));control.toggled.connect(lambda value,id=feature['id']:self.c.tools.enable(id,value));ad.addWidget(control)
+            else:ad.addWidget(label(feature['name']+' · connected feature not enabled in this release',12))
         ad.addStretch();tabs.addTab(scroll(advanced),'Advanced')
         about=QWidget();av=QVBoxLayout(about);av.addWidget(label('PawSync 0.3.0',24,True));av.addWidget(label('Windows & Linux preview · shared pets and accessories with the native macOS app.'));av.addWidget(button('Check for updates…',self.c.check_updates));av.addWidget(button('Open data folder',lambda:QDesktopServices.openUrl(QUrl.fromLocalFile(str(self.state.root)))));av.addWidget(button('Reset earned progress…',self.reset_progress));av.addWidget(button('Licenses & artwork credits',lambda:info(self,'Credits','OpenPets artwork: MIT · OpenPets contributors.\nQt/PySide6: LGPLv3, dynamically linked.\nOther library licenses are included with the distribution.\nOriginal/imported asset attribution is retained with each pet.')));av.addStretch();tabs.addTab(about,'About');self.add_page(tabs)
     def change_track(self,index):
@@ -269,3 +272,36 @@ class Library(QMainWindow):
         elif index==5:
             self.level_summary.setText('\n'.join(f"{t['name']} · Level {t['xp']//500+1} · {t['xp']%500}/500 XP" for t in self.state.progress['tracks']))
             if not self.rename_field.hasFocus():self.rename_field.setText(self.state.name(pet))
+
+    def make_extra_tools(self,layout):
+        self.extra_tool_cards={}
+        countdown,cv=card();cv.addWidget(label('Simple timer',18,True));self.timer_readout=label(self.c.tools.timer_text());cv.addWidget(self.timer_readout);self.task_label=QLineEdit('A little task');cv.addWidget(self.task_label);minutes=QSpinBox();minutes.setRange(1,1440);minutes.setValue(15);cv.addWidget(minutes);row=QHBoxLayout()
+        for title,fn in [('Start',lambda:self.c.tools.start_timer(minutes.value(),self.task_label.text())),('Pause / resume',self.c.tools.pause_timer),('+5 min',self.c.tools.add_five),('Cancel',self.c.tools.cancel_timer)]:row.addWidget(button(title,fn))
+        cv.addLayout(row);layout.insertWidget(layout.count()-1,countdown);self.extra_tool_cards['openpets.simple-timer']=countdown
+        practice,pv=card();pv.addWidget(label('A gentler moment',18,True));self.practice_kind=QComboBox();self.practice_kind.addItems(['Paced breathing','Unwind your muscles','Grounding','Quiet moment','Peaceful place']);pv.addWidget(self.practice_kind);row=QHBoxLayout();row.addWidget(button('Begin 2 min',lambda:self.c.tools.start_practice(self.practice_kind.currentText())));row.addWidget(button('Pause / resume',self.c.tools.pause_practice));row.addWidget(button('Stop',self.c.tools.stop_practice));pv.addLayout(row);layout.insertWidget(layout.count()-1,practice);self.extra_tool_cards['openpets.anxiety-aid-tools']=practice
+        care,cav=card();cav.addWidget(label('Optional pet care',18,True));self.care_status=label('');cav.addWidget(self.care_status);row=QHBoxLayout()
+        for action in ['feed','play','pet','nap']:row.addWidget(button(action.capitalize(),lambda checked=False,a=action:self.c.tools.care(a)))
+        cav.addLayout(row);layout.insertWidget(layout.count()-1,care);self.extra_tool_cards['openpets.virtual-pet']=care
+        resource,rv=card();rv.addWidget(label('System resources',18,True));self.resource_status=label('');rv.addWidget(self.resource_status);rv.addWidget(button('Check now',self.show_resources));layout.insertWidget(layout.count()-1,resource);self.extra_tool_cards['openpets.system-resources']=resource
+        routine,r=card();r.addWidget(label('Morning & evening',18,True));r.addWidget(label('Use times-of-day reminders for a morning intention or a cozy evening reset.'));r.addWidget(button('Add a daily routine',lambda:self.edit_reminder(preset='Custom')));layout.insertWidget(layout.count()-1,routine);self.extra_tool_cards['openpets.day-routine']=routine
+        self.refresh_tools()
+    def refresh_tools(self):
+        for id,w in self.extra_tool_cards.items():w.setVisible(self.c.tools.enabled(id))
+        if self.c.tools.enabled('openpets.virtual-pet'):
+            n=self.c.tools.needs();self.care_status.setText(f"Food {n['food']:.0f}% · Energy {n['energy']:.0f}% · Happiness {n['happiness']:.0f}% · Affection {n['affection']:.0f}% · Level {n['level']}")
+    def show_resources(self):
+        import psutil
+        self.resource_status.setText(f'CPU {psutil.cpu_percent()}% · Memory {psutil.virtual_memory().percent}%')
+
+    def import_folder(self):
+        folder=QFileDialog.getExistingDirectory(self,'Choose an OpenPets folder')
+        if folder:
+            pet=self.guarded(lambda:self.catalog.import_pet(folder))
+            if pet:self.state.choose(pet);self.populate_pets()
+    def import_codex(self):
+        root=Path.home()/'.codex/pets';imported=0;failed=0
+        for directory in list(root.glob('*'))[:200]:
+            if not directory.is_dir():continue
+            try:self.catalog.import_pet(directory);imported+=1
+            except (ValueError,OSError):failed+=1
+        self.populate_pets();self.notify(f'Imported {imported} pets; skipped {failed} invalid packages. Originals are unchanged.')

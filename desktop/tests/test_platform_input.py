@@ -8,7 +8,8 @@ from pawsync.input import InputMonitor
 def test_external_events_are_binary_triggers(qtbot):
     monitor=InputMonitor();keys=QSignalSpy(monitor.typing);clicks=QSignalSpy(monitor.click);monitor.start()
     try:
-        qtbot.waitUntil(lambda:monitor.running,timeout=10000)
+        qtbot.wait(1500)
+        assert monitor.running,monitor.status
         if sys.platform.startswith('linux'):
             from Xlib import display,X
             from Xlib.ext import xtest

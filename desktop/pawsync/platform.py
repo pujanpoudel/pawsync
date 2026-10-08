@@ -1,7 +1,7 @@
 from __future__ import annotations
 import ctypes, os, shlex, sys
 from pathlib import Path
-from PySide6.QtCore import QObject, Signal, QAbstractNativeEventFilter
+from PySide6.QtCore import QObject, Signal, QAbstractNativeEventFilter, SLOT
 from PySide6.QtGui import QCursor
 from PySide6.QtWidgets import QApplication
 
@@ -75,9 +75,9 @@ class SleepMonitor(QObject,QAbstractNativeEventFilter):
         elif sys.platform.startswith('linux'):
             from PySide6.QtDBus import QDBusConnection
             bus=QDBusConnection.sessionBus()
-            bus.connect('org.freedesktop.ScreenSaver','/org/freedesktop/ScreenSaver','org.freedesktop.ScreenSaver','ActiveChanged',self,'screenState(bool)')
-            bus.connect('org.gnome.ScreenSaver','/org/gnome/ScreenSaver','org.gnome.ScreenSaver','ActiveChanged',self,'screenState(bool)')
-            QDBusConnection.systemBus().connect('org.freedesktop.login1','/org/freedesktop/login1','org.freedesktop.login1.Manager','PrepareForSleep',self,'screenState(bool)')
+            bus.connect('org.freedesktop.ScreenSaver','/org/freedesktop/ScreenSaver','org.freedesktop.ScreenSaver','ActiveChanged',self,SLOT('screenState(bool)'))
+            bus.connect('org.gnome.ScreenSaver','/org/gnome/ScreenSaver','org.gnome.ScreenSaver','ActiveChanged',self,SLOT('screenState(bool)'))
+            QDBusConnection.systemBus().connect('org.freedesktop.login1','/org/freedesktop/login1','org.freedesktop.login1.Manager','PrepareForSleep',self,SLOT('screenState(bool)'))
     from PySide6.QtCore import Slot
     @Slot(bool)
     def screenState(self,value): self.sleeping.emit(value)
@@ -93,4 +93,6 @@ class SleepMonitor(QObject,QAbstractNativeEventFilter):
                     if ctypes.c_uint32.from_address(msg.lParam+16).value==4: self.sleeping.emit(ctypes.c_uint32.from_address(msg.lParam+20).value==0)
         return False,0
     def stop(self):
-        if self.handle: ctypes.windll.user32.UnregisterPowerSettingNotification(self.handle);QApplication.instance().removeNativeEventFilter(self)
+        if self.handle:
+            from ctypes import wintypes as w
+            fn=ctypes.windll.user32.UnregisterPowerSettingNotification;fn.argtypes=[w.HANDLE];fn.restype=w.BOOL;fn(self.handle);QApplication.instance().removeNativeEventFilter(self)

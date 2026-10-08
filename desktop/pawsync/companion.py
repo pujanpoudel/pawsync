@@ -109,7 +109,7 @@ class Companion(QWidget):
         flags=Qt.FramelessWindowHint|Qt.Tool|Qt.WindowStaysOnTopHint|Qt.WindowDoesNotAcceptFocus
         super().__init__(None,flags);self.setAttribute(Qt.WA_TranslucentBackground);self.setAttribute(Qt.WA_ShowWithoutActivating);self.setAcceptDrops(True)
         self.state=state;self.catalog=catalog;self.content=content;self.pet=None;self.art=None;self.mode='Idle';self.emotion=None;self.started=0.;self.duration=0.;self.row=0;self.column=0;self.pose=None
-        self.travel=None;self.roaming_position=None;self.last_activity=time.monotonic();self.next_roam=time.monotonic()+20;self.taps=0;self.last_tap=0;self.screen_name=None;self.sleeping=False;self.screen_sleep=False;self.holding=0;self.receiving=False;self.dancing=False;self.cursor_near=None;self.next_cursor=0;self.drag_start=None;self.last_mask=None
+        self.travel=None;self.roaming_position=None;self.last_activity=time.monotonic();self.next_roam=time.monotonic()+20;self.taps=0;self.last_tap=0;self.screen_name=None;self.sleeping=False;self.screen_sleep=False;self.holding=0;self.owned=();self.receiving=False;self.dancing=False;self.cursor_near=None;self.next_cursor=0;self.next_blink=time.monotonic()+12;self.drag_start=None;self.last_mask=None
         self.frame_timer=QTimer(self);self.frame_timer.setTimerType(Qt.PreciseTimer);self.frame_timer.setInterval(16);self.frame_timer.timeout.connect(self.advance)
         self.heartbeat=QTimer(self);self.heartbeat.setInterval(1000);self.heartbeat.timeout.connect(self.idle_tick);self.heartbeat.start()
         self.state.changed.connect(self.refresh);self.refresh()
@@ -191,6 +191,8 @@ class Companion(QWidget):
             phase=min(elapsed,1.4)%.61; lift=22*max(0,math.sin((phase-.14)/.38*math.pi)) if .14<=phase<=.52 else 0
             painter.translate(0,-lift);painter.translate(96,208);painter.scale(1,.95 if phase<.14 else 1.03 if lift else 1);painter.translate(-96,-208)
         elif self.mode=='Typing': painter.translate(0,math.sin(min(elapsed,.25)/.25*math.pi)*2)
+        elif self.mode=='IdleBlink':
+            phase=min(1,elapsed/.85);painter.translate(96,208);painter.scale(1,1-.025*math.sin(phase*math.pi));painter.translate(-96,-208)
         elif self.mode=='Dance': painter.translate(0,-abs(math.sin(elapsed*math.pi*4))*9)
         elif self.mode=='Success':
             progress=min(1,elapsed/self.duration);painter.translate(96,104-math.sin(progress*math.pi)*30);painter.rotate(progress*360);painter.translate(-96,-104)
@@ -199,6 +201,7 @@ class Companion(QWidget):
             if direction!=source: painter.translate(192,0);painter.scale(-1,1)
         elif self.state.prefs['mirror']: painter.translate(192,0);painter.scale(-1,1)
         item=next((i for i in self.content['items'] if i['id']==self.state.prefs['accessory']),None) if self.state.prefs['headAccessoriesVisible'] else None
+        if item and not self.state.can_equip(item['id'],self.owned):item=None
         transform=self.state.progress['placements'].get(self.pet.id+'::'+self.state.prefs['accessory'])
         self.art.paint(painter,self.row,self.column,self.pose,'Sleepy' if self.sleeping else self.emotion,item,transform,dance=self.dancing and self.state.prefs['headAccessoriesVisible'],tap=math.sin(elapsed*18) if self.mode=='Typing' else 0)
         if self.mode=='Failed':
@@ -238,6 +241,8 @@ class Companion(QWidget):
         now=time.monotonic()
         if self.mode=='Idle' and not self.travel and self.state.prefs['movement']!='Stay' and now>=self.next_roam and now-self.last_activity>3: self.roam()
         if self.mode=='Idle' and not self.travel:
+            if now>=self.next_blink:
+                self.next_blink=now+random.uniform(12,18);self.started=now;self.duration=.85;self.mode='IdleBlink';self.emotion='Cozy';self.frame_timer.start()
             near=(QCursor.pos()-QPoint(self.x()+self.width()//2,self.y()+self.height()//2)).manhattanLength()<140
             if near:
                 if self.cursor_near is None: self.cursor_near=now
