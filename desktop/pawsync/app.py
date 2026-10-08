@@ -47,7 +47,7 @@ class Controller(QObject):
     def rebuild_menu(self):
         self.menu.clear();self.menu.addAction('Open Library',lambda:self.library.open_page('Pets'));self.menu.addAction('Settings',lambda:self.library.open_page('Settings'));self.menu.addSeparator()
         mute=self.menu.addAction('Mute');mute.setCheckable(True);mute.setChecked(self.state.prefs['muted']);mute.triggered.connect(lambda value:self.state.set('muted',value));hidden=self.menu.addAction('Hide pet');hidden.setCheckable(True);hidden.setChecked(self.state.prefs['hidden']);hidden.triggered.connect(self.hide_pet)
-        self.menu.addAction('Hide for 1 hour',self.hide_hour);self.menu.addAction('Start Pomodoro',self.start_focus);self.menu.addAction('Reminders',lambda:self.library.open_page('Wellness'));self.menu.addAction('Reset position',lambda:self.pet.reanchor(True));self.menu.addAction('Check for updates…',self.check_updates);self.menu.addSeparator();self.menu.addAction('Quit',self.app.quit)
+        self.menu.addAction('Hide for 1 hour',self.hide_hour);self.menu.addAction('Start Pomodoro',self.start_focus);self.menu.addAction('Reminders',lambda:self.library.open_page('Wellness'));self.menu.addAction('Reset position',lambda:self.pet.reanchor(True));self.menu.addAction('Check for updates…',self.check_updates);self.menu.addSeparator();self.menu.addAction('Quit',self.quit)
     def enable_input(self):
         if not self.closed and self.backend.licensed:self.input.start()
     def activity(self,kind):
@@ -154,6 +154,8 @@ class Controller(QObject):
             launch(self.backend.wallet,validated,lambda message:(self.enforce_license(),self.library.notify(message)),self)
     def flush(self):
         if self.state.dirty:self.state.save()
+    def quit(self):
+        self.shutdown();self.app.exit(0)
     def shutdown(self):
         if self.closed:return
         self.closed=True;self.timer.stop();self.save_timer.stop();self.pet.heartbeat.stop();self.pet.frame_timer.stop()
@@ -172,5 +174,5 @@ def main():
         peer=server.nextPendingConnection();peer.disconnectFromServer();controller.library.open_page('Pets')
     server.newConnection.connect(incoming)
     if '--background' not in sys.argv:controller.library.show()
-    if '--smoke-test' in sys.argv:QTimer.singleShot(1500,app.quit)
+    if '--smoke-test' in sys.argv:QTimer.singleShot(1500,controller.quit)
     return app.exec()

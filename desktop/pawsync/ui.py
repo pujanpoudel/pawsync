@@ -57,7 +57,9 @@ class Library(QMainWindow):
         self.page_widgets={};self.make_pets();self.make_items();self.make_achievements();self.make_creator();self.make_wellness();self.make_settings()
         self.sidebar.currentRowChanged.connect(self.page_changed);self.sidebar.setCurrentRow(0)
         self.refresh_timer=QTimer(self);self.refresh_timer.setSingleShot(True);self.refresh_timer.timeout.connect(self.refresh_visible);self.state.changed.connect(lambda:self.refresh_timer.start(80))
-    def closeEvent(self,event): event.ignore();self.hide()
+    def closeEvent(self,event):
+        if self.c.closed:event.accept()
+        else:event.ignore();self.hide()
     def open_page(self,name): self.sidebar.setCurrentRow(self.pages.index(name));self.show();self.raise_();self.activateWindow()
     def page_changed(self,index):
         if index<0:return

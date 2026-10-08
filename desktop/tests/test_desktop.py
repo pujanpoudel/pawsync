@@ -51,3 +51,11 @@ def test_main_sidebar_cards_click_and_names(qtbot,monkeypatch,tmp_path):
     c.library.choose_pet(c.catalog.by_id['knight-cat']);c.library.equip('free.sprout');assert c.state.prefs['accessory']=='free.sprout';assert c.state.prefs['companion']=='knight-cat'
     c.library.open_page('Settings');c.library.rename_field.setText('Sir Mochi');c.state.rename('knight-cat','Sir Mochi','Knight Cat');assert c.state.name(c.catalog.by_id['knight-cat'])=='Sir Mochi'
     c.shutdown();c.pet.close();c.quick.close();c.pocket.close();c.speech.close()
+
+def test_library_close_hides_but_shutdown_accepts_close(qtbot,monkeypatch,tmp_path):
+    from pawsync.app import Controller
+    from PySide6.QtWidgets import QApplication
+    from PySide6.QtGui import QCloseEvent
+    monkeypatch.setenv('PAWSYNC_DATA_DIR',str(tmp_path));c=Controller(QApplication.instance());qtbot.addWidget(c.library)
+    event=QCloseEvent();c.library.closeEvent(event);assert not event.isAccepted();c.shutdown();event=QCloseEvent();c.library.closeEvent(event);assert event.isAccepted()
+    c.pet.close();c.quick.close();c.pocket.close();c.speech.close()
