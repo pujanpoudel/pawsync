@@ -64,7 +64,7 @@ def transparent_part(source):
             if 0<=a<width and 0<=b<height and (a,b) not in seen: queue.append((a,b))
     box=image.getbbox()
     if not box or box[0]<=1 or box[1]<=1 or box[2]>=width-1 or box[3]>=height-1: raise ValueError('Generated parts overlap their cells. No pet was installed; try a new generation.')
-    count=sum(1 for p in image.getdata() if p[3]>20)
+    count=sum(image.getchannel('A').histogram()[21:])
     if not width*height/200<count<width*height*.9: raise ValueError('A generated pet part is missing or has an invalid background.')
     return image.crop(box)
 

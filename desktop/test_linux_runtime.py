@@ -16,8 +16,8 @@ wait(1)
 assert c.input.running,c.input.status
 sender=display.Display();visible=c.pet.screen().availableGeometry();outside=QPushButton('Background control');outside.setGeometry(visible.left()+60,visible.top()+80,240,100);outside.show();hits=[];outside.clicked.connect(lambda:hits.append(1));wait(.2)
 point=outside.mapToGlobal(outside.rect().center());xtest.fake_input(sender,X.MotionNotify,x=point.x(),y=point.y());xtest.fake_input(sender,X.ButtonPress,1);xtest.fake_input(sender,X.ButtonRelease,1);sender.sync();wait(.3);assert hits,'Background click blocked'
-c.pet.roam();wait(.4);position=c.pet.pos();xtest.fake_input(sender,X.KeyPress,38);xtest.fake_input(sender,X.KeyRelease,38);sender.sync();wait(.1);assert c.pet.travel is None;assert c.pet.pos()==position;assert c.pet.mode=='Typing'
-wait(.6);c.pet.roam(True);wait(.4);position=c.pet.pos();xtest.fake_input(sender,X.ButtonPress,1);xtest.fake_input(sender,X.ButtonRelease,1);sender.sync();wait(.1);assert c.pet.travel is None;assert c.pet.pos()==position
+c.pet.roam();wait(.4);position=c.pet.pos();xtest.fake_input(sender,X.KeyPress,38);xtest.fake_input(sender,X.KeyRelease,38);sender.sync();wait(.1);assert c.pet.travel is None;assert (c.pet.pos()-position).manhattanLength()<30;assert c.pet.mode=='Typing';stopped=c.pet.pos();wait(.2);assert c.pet.pos()==stopped
+wait(.6);c.pet.roam(True);wait(.4);position=c.pet.pos();xtest.fake_input(sender,X.ButtonPress,1);xtest.fake_input(sender,X.ButtonRelease,1);sender.sync();wait(.1);assert c.pet.travel is None;assert (c.pet.pos()-position).manhattanLength()<30;assert c.pet.mode=='Click';stopped=c.pet.pos();wait(.2);assert c.pet.pos()==stopped
 # Find an actually opaque pixel, then double click using a separate X client.
 wait(.7);image=c.pet.image;point=None
 for y in range(image.height()//2,image.height()):

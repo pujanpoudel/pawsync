@@ -29,3 +29,8 @@ def test_merge_unions_higher_levels_and_reset_epoch(state):
 
 def test_no_credential_fields_persisted(state):
     state.save();assert not any(k in state.file.read_text() for k in ('api_key','bearer','licenseToken','local-hook'))
+
+def test_one_off_snooze_waits_ten_minutes_without_reenabling_expired_deadline(state):
+    r=dict(id='once',title='One off',type='Custom',schedule='One-off',nextDue=10,enabled=True,priority=False,minutes=45,times=[])
+    state.value['reminders']=[r];assert state.due(now=11)[0]['id']=='once';state.snooze('once',now=11)
+    assert not r['enabled'];assert state.due(now=12)==[];assert state.due(now=610)==[];assert state.due(now=611)[0]['id']=='once';assert state.due(now=612)==[]

@@ -115,7 +115,7 @@ class Companion(QWidget):
         flags=Qt.FramelessWindowHint|Qt.Tool|Qt.WindowStaysOnTopHint|Qt.WindowDoesNotAcceptFocus
         super().__init__(None,flags);self.setAttribute(Qt.WA_TranslucentBackground);self.setAttribute(Qt.WA_ShowWithoutActivating);self.setAcceptDrops(True)
         self.state=state;self.catalog=catalog;self.content=content;self.pet=None;self.art=None;self.mode='Idle';self.emotion=None;self.started=0.;self.duration=0.;self.row=0;self.column=0;self.pose=None
-        self.travel=None;self.roaming_position=None;self.last_activity=time.monotonic();self.next_roam=time.monotonic()+20;self.taps=0;self.last_tap=0;self.screen_name=None;self.sleeping=False;self.screen_sleep=False;self.holding=0;self.owned=();self.receiving=False;self.dancing=False;self.cursor_near=None;self.next_cursor=0;self.next_blink=time.monotonic()+12;self.drag_start=None;self.last_mask=None
+        self.travel=None;self.roaming_position=None;self.last_activity=time.monotonic();self.next_roam=time.monotonic()+20;self.taps=0;self.last_tap=0;self.screen_name=None;self.sleeping=False;self.screen_sleep=False;self.holding=0;self.owned=();self.receiving=False;self.dancing=False;self.cursor_near=None;self.next_cursor=0;self.next_blink=time.monotonic()+12;self.drag_start=None;self.last_mask=None;self.locked_mask_until=0.
         self.frame_timer=QTimer(self);self.frame_timer.setTimerType(Qt.PreciseTimer);self.frame_timer.setInterval(16);self.frame_timer.timeout.connect(self.advance)
         self.heartbeat=QTimer(self);self.heartbeat.setInterval(1000);self.heartbeat.timeout.connect(self.idle_tick);self.heartbeat.start()
         self.state.changed.connect(self.refresh);self.refresh()
@@ -221,6 +221,7 @@ class Companion(QWidget):
         if not self.art: return
         self.image=self.frame_image();bitmap=QBitmap.fromImage(self.image.createAlphaMask());region=QRegion(bitmap)
         if self.state.prefs['clickThrough']: region=QRegion(0,0,1,1)
+        if time.monotonic()<self.locked_mask_until and self.last_mask is not None:region=self.last_mask
         if region!=self.last_mask: self.setMask(region);self.last_mask=region
         self.update()
     def paintEvent(self,event):
@@ -267,7 +268,9 @@ class Companion(QWidget):
     def mouseReleaseEvent(self,event):
         if self.drag_start is not None and (event.globalPosition().toPoint()-self.drag_start).manhattanLength()<4:
             if event.button()==Qt.RightButton: self.double_tapped.emit()
-            else: self.react('Cuddle');self.clicked.emit()
+            else:
+                self.locked_mask_until=time.monotonic()+QApplication.doubleClickInterval()/1000
+                self.react('Cuddle');self.clicked.emit()
         self.drag_start=None
     def mouseDoubleClickEvent(self,event): self.stop_travel();self.double_tapped.emit();self.drag_start=None;event.accept()
     def enterEvent(self,event):

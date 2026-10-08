@@ -150,9 +150,9 @@ class State(QObject):
             if reminder.get('queued') and not focus:
                 reminder.pop('queued'); due.append(copy.deepcopy(reminder)); self.dirty=True
                 if not reminder.get('enabled',True): continue
-            if not reminder.get('enabled',True): continue
+            if not reminder.get('enabled',True) and not reminder.get('snooze'): continue
             snooze=reminder.get('snooze')
-            regular=reminder['nextDue']<=now
+            regular=reminder.get('enabled',True) and reminder['nextDue']<=now
             if snooze is not None and snooze<=now or regular:
                 if regular:
                     if reminder['schedule']=='Interval': reminder['nextDue']=now+reminder['minutes']*60
@@ -167,7 +167,7 @@ class State(QObject):
         return due
     def snooze(self,id,now=None):
         reminder=next(r for r in self.value['reminders'] if r['id']==id)
-        reminder['snooze']=(now or time.time())+600; reminder['enabled']=True; self.save()
+        reminder['snooze']=(time.time() if now is None else now)+600; self.save()
     def backup(self):
         destination=self.root/'Backups'/('progress-'+uuid.uuid4().hex+'.json'); atomic_json(destination,self.progress)
     def merge(self,remote):
