@@ -86,3 +86,16 @@ def test_knight_click_raises_paws_without_eye_replacement(qtbot,state,catalog,co
     pet.react('Cuddle');pet.advance(pet.started+.3)
     assert pet.pose=='cheer' and pet.art.profile_for(0,0,'cheer') is None
     assert not pet.art.frame(0,0,'cheer').isNull()
+
+
+def test_bubble_tail_tracks_pet_and_stays_attached_at_screen_edges(qtbot,state,catalog,content):
+    pet=Companion(state,catalog,content);qtbot.addWidget(pet);pet.heartbeat.stop();speech=Speech(pet);qtbot.addWidget(speech)
+    pet.move(300,350);speech.say('You have got this!');speech.place();before=speech.pos()
+    assert abs(speech.x()+speech.tail_x-pet.head_point().x())<=1
+    pet.move(380,350);speech.place();assert speech.pos()!=before
+    assert abs(speech.x()+speech.tail_x-pet.head_point().x())<=1
+    speech.grab()
+
+def test_openpets_click_uses_two_arm_jump_not_one_arm_wave(qtbot,state,catalog,content):
+    state.choose(catalog.by_id['openpets-dobby']);pet=Companion(state,catalog,content);qtbot.addWidget(pet);pet.heartbeat.stop();pet.react('Cuddle');pet.advance(pet.started+.3)
+    assert pet.row==4 and pet.column==2

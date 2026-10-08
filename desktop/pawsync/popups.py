@@ -1,6 +1,6 @@
 """Pet-anchored quick actions, thought bubbles and a temporary file pocket."""
 from pathlib import Path
-from PySide6.QtCore import Qt, QTimer, QMimeData, QUrl, QPoint, Signal
+from PySide6.QtCore import Qt, QTimer, QMimeData, QUrl, QPoint, QPointF, Signal
 from PySide6.QtGui import QDrag, QPainter, QColor, QPen, QPainterPath, QCursor
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget, QListWidgetItem, QAbstractItemView, QLineEdit, QMenu, QApplication
 
@@ -57,12 +57,27 @@ class FilePocket(PetSurface):
 class Speech(PetSurface):
     snoozed=Signal(str);chat_sent=Signal(str)
     def __init__(self,pet):
-        super().__init__(pet);self.setFixedWidth(320);self.reminder=None;self.layout=QVBoxLayout(self);self.layout.setContentsMargins(25,35,25,24)
+        super().__init__(pet);self.setFixedWidth(320);self.reminder=None;self.layout=QVBoxLayout(self);self.layout.setContentsMargins(25,35,25,42)
         self.message=QLabel();self.message.setWordWrap(True);self.message.setAlignment(Qt.AlignCenter);self.message.setStyleSheet('font-size:16px;font-weight:600;color:#40312b;');self.layout.addWidget(self.message)
         self.entry=QLineEdit();self.entry.setPlaceholderText('Tell your little friend…');self.entry.returnPressed.connect(self.send);self.layout.addWidget(self.entry)
         self.buttons=QHBoxLayout();self.send_button=QPushButton('Say hello');self.send_button.clicked.connect(self.send);self.snooze=QPushButton('10 min later');self.snooze.clicked.connect(self.do_snooze);self.dismiss=QPushButton('Got it ♡');self.dismiss.clicked.connect(self.hide)
         for b in (self.send_button,self.snooze,self.dismiss): self.buttons.addWidget(b)
         self.layout.addLayout(self.buttons);self.timer=QTimer(self);self.timer.setSingleShot(True);self.timer.timeout.connect(self.hide)
+    def place(self):
+        screen=self.pet.screen().availableGeometry();head=self.pet.head_point()
+        x=max(screen.left()+8,min(screen.right()-self.width()-8,head.x()-self.width()//2))
+        self.tail_top=head.y()-self.height()+4<screen.top()+8
+        y=head.y()+4 if self.tail_top else head.y()-self.height()+4
+        y=max(screen.top()+8,min(screen.bottom()-self.height()-8,y))
+        self.move(x,y);self.tail_x=max(10,min(self.width()-10,head.x()-x));self.update()
+    def paintEvent(self,event):
+        painter=QPainter(self);painter.setRenderHint(QPainter.Antialiasing);painter.setPen(QPen(QColor('#b88d77'),1.7));painter.setBrush(QColor('#fff7eb'))
+        path=QPainterPath();path.setFillRule(Qt.WindingFill);path.addRoundedRect(5,20,self.width()-10,self.height()-54,26,26);path.addEllipse(20,8,35,36);path.addEllipse(self.width()-55,8,35,36);painter.drawPath(path.simplified())
+        x=getattr(self,'tail_x',self.width()/2)
+        for distance,radius in [(25,6),(13,4),(4,2.5)]:
+            y=distance if getattr(self,'tail_top',False) else self.height()-distance
+            painter.drawEllipse(QPointF(x,y),radius,radius)
+        painter.end()
     def say(self,text,reminder=None,chat=False):
         self.reminder=reminder;self.message.setText(text);self.entry.setVisible(chat);self.send_button.setVisible(chat);self.snooze.setVisible(reminder is not None);self.show_near()
         if chat: self.timer.stop();self.entry.setFocus()

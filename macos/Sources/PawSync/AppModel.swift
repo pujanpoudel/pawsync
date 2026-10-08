@@ -175,6 +175,7 @@ import Combine
             self.applyPresentation(accessory:id); return true
         }
         speech.attach(to: overlay.window)
+        overlay.onPoseChanged = { [weak self] in if self?.speech.isVisible == true { self?.speech.reposition() } }
         hud.attach(to:overlay.window)
         speech.onVisibility = { [weak self] visible in if visible { self?.quickActions.dismiss();self?.fileShelf.dismiss();self?.overlay.stopWalking() };self?.hud.setSuspended(visible || self?.overlay.isHidden == true || self?.overlay.isScreenSleeping == true) }
         speech.onDone = { [weak self] in self?.completeReminder() }

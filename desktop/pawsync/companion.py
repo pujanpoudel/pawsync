@@ -162,7 +162,7 @@ class Companion(QWidget):
         if kind=='Typing':
             self.taps+=1;self.row=7;self.column=(self.taps%2);self.duration=.5;self.emotion='Focused'
         elif kind=='Click': self.row=0;self.column=6 if self.pet.rows==11 else 0;self.duration=.55;self.emotion=EMOTIONS[(self.taps%4)+1];self.taps+=1
-        elif kind=='Cuddle': self.row=3 if self.art.profile is None else 0;self.duration=1.5;self.emotion=random.choice(['Affectionate','Delighted','Cozy','Playful'])
+        elif kind=='Cuddle': self.row=4 if self.art.profile is None else 0;self.duration=1.5;self.emotion=random.choice(['Affectionate','Delighted','Cozy','Playful'])
         elif kind=='Success': self.row=4;self.duration=1.68;self.emotion='Excited'
         elif kind=='Failed': self.row=5;self.duration=1.2;self.emotion='Sad'
         elif kind in EMOTIONS: self.row=0;self.column=6 if self.pet.rows==11 else 0;self.duration=2;self.emotion=kind
@@ -190,7 +190,7 @@ class Companion(QWidget):
             elif self.pet.rig: self.pose='cheer' if .14<=cycle<.52 else 'hold' if self.holding else None
             elif self.native_pose('receive') and self.art.profile:
                 self.pose='receive' if .14<=cycle<.52 else 'hold' if self.holding else None
-            elif self.art.profile is None: self.column=int(elapsed/.15)%4
+            elif self.art.profile is None: self.column=0 if cycle<.14 else 2 if cycle<.52 else 4
         elif self.mode=='Typing':self.column=(self.taps%2)+2*min(2,int(elapsed/.14))
         elif self.mode in ('Wave','Success','Failed'): self.column=int(elapsed/.14)% (5 if self.mode=='Success' else 4 if self.mode=='Wave' else 6)
         if not self.travel and elapsed>=self.duration:
@@ -233,7 +233,22 @@ class Companion(QWidget):
         if self.state.prefs['clickThrough']: region=QRegion(0,0,1,1)
         if time.monotonic()<self.locked_mask_until and self.last_mask is not None:region=self.last_mask
         if region!=self.last_mask: self.setMask(region);self.last_mask=region
-        self.update()
+        self.update();self.moved.emit()
+    def head_point(self):
+        profile=self.art.profile_for(self.row,self.column,self.pose)
+        if self.pose=='cheer':
+            profile=self.art.profile_cache.get(RESOURCES/'FileInteractions'/self.pet.id/'cheer'/'interaction.json')
+        crown=profile['crown'] if profile else None
+        if crown: x,y=crown[0]*192,crown[1]*208
+        elif self.art.fits:
+            x,y=self.art.fits[min(self.row,len(self.art.fits)-1)][self.column]['crown']
+        else:x,y=96,38
+        if self.state.prefs['mirror']:x=192-x
+        if self.mode=='Cuddle':
+            phase=min(time.monotonic()-self.started,1.4)%.61
+            if .14<=phase<=.52:y-=22*max(0,math.sin((phase-.14)/.38*math.pi))
+        scale=self.state.prefs['scale']
+        return QPoint(self.x()+round((44+x)*scale),self.y()+round((60+y)*scale))
     def paintEvent(self,event):
         if hasattr(self,'image'):
             painter=QPainter(self);painter.drawImage(0,0,self.image);painter.end()

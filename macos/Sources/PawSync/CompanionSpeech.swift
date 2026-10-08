@@ -53,7 +53,13 @@ struct SpeechAction:Identifiable { let id:String;let title:String;let icon:Strin
         let context=attachment?() ?? .fallback(petWindow)
         // Three thought dots descend toward the companion's head, rather than
         // centering a floating card above the whole transparent window.
-        panel.setFrame(context.clamp(CGRect(x:context.pet.midX-284*scale,y:context.pet.maxY-10,width:panel.frame.width,height:panel.frame.height)),display:true)
+        let below=context.visible.maxY-context.pet.maxY<panel.frame.height-4
+        let y=below ? context.pet.minY-panel.frame.height+4:context.pet.maxY-4
+        let frame=context.clamp(CGRect(x:context.pet.midX-panel.frame.width/2,y:y,width:panel.frame.width,height:panel.frame.height))
+        if panel.frame != frame { panel.setFrame(frame,display:false) }
+        if let view=panel.contentView as? PetSpeechNativeView {
+            view.tailX=max(10,min(300,(context.pet.midX-frame.minX)/scale));view.tailAtTop=below
+        }
     }
     func dismiss() { dismissTimer?.invalidate();dismissTimer=nil;panel?.orderOut(nil);isReminder=false;onVisibility?(false) }
     func stop() { dismiss();if let moveObserver { NotificationCenter.default.removeObserver(moveObserver) };moveObserver=nil;panel?.contentView=nil;panel=nil }
@@ -62,6 +68,8 @@ struct SpeechAction:Identifiable { let id:String;let title:String;let icon:Strin
 @MainActor final class PetSpeechNativeView:NSView {
     let palette:PetChromePalette
     let onDismiss:()->Void
+    var tailX:CGFloat=155 { didSet { if tailX != oldValue { needsDisplay=true } } }
+    var tailAtTop=false { didSet { if tailAtTop != oldValue { needsDisplay=true } } }
     private var bubblePath:NSBezierPath { PetChromeDrawing.cloud(in:bounds) }
     init(title:String,text:String,reminder:Bool,actions:[SpeechAction],palette:PetChromePalette,height:CGFloat,onDismiss:@escaping ()->Void,onSnooze:@escaping ()->Void) {
         self.palette=palette;self.onDismiss=onDismiss;super.init(frame:CGRect(x:0,y:0,width:310,height:height))
@@ -94,7 +102,7 @@ struct SpeechAction:Identifiable { let id:String;let title:String;let icon:Strin
         seam.setLineDash([2,4],count:2,phase:0);seam.lineWidth=0.8;palette.ink.withAlphaComponent(0.27).setStroke();seam.stroke()
         PetChromeDrawing.mitten(in:CGRect(x:51,y:bounds.height-48,width:28,height:22),palette:palette)
         PetChromeDrawing.mitten(in:CGRect(x:214,y:bounds.height-48,width:28,height:22),palette:palette)
-        for (x,y,r) in [(CGFloat(254),bounds.height-27,CGFloat(7)),(CGFloat(273),bounds.height-13,CGFloat(4.5)),(CGFloat(286),bounds.height-4,CGFloat(2.5))] {
+        for (x,y,r) in [(tailX-32,tailAtTop ? 27:bounds.height-27,CGFloat(7)),(tailX-13,tailAtTop ? 13:bounds.height-13,CGFloat(4.5)),(tailX,tailAtTop ? 4:bounds.height-4,CGFloat(2.5))] {
             PetChromeDrawing.paint(NSBezierPath(ovalIn:CGRect(x:x-r,y:y-r,width:r*2,height:r*2)),fill:palette.cloth,ink:palette.ink,width:1.2)
         }
         palette.blush.withAlphaComponent(0.5).setFill()

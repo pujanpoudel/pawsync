@@ -48,7 +48,8 @@ import SwiftUI
         add("Check for Updates…",#selector(checkUpdates))
         add("Quit PawSync",#selector(quit),"q")
         item.menu = menu
-        showSettings()
+        // Returning users start with the companion only; build the Library on demand.
+        if model.onboarding { showSettings() }
     }
     @objc func showSettings() {
         if settingsWindow == nil {

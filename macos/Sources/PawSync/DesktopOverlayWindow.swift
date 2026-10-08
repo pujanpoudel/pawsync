@@ -110,7 +110,7 @@ import QuartzCore
 
 @MainActor final class CompanionScene: SKScene {
     var step: (() -> Void)?
-    override func update(_ currentTime: TimeInterval) { step?() }
+    override func didEvaluateActions() { step?() }
 }
 
 @MainActor final class OverlayController: NSObject {
@@ -140,6 +140,7 @@ import QuartzCore
     private var currentReaction: PetReaction = .idle
     private var resumeReaction = false
     private let statusLabel = SKLabelNode(fontNamed: NSFont.systemFont(ofSize:11,weight:.semibold).fontName)
+    var onPoseChanged:(()->Void)?
     var onPetting: (() -> Void)?
     var companionName:(()->String)?
     var onDirectClick:(()->Void)?
@@ -207,6 +208,7 @@ import QuartzCore
         view.registerForDraggedTypes([.string,.fileURL])
         view.allowsTransparency = true; view.preferredFramesPerSecond = 30
         view.ignoresSiblingOrder = true; view.shouldCullNonVisibleNodes = true
+        scene.step = { [weak self] in self?.onPoseChanged?() }
         scene.backgroundColor = .clear; scene.scaleMode = .resizeFill
         view.presentScene(scene)
         window.contentView = view

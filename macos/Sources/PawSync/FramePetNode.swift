@@ -262,7 +262,7 @@ import SpriteKit
         // Start the authored OpenPets hand-up clip before adding the hop: begin
         // resets old actions, so doing this afterward would cancel the spring.
         if profile == nil && !hasNativeFilePoses {
-            begin(PetFrameSequence(row:PetAnimation.waving.row,frames:PetAnimation.waving.frames,duration:0.61,iterations:2))
+            begin(PetFrameSequence(row:PetAnimation.jumping.row,frames:PetAnimation.jumping.frames,duration:0.61,iterations:2))
         }
         animationState = .review;expression.show(mood)
         // Two kitten-like springy hops for direct affection, separate from ambient clicks
