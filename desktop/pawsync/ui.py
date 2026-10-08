@@ -1,5 +1,5 @@
 from __future__ import annotations
-import copy, json, random, shutil, time, uuid
+import copy, hashlib, json, random, shutil, time, uuid
 from datetime import datetime
 from pathlib import Path
 from PySide6.QtCore import Qt, QSize, QUrl, Signal, QTimer
@@ -166,6 +166,7 @@ class Library(QMainWindow):
     def make_creator(self):
         widget=QWidget();v=QVBoxLayout(widget);v.addWidget(label('Turn a real pet photo into a friend for your desktop.',18,True));v.addWidget(label('Your photo goes only to the provider you choose. Provider generation is billed by that provider; PawSync cloud generation uses your credits.'))
         f,form_v=card();form=QFormLayout();form_v.addLayout(form);self.photo_name=QLineEdit();self.photo_name.setPlaceholderText('Your pet’s name');self.provider=QComboBox();self.provider.addItems(['Gemini','OpenAI','Grok','PawSync credits']);self.api_key=QLineEdit();self.api_key.setEchoMode(QLineEdit.Password);self.api_key.setPlaceholderText('Saved only in your system credential store');form.addRow('Name',self.photo_name);form.addRow('Provider',self.provider);form.addRow('API key',self.api_key);form_v.addWidget(button('Save API key',self.save_key));v.addWidget(f)
+        self.credit_note=label('Credit balance: restore or refresh your account to check.');self.credit_note.hide();v.addWidget(self.credit_note);credit_buy=button('Buy more credits',lambda:self.c.checkout('credits5'));credit_buy.hide();v.addWidget(credit_buy);self.provider.currentTextChanged.connect(lambda value:(self.credit_note.setVisible(value=='PawSync credits'),credit_buy.setVisible(value=='PawSync credits')))
         self.photo_file=None;self.draft=None;self.backend_request_id=None;self.backend_photo=None;self.photo_preview=QLabel('Choose JPEG, PNG or HEIC · up to 15 MB');self.photo_preview.setAlignment(Qt.AlignCenter);self.photo_preview.setMinimumHeight(150);v.addWidget(self.photo_preview);v.addWidget(button('Choose a photo',self.choose_photo));self.generate_button=button('Make my friend',self.generate,True);v.addWidget(self.generate_button);self.keep_button=button('Keep this pet',self.keep_pet,True);self.keep_button.hide();v.addWidget(self.keep_button);self.creator_status=label('');v.addWidget(self.creator_status);v.addStretch();self.add_page(scroll(widget));self.provider.currentTextChanged.connect(lambda text:self.api_key.setEnabled(text!='PawSync credits'))
     def save_key(self):
         if self.provider.currentText()!='PawSync credits':self.guarded(lambda:self.c.vault.put('provider-'+self.provider.currentText(),self.api_key.text().strip()));self.api_key.clear()
@@ -185,11 +186,17 @@ class Library(QMainWindow):
         if self.draft:shutil.rmtree(self.draft,ignore_errors=True);self.draft=None
         self.keep_button.hide();self.generate_button.setEnabled(False);self.creator_status.setText('Making a lovable little friend… Keep this window open; generation can take up to two minutes.')
         if provider=='PawSync credits' and self.backend_photo!=photo:
-            self.backend_photo=photo;self.backend_request_id=str(uuid.uuid4())
+            fingerprint=hashlib.sha256(photo).hexdigest();pending=self.state.value['tools'].get('cloudGeneration',{})
+            self.backend_photo=photo;self.backend_request_id=pending.get('id') if pending.get('photoHash')==fingerprint else str(uuid.uuid4())
+            self.state.value['tools']['cloudGeneration']={'photoHash':fingerprint,'id':self.backend_request_id};self.state.save()
         def work():
             if provider=='PawSync credits':return prepare_backend(self.c.backend.generate(photo,self.backend_request_id),name,self.state.root)
             return prepare_sheet(provider_image(provider,key,photo),name,self.state.root)
-        def success(path):self.draft=path;self.photo_preview.setPixmap(QPixmap(str(path/'preview.png')).scaled(192,208));self.keep_button.show();self.generate_button.setEnabled(True);self.creator_status.setText('Preview your pet, then keep it or try another generation.')
+        def success(path):
+            if self.c.closed:
+                shutil.rmtree(path,ignore_errors=True);return
+            self.state.value['tools'].pop('cloudGeneration',None);self.state.save();self.backend_photo=None;self.backend_request_id=None
+            self.draft=path;self.photo_preview.setPixmap(QPixmap(str(path/'preview.png')).scaled(192,208));self.keep_button.show();self.generate_button.setEnabled(True);self.creator_status.setText('Preview your pet, then keep it or try another generation.')
         def failure(message):self.generate_button.setEnabled(True);self.creator_status.setText(message+' Use Make my friend to retry.')
         launch(work,success,failure,self)
     def keep_pet(self):
@@ -255,6 +262,7 @@ class Library(QMainWindow):
         self.state.progress['activeTrack']=self.track_combo.itemData(index);self.state.save();self.state.changed.emit()
     def progress_flag(self,key,value):self.state.progress[key]=value;self.state.save()
     def wallet_updated(self,result):
+        self.credit_note.setText(f"{result['credits']} generation credits · never expire")
         self.wallet_status.setText(('Purchased' if result['licensed'] else 'Not purchased')+f" · {result['credits']} credits");self.c.enforce_license();self.populate_items()
     def reset_progress(self):
         if QMessageBox.question(self,'Start fresh?','Reset earned pets, items, gifts and achievements? Purchases, names and preferences are kept. Backups are saved.')!=QMessageBox.Yes:return

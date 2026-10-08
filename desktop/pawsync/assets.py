@@ -1,5 +1,5 @@
 from __future__ import annotations
-import json, os, re, shutil, sys, uuid, zipfile
+import json, math, os, re, shutil, sys, uuid, zipfile
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from PIL import Image
@@ -26,9 +26,7 @@ class Pet:
     def profile(self):
         file=self.directory/'interaction.json'
         if not file.exists(): return None
-        value=json.loads(file.read_text('utf8'))
-        if len(value.get('eyes',[]))!=2: return None
-        return value
+        return read_profile(file)
     def preview(self):
         baked=ASSETS/'previews'/(self.id+'.png')
         if baked.exists(): return QImage(str(baked))
@@ -111,3 +109,15 @@ def validate_rig(atlas,directory):
         with Image.open(file) as image:
             if image.width>4096 or image.height>4096: raise ValueError('Pet part too large')
             image.verify()
+
+
+def read_profile(file):
+    try:
+        if file.is_symlink() or file.stat().st_size>32768:return None
+        value=json.loads(file.read_text('utf8'))
+        def vector(v,n):return isinstance(v,list) and len(v)==n and all(type(x) in (int,float) and math.isfinite(x) and 0<=x<=1 for x in v)
+        if not vector(value.get('crown'),2) or not .2<=value.get('accessory_scale',1)<=2:return None
+        eyes=value.get('eyes',[])
+        if len(eyes)!=2 or any(not vector(e.get('point'),2) or not vector(e.get('fur'),3) or not .5<=e.get('radius',0)<=18 for e in eyes):return None
+        return value
+    except (OSError,ValueError,TypeError,AttributeError):return None

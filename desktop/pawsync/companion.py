@@ -5,7 +5,7 @@ from pathlib import Path
 from PySide6.QtCore import Qt, QTimer, QPoint, QPointF, QRectF, Signal
 from PySide6.QtGui import QImage, QPainter, QColor, QPen, QPainterPath, QRegion, QBitmap, QCursor
 from PySide6.QtWidgets import QWidget, QApplication
-from .assets import ASSETS, RESOURCES
+from .assets import ASSETS, RESOURCES, read_profile
 from .platform import all_workspaces, foreground_rect
 
 INK=QColor('#40312b'); PAPER=QColor('#fffaf5'); PURPLE=QColor('#7b57a6'); PINK=QColor('#c3428c')
@@ -33,8 +33,7 @@ class Artwork:
         elif row in (1,2,7): file=self.pet.directory/('typing-left' if column%2==0 else 'typing-right')/'interaction.json'
         else: return self.profile
         if file.exists():
-            import json
-            return json.loads(file.read_text())
+            return read_profile(file) or self.profile
         return self.profile
     def paint(self,painter,row=0,column=0,pose=None,emotion=None,item=None,transform=None,blink=False,dance=False,tap=0):
         if self.pet.rig:

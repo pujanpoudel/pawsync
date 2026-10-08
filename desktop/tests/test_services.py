@@ -56,3 +56,10 @@ def test_countdown_persists_and_defers_focus_alert(state,content):
     tools=Tools(state,content);tools.start_timer(1,'Tea');tools.countdown['deadline']=time.time()-1;tools.tick(focus=True)
     assert tools.countdown['phase']=='expired' and tools.countdown['queued'];tools.tick(focus=False);assert 'queued' not in tools.countdown;assert state.progress['counters']['timer']==1
     tools.start_timer(15,'Work');tools.pause_timer();assert tools.countdown['phase']=='paused';remaining=tools.countdown['remaining'];tools.add_five();assert tools.countdown['remaining']==remaining+300
+
+def test_service_job_returns_on_gui_thread(qtbot,qapp):
+    from PySide6.QtCore import QThread
+    from pawsync.jobs import launch
+    results=[];errors=[]
+    job=launch(lambda:'ready',lambda value:results.append((value,QThread.currentThread())),errors.append)
+    qtbot.waitUntil(lambda:bool(results),timeout=3000);assert results==[('ready',qapp.thread())];assert errors==[]
