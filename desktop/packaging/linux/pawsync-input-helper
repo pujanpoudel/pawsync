@@ -1,0 +1,47 @@
+#!/usr/bin/python3 -I
+"""Privileged, opt-in event COUNTER. No key detail is decoded or emitted."""
+import glob, os, select, signal, struct, sys, time
+from pathlib import Path
+
+# Skip the two-byte key/button detail field entirely.
+EVENT=struct.Struct('@llH2xi')
+running=True
+
+def stop(*_):
+    global running
+    running=False
+signal.signal(signal.SIGTERM,stop); signal.signal(signal.SIGINT,stop)
+
+def main():
+    if os.geteuid()!=0: return 1
+    devices={}; last_scan=0
+    try:
+        while running:
+            if time.monotonic()-last_scan>2:
+                last_scan=time.monotonic()
+                for name in glob.glob('/dev/input/event*'):
+                    if name in [d[0] for d in devices.values()]: continue
+                    base=Path('/sys/class/input')/Path(name).name/'device/capabilities'
+                    try:
+                        key=int((base/'key').read_text().replace(' ',''),16)
+                        if not key: continue
+                        pointer=int((base/'rel').read_text().replace(' ',''),16)!=0 or int((base/'abs').read_text().replace(' ',''),16)!=0
+                        fd=os.open(name,os.O_RDONLY|os.O_NONBLOCK); devices[fd]=(name,b'M' if pointer else b'K')
+                    except (OSError,ValueError): continue
+                if devices: print('READY',flush=True)
+            if not devices: time.sleep(.5); continue
+            readable,_,_=select.select(list(devices),[],[],.5)
+            for fd in readable:
+                try:
+                    data=os.read(fd,EVENT.size*64)
+                    for offset in range(0,len(data)-EVENT.size+1,EVENT.size):
+                        _,_,kind,value=EVENT.unpack_from(data,offset)
+                        if kind==1 and value in (1,2): sys.stdout.buffer.write(devices[fd][1]+b'\n')
+                    sys.stdout.buffer.flush()
+                except OSError:
+                    os.close(fd); devices.pop(fd,None)
+    except BrokenPipeError: pass
+    finally:
+        for fd in devices: os.close(fd)
+    return 0
+if __name__=='__main__': sys.exit(main())

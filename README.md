@@ -1,6 +1,8 @@
 # PawSync
 
-Native macOS 14+ desktop companion. AppKit overlay, SwiftUI Settings, SpriteKit joint animation, a PostgreSQL-backed credit wallet, and a separate photo inference worker.
+PawSync desktop companion: native macOS 14+ app, plus a Windows/Linux Qt preview sharing all 47 pets, accessories and backend services. The PostgreSQL credit wallet and photo inference worker remain separate services.
+
+For Windows/Linux setup, installers, testing and current platform limits, see [Windows and Linux](docs/windows-linux.md). Source lives in `desktop/`; builds are available through the **Windows and Linux desktop** GitHub Actions workflow. The native macOS app and build scripts remain available below.
 
 ## Open the app
 

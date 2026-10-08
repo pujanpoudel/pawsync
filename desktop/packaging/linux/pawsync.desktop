@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=PawSync
+Comment=A little companion for your day
+Exec=pawsync
+Icon=pawsync
+Categories=Utility;
+Terminal=false
+StartupNotify=true

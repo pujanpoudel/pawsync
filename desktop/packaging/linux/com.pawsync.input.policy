@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN" "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+ <action id="com.pawsync.input">
+  <description>Enable PawSync input reactions</description>
+  <message>PawSync counts keyboard and mouse event occurrences to animate your pet. It never reads typed text or key codes. Access ends when PawSync closes.</message>
+  <defaults><allow_any>no</allow_any><allow_inactive>no</allow_inactive><allow_active>auth_admin</allow_active></defaults>
+  <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/pawsync/pawsync-input-helper</annotate>
+ </action>
+</policyconfig>

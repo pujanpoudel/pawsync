@@ -1,0 +1,53 @@
+name: Windows and Linux desktop
+on:
+  push:
+    paths: ['desktop/**', 'scripts/build_desktop.py', 'macos/Resources/**', '.github/workflows/desktop.yml']
+  pull_request:
+    paths: ['desktop/**', 'scripts/build_desktop.py', 'macos/Resources/**', '.github/workflows/desktop.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-22.04]
+    runs-on: ${{ matrix.os }}
+    env:
+      QT_QPA_PLATFORM: offscreen
+      PAWSYNC_OFFLINE_PREVIEW: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install uv
+      - run: uv sync --project desktop --frozen --group dev
+      - name: Linux system libraries
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libxkbcommon-x11-0 libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-shape0 libxcb-xinerama0 libxcb-randr0 libxcb-xfixes0 libxcb-sync1 libxcb-util1 libxcb-xkb1 libpulse0 xvfb xauth openbox xdotool dbus-x11
+      - run: uv run --project desktop python -m pytest desktop/tests -q
+      - run: uv run --project desktop python scripts/build_desktop.py
+      - name: Linux packaged launch
+        if: runner.os == 'Linux'
+        run: QT_QPA_PLATFORM=xcb xvfb-run -a desktop/dist/PawSync/PawSync --smoke-test
+      - name: Windows packaged launch
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $p = Start-Process desktop/dist/PawSync/PawSync.exe -ArgumentList '--smoke-test' -PassThru -Wait
+          if ($p.ExitCode -ne 0) { exit $p.ExitCode }
+      - name: Windows installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" desktop/packaging/windows/installer.iss'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PawSync-${{ runner.os }}-preview
+          path: |
+            desktop/dist/*.zip
+            desktop/dist/*.exe
+            desktop/dist/*.deb
+            desktop/dist/*.tar.gz
+          if-no-files-found: error

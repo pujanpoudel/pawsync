@@ -13,3 +13,11 @@ __pycache__/
 *.key
 backend/data/
 macos/Resources/Config.local.json
+
+# Windows/Linux client
+desktop/.venv/
+desktop/dist/
+desktop/build/
+desktop/*.spec
+__pycache__/
+.pytest_cache/
