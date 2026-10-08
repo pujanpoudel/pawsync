@@ -25,6 +25,8 @@ import QuartzCore
     weak var controller: OverlayController?
     private var previous: CGPoint?
     private var moving = false
+    private var dragDistance:CGFloat=0
+    private var dragDirection:CGFloat=0
     private var petTracking:NSTrackingArea?
     override func draggingEntered(_ sender:any NSDraggingInfo) -> NSDragOperation {
         if let id=sender.draggingPasteboard.string(forType:.string),id.hasPrefix("free."),id.count<=80 { return .copy }
@@ -79,20 +81,27 @@ import QuartzCore
             return
         }
         previous = NSEvent.mouseLocation
-        moving = event.modifierFlags.contains(.option)
+        moving = true;dragDistance=0;dragDirection=0
         controller?.isInteracting = true
-        controller?.reactToPetClick()
     }
     override func mouseDragged(with event: NSEvent) {
         let point = NSEvent.mouseLocation
         guard let previous else { return }
+        dragDistance += hypot(point.x-previous.x,point.y-previous.y)
+        if abs(point.x-previous.x)>0.5 { dragDirection += point.x-previous.x }
         if moving {
             controller?.movePet(by: CGSize(width: point.x - previous.x, height: point.y - previous.y))
         } else { controller?.reactToPetting(direction: point.x - previous.x) }
         self.previous = point
     }
     override func mouseUp(with event: NSEvent) {
-        previous = nil; controller?.isInteracting = false; controller?.updatePassThrough()
+        let dragged=dragDistance>4
+        previous = nil; controller?.isInteracting = false
+        if event.clickCount<2 {
+            if dragged { controller?.walkAway(direction:dragDirection) }
+            else { controller?.reactToPetClick() }
+        }
+        controller?.updatePassThrough()
     }
     override func rightMouseDown(with event: NSEvent) {
         if let menu=controller?.makeContextMenu?() {NSMenu.popUpContextMenu(menu,with:event,for:self)}
@@ -306,12 +315,19 @@ import QuartzCore
         updatePassThrough()
     }
     func movePet(by delta: CGSize) {
-        stopWalking(); preferences.movement = .stay
+        stopWalking()
         roamingOrigin=nil
         preferences.anchor = .free
         guard let visible = screen?.visibleFrame else { return }
         freeOrigin = CGPoint(x: max(0, min(visible.width - scene.size.width, window.frame.minX - visible.minX + delta.width)), y: max(0, min(visible.height - scene.size.height, window.frame.minY - visible.minY + delta.height)))
         window.setFrameOrigin(CGPoint(x: visible.minX + freeOrigin!.x, y: visible.minY + freeOrigin!.y))
+    }
+    func walkAway(direction:CGFloat) {
+        guard abs(direction)>0,!isHidden,!screenSleeping,!focusSleeping,let visible=screen?.visibleFrame else{return}
+        let target=Self.clampedOrigin(CGPoint(x:window.frame.minX+(direction<0 ? -180:180),y:window.frame.minY),in:visible,size:scene.size)
+        guard abs(target.x-window.frame.minX)>2 else{return}
+        currentReaction = .idle;nextWander=Date().addingTimeInterval(25)
+        travel(to:target,jump:false)
     }
     func updatePassThrough() {
         guard !isInteracting else { return }
@@ -476,7 +492,7 @@ import QuartzCore
     }
     private func travel(to target: CGPoint, jump: Bool, completion: (() -> Void)? = nil) {
         stopWalking(); stopDance(); walking = true
-        view.preferredFramesPerSecond=60
+        view.preferredFramesPerSecond=30
         let generation = movementGeneration
         let start = window.frame.origin
         let speed=max(20,min(200,movementSettings?.state.walkSpeed ?? 95))
@@ -489,7 +505,7 @@ import QuartzCore
         // Window travel must keep advancing when SKView has no drawable (for
         // example beneath Library or on a transitioning Space). The timer
         // exists only during travel; pet gait still renders through SpriteKit.
-        let timer=Timer(timeInterval:1.0/60,repeats:true){[weak self] timer in
+        let timer=Timer(timeInterval:1.0/30,repeats:true){[weak self] timer in
             MainActor.assumeIsolated {
                 guard let self,self.walking,self.movementGeneration==generation else{timer.invalidate();return}
                 let elapsed=ProcessInfo.processInfo.systemUptime-started

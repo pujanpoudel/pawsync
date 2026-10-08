@@ -56,7 +56,7 @@ class Library(QMainWindow):
         self.stack=QStackedWidget();body_layout.addWidget(self.stack);self.notice=label('');self.notice.setStyleSheet('color:#704c83;');body_layout.addWidget(self.notice);layout.addWidget(body)
         self.page_widgets={};self.make_pets();self.make_items();self.make_achievements();self.make_creator();self.make_wellness();self.make_settings()
         self.sidebar.currentRowChanged.connect(self.page_changed);self.sidebar.setCurrentRow(0)
-        self.refresh_timer=QTimer(self);self.refresh_timer.setSingleShot(True);self.refresh_timer.timeout.connect(self.refresh_visible);self.state.changed.connect(lambda:self.refresh_timer.start(80))
+        self.refresh_timer=QTimer(self);self.refresh_timer.setSingleShot(True);self.refresh_timer.timeout.connect(lambda:self.refresh_visible() if self.isVisible() else None);self.state.changed.connect(lambda:self.refresh_timer.start(80))
     def closeEvent(self,event):
         if self.c.closed:event.accept()
         else:event.ignore();self.hide()

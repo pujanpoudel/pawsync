@@ -59,3 +59,7 @@ Build on the target OS. Linux produces `desktop/dist/PawSync-0.3.0-linux-amd64.d
 The GitHub workflow builds/tests on Windows and Ubuntu independently and uploads preview installers. Tests cover progress persistence/merging, gifts collected once, queued one-off reminders, original file references, real drag/drop events, direct/double clicks, rabbit jump poses, stationary input reactions, asset completeness and authenticated loopback limits. `PAWSYNC_TEST_GLOBAL_INPUT=1` additionally exercises real Windows/X11 input occurrences. `desktop/test_linux_runtime.py` tests shaped-window routing and double-clicks with an external X11 client. Screenshots come from the actual Qt UI.
 
 The Qt preview has not yet met the native macOS RAM target of 60 MB; do not transfer the Swift app's resource claims to this port. Idle rendering stops rather than running an unconditional 60-fps loop. Measure packaged idle/active usage on target hardware before a public performance claim.
+
+### Interaction polish
+
+Drag the companion normally to reposition it. Releasing a horizontal drag sends it walking a further bounded distance in that direction; typing still stops it in place. Click reactions keep the body upright, and open-eye emotions retain the original illustrated eyes. Knight Cat has a dedicated two-paw cheer pose. Active shared-client animation runs at 30 fps, facial landmarks are cached, and hidden Library pages do not rebuild on state changes. Performance budgets still need measurement on Windows and Linux hardware.

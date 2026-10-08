@@ -1,7 +1,7 @@
 import json,time
 from pathlib import Path
 from PySide6.QtCore import Qt,QPoint,QMimeData,QUrl
-from PySide6.QtGui import QDropEvent,QDragEnterEvent,QPixmap
+from PySide6.QtGui import QDropEvent,QDragEnterEvent,QPixmap,QMouseEvent,QImage,QPainter
 from PySide6.QtTest import QSignalSpy,QTest
 from pawsync.companion import Companion,Artwork
 from pawsync.assets import ASSETS
@@ -59,3 +59,30 @@ def test_library_close_hides_but_shutdown_accepts_close(qtbot,monkeypatch,tmp_pa
     monkeypatch.setenv('PAWSYNC_DATA_DIR',str(tmp_path));c=Controller(QApplication.instance());qtbot.addWidget(c.library)
     event=QCloseEvent();c.library.closeEvent(event);assert not event.isAccepted();c.shutdown();event=QCloseEvent();c.library.closeEvent(event);assert event.isAccepted()
     c.pet.close();c.quick.close();c.pocket.close();c.speech.close()
+
+
+def test_drag_release_walks_further_in_release_direction(qtbot,state,catalog,content):
+    pet=Companion(state,catalog,content);qtbot.addWidget(pet);pet.heartbeat.stop()
+    pet.move(200,100);pet.drag_start=pet.pos()+QPoint(120,160);pet.origin=pet.pos()
+    release=pet.drag_start+QPoint(60,0)
+    event=QMouseEvent(QMouseEvent.MouseButtonRelease,QPoint(120,160),release,Qt.LeftButton,Qt.NoButton,Qt.NoModifier)
+    pet.mouseReleaseEvent(event)
+    assert pet.mode=='Walk' and pet.travel is not None
+    assert pet.travel[1].x()>pet.travel[0].x()
+    assert pet.frame_timer.interval()==33
+    pet.stop_travel()
+
+def test_open_eye_reactions_keep_authored_eyes(catalog):
+    profile=catalog.by_id['knight-cat'].profile
+    base=QImage(192,208,QImage.Format_ARGB32);base.fill(Qt.transparent)
+    for emotion in ('Curious','Surprised','Focused'):
+        rendered=base.copy();painter=QPainter(rendered);Artwork.face(painter,profile,emotion);painter.end()
+        for eye in profile['eyes']:
+            x,y=round(eye['point'][0]*192),round(eye['point'][1]*208)
+            assert rendered.pixelColor(x,y).alpha()==0
+
+def test_knight_click_raises_paws_without_eye_replacement(qtbot,state,catalog,content):
+    state.choose(catalog.by_id['knight-cat']);pet=Companion(state,catalog,content);qtbot.addWidget(pet);pet.heartbeat.stop()
+    pet.react('Cuddle');pet.advance(pet.started+.3)
+    assert pet.pose=='cheer' and pet.art.profile_for(0,0,'cheer') is None
+    assert not pet.art.frame(0,0,'cheer').isNull()

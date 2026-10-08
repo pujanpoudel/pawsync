@@ -50,7 +50,7 @@ struct PetExpressionProfile:Decodable {
                 let group=SKNode();group.position=CGPoint(x:(eye.point[0]-0.5)*192,y:(1-eye.point[1])*208);addChild(group)
                 let r=CGFloat(eye.radius)
                 let fur=NSColor(calibratedRed:eye.fur[0],green:eye.fur[1],blue:eye.fur[2],alpha:1)
-                if value != .focused && value != .surprised {
+                if value != .focused && value != .surprised && value != .curious {
                     let cover=SKShapeNode(ellipseOf:CGSize(width:r*2.75,height:r*2.8));cover.fillColor=fur;cover.strokeColor = .clear;group.addChild(cover)
                 }
                 func line(_ from:CGPoint,_ to:CGPoint,_ control:CGPoint,width:CGFloat=1.7) {
@@ -67,7 +67,6 @@ struct PetExpressionProfile:Decodable {
                     // reads as surprise without replacing irises or adding sclera.
                     line(CGPoint(x:-r*0.7,y:r*1.9),CGPoint(x:r*0.7,y:r*1.9),CGPoint(x:0,y:r*2.3),width:1.1)
                 case .curious:
-                    let pupil=SKShapeNode(ellipseOf:CGSize(width:r*1.8,height:r*2));pupil.fillColor=palette.ink;pupil.strokeColor = .clear;group.addChild(pupil)
                     line(CGPoint(x:-r,y:r*1.8),CGPoint(x:r,y:r*1.8),CGPoint(x:0,y:r*2.5),width:1.2)
                 case .playful:
                     line(CGPoint(x:-r,y:-1),CGPoint(x:r,y:-1),CGPoint(x:0,y:r*1.3))

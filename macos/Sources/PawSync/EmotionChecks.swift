@@ -21,7 +21,7 @@ import UniformTypeIdentifiers
                 try require(PetExpressionProfile.load(spec.directory) != nil,"Missing or invalid facial landmarks for \(spec.name).")
             }
             if let profile=PetExpressionProfile.load(spec.directory) {
-                let face=PetExpressionNode(profile:profile,id:spec.id);face.show(.surprised)
+                let face=PetExpressionNode(profile:profile,id:spec.id);face.show(.curious)
                 try require(face.children.flatMap(\.children).compactMap{$0 as? SKShapeNode}.allSatisfy{$0.fillColor.alphaComponent == 0},"Surprise replaced the original eyes for \(spec.name).")
             }
             if spec.origin == "Paw-Paw preview" {
@@ -36,6 +36,8 @@ import UniformTypeIdentifiers
             }
             pet.cuddle();renderer.advance(0.3)
             try require(pet.requiresContinuousRendering,"Direct affection was not animated for \(spec.name).")
+            try require(abs(pet.bodyRotation)<0.001,"Click hop rotated around the feet for \(spec.name).")
+            if spec.id == "knight-cat" { try require(pet.displayedFilePose == "cheer","Knight Cat did not lift both paws for its click hop.") }
             try require(pet.affectionLift > 8,"Direct-click kitten hop did not leave the ground for \(spec.name).")
             if spec.id == "bunny" {
                 try require(pet.displayedFilePose == nil && pet.currentFrame.row == 4 && pet.currentFrame.column == 2,"Rabbit click hop reused the extra-paw catching pose.")

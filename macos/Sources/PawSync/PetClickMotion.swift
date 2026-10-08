@@ -17,7 +17,7 @@ enum PetClickMotion {
         for side in [CGFloat(-1),CGFloat(1)] {
             actions += [
                 pose(x:0,y:0,scale:0.91,angle:0,time:0.14,mode:.easeInEaseOut),
-                pose(x:side*2,y:22,scale:1.05,angle:side*0.035,time:0.18,mode:.easeOut),
+                pose(x:side*2,y:22,scale:1.05,angle:0,time:0.18,mode:.easeOut),
                 pose(x:side,y:0,scale:0.96,angle:0,time:0.20,mode:.easeIn),
                 pose(x:0,y:0,scale:1,angle:0,time:0.09,mode:.easeOut)
             ]

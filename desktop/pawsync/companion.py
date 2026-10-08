@@ -14,7 +14,7 @@ EMOTIONS=['Happy','Curious','Surprised','Affectionate','Shy','Sad','Sleepy','Exc
 class Artwork:
     def __init__(self,pet,content):
         self.pet=pet; self.sheet=QImage(str(pet.directory/'spritesheet.webp')) if not pet.rig else None
-        self.cache=OrderedDict(); self.profile=pet.profile; self.parts={}; self.item_cache={}
+        self.cache=OrderedDict(); self.profile_cache={}; self.profile=pet.profile; self.parts={}; self.item_cache={}
         self.fits=next((p['fits'] for p in content['pets'] if p['id']==pet.id),None)
         if pet.rig:
             for name,part in pet.rig['parts'].items(): self.parts[name]=QImage(str(pet.directory/part['file']))
@@ -29,12 +29,13 @@ class Artwork:
         while len(self.cache)>12: self.cache.popitem(last=False)
         return image
     def profile_for(self,row,column,pose=None):
+        if pose=='cheer': return None
         if pose: file=RESOURCES/'FileInteractions'/self.pet.id/pose/'interaction.json'
         elif row in (1,2,7): file=self.pet.directory/('typing-left' if column%2==0 else 'typing-right')/'interaction.json'
         else: return self.profile
-        if file.exists():
-            return read_profile(file) or self.profile
-        return self.profile
+        if file not in self.profile_cache:
+            self.profile_cache[file]=read_profile(file) if file.exists() else None
+        return self.profile_cache[file] or self.profile
     def paint(self,painter,row=0,column=0,pose=None,emotion=None,item=None,transform=None,blink=False,dance=False,tap=0):
         if self.pet.rig:
             self.paint_rig(painter,tap,emotion,blink,pose); profile=None
@@ -44,6 +45,10 @@ class Artwork:
             # Side-view flight/running artwork retains its own natural eyes.
             if self.pet.id=='bunny' and row==4 or row in (1,2): profile=None
             self.face(painter,profile,'Cozy' if blink else emotion)
+            if pose=='cheer':
+                fit_file=RESOURCES/'FileInteractions'/self.pet.id/'cheer'/'interaction.json'
+                if fit_file not in self.profile_cache:self.profile_cache[fit_file]=read_profile(fit_file) if fit_file.exists() else None
+                profile=self.profile_cache[fit_file]
         crown=(96,38); sf=1.
         if self.pet.rig:
             head=self.pet.rig['parts']['head'];size=head.get('display_size',[150,125]);offset=head.get('parent_offset',[0,42]);crown=(96+offset[0],170-offset[1]-(1-head['anchor'][1])*size[1]+8);sf=size[0]/140
@@ -77,7 +82,7 @@ class Artwork:
             x=body_pos.x()+offset[0];y=body_pos.y()-offset[1]
             painter.save();painter.translate(x,y)
             if key in ('left_paw','right_paw'):
-                if pose in ('receive','hold'):painter.rotate((-1 if key=='left_paw' else 1)*(55 if pose=='receive' else 28))
+                if pose in ('receive','hold','cheer'):painter.rotate((-1 if key=='left_paw' else 1)*(135 if pose=='cheer' else 55 if pose=='receive' else 28))
                 elif tap:painter.rotate((1 if key=='left_paw' else -1)*tap*20)
             elif key=='head' and emotion in ('Cozy','Affectionate','Delighted'):painter.rotate(4*math.sin(time.monotonic()*3))
             elif key=='tail' and tap:painter.rotate(tap*12)
@@ -89,12 +94,12 @@ class Artwork:
         painter.save();painter.setRenderHint(QPainter.Antialiasing)
         for index,eye in enumerate(profile['eyes']):
             x,y=eye['point'][0]*192,eye['point'][1]*208;r=eye['radius'];painter.save();painter.translate(x,y)
-            if emotion not in ('Focused','Surprised'):
+            if emotion not in ('Focused','Surprised','Curious'):
                 fur=eye['fur'];painter.setBrush(QColor.fromRgbF(*fur));painter.setPen(Qt.NoPen);painter.drawEllipse(QRectF(-r*1.38,-r*1.4,r*2.76,r*2.8))
             painter.setPen(QPen(INK,1.7,Qt.SolidLine,Qt.RoundCap));painter.setBrush(Qt.NoBrush);path=QPainterPath()
             if emotion=='Surprised': path.moveTo(-r*.7,-r*1.9);path.quadTo(0,-r*2.3,r*.7,-r*1.9)
             elif emotion=='Focused': path.moveTo(-r,-r*1.5);path.lineTo(r,-r*1.2)
-            elif emotion=='Curious': painter.setBrush(INK);painter.drawEllipse(QRectF(-r*.9,-r,r*1.8,r*2))
+            elif emotion=='Curious': path.moveTo(-r*.7,-r*1.9);path.quadTo(0,-r*2.3,r*.7,-r*1.9)
             elif emotion=='Grumpy': path.moveTo(-r,-r*.35 if index==0 else r*.35);path.lineTo(r,r*.35 if index==0 else -r*.35)
             else:
                 happy=emotion in ['Happy','Proud','Excited','Affectionate','Delighted','Playful'];path.moveTo(-r,0);path.quadTo(0,-r*1.3 if happy else r*.75,r,0)
@@ -115,7 +120,7 @@ class Companion(QWidget):
         super().__init__(None,flags);self.setAttribute(Qt.WA_TranslucentBackground);self.setAttribute(Qt.WA_ShowWithoutActivating);self.setAcceptDrops(True)
         self.state=state;self.catalog=catalog;self.content=content;self.pet=None;self.art=None;self.mode='Idle';self.emotion=None;self.started=0.;self.duration=0.;self.row=0;self.column=0;self.pose=None
         self.travel=None;self.roaming_position=None;self.last_activity=time.monotonic();self.next_roam=time.monotonic()+20;self.taps=0;self.last_tap=0;self.screen_name=None;self.sleeping=False;self.screen_sleep=False;self.holding=0;self.owned=();self.receiving=False;self.dancing=False;self.cursor_near=None;self.next_cursor=0;self.next_blink=time.monotonic()+12;self.drag_start=None;self.last_mask=None;self.locked_mask_until=0.
-        self.frame_timer=QTimer(self);self.frame_timer.setTimerType(Qt.PreciseTimer);self.frame_timer.setInterval(16);self.frame_timer.timeout.connect(self.advance)
+        self.frame_timer=QTimer(self);self.frame_timer.setTimerType(Qt.PreciseTimer);self.frame_timer.setInterval(33);self.frame_timer.timeout.connect(self.advance)
         self.heartbeat=QTimer(self);self.heartbeat.setInterval(1000);self.heartbeat.timeout.connect(self.idle_tick);self.heartbeat.start()
         self.state.changed.connect(self.refresh);self.refresh()
     def refresh(self):
@@ -179,7 +184,10 @@ class Companion(QWidget):
             if t>=1: self.travel=None;self.rest();self.travel_finished.emit()
         elif self.mode=='Cuddle':
             cycle=elapsed%.61
-            if self.pet.id=='bunny': self.row=4 if cycle<.52 else 0;self.column=0 if cycle<.14 or cycle>=.52 else 2;self.pose=None
+            if self.pet.id=='knight-cat' and self.native_pose('cheer'):
+                self.pose='cheer' if .14<=cycle<.52 else 'hold' if self.holding else None
+            elif self.pet.id=='bunny': self.row=4 if cycle<.52 else 0;self.column=0 if cycle<.14 or cycle>=.52 else 2;self.pose=None
+            elif self.pet.rig: self.pose='cheer' if .14<=cycle<.52 else 'hold' if self.holding else None
             elif self.native_pose('receive') and self.art.profile:
                 self.pose='receive' if .14<=cycle<.52 else 'hold' if self.holding else None
             elif self.art.profile is None: self.column=int(elapsed/.15)%4
@@ -198,7 +206,7 @@ class Companion(QWidget):
             painter.translate(0,-lift);painter.translate(96,208);painter.scale(1,.95 if phase<.14 else 1.03 if lift else 1);painter.translate(-96,-208)
         elif self.mode=='Typing': painter.translate(0,math.sin(min(elapsed,.25)/.25*math.pi)*2)
         elif self.mode=='Click':
-            pulse=math.sin(min(1,elapsed/self.duration)*math.pi);direction=-1 if QCursor.pos().x()<self.x()+self.width()/2 else 1;painter.translate(96,175);painter.rotate(direction*pulse*3);painter.scale(1+pulse*.015,1+pulse*.025);painter.translate(-96,-175)
+            pulse=math.sin(min(1,elapsed/self.duration)*math.pi);direction=-1 if QCursor.pos().x()<self.x()+self.width()/2 else 1;painter.translate(96,175);painter.scale(1+pulse*.015,1+pulse*.025);painter.translate(-96,-175)
         elif self.mode=='IdleBlink':
             phase=min(1,elapsed/.85);painter.translate(96,208);painter.scale(1,1-.025*math.sin(phase*math.pi));painter.translate(-96,-208)
         elif self.mode=='Dance': painter.translate(0,-abs(math.sin(elapsed*math.pi*4))*9)
@@ -265,14 +273,18 @@ class Companion(QWidget):
     def mouseMoveEvent(self,event):
         if self.drag_start is None: return
         delta=event.globalPosition().toPoint()-self.drag_start
-        if event.modifiers()&Qt.AltModifier: self.move(self.clamped(self.origin+delta));self.roaming_position=self.pos();self.moved.emit()
-        elif delta.manhattanLength()>4: self.react('Affectionate');self.petted.emit()
+        if delta.manhattanLength()>4:
+            self.move(self.clamped(self.origin+delta));self.roaming_position=self.pos();self.moved.emit()
     def mouseReleaseEvent(self,event):
         if self.drag_start is not None and (event.globalPosition().toPoint()-self.drag_start).manhattanLength()<4:
             if event.button()==Qt.RightButton: self.double_tapped.emit()
             else:
                 self.locked_mask_until=time.monotonic()+QApplication.doubleClickInterval()/1000
                 self.react('Cuddle');self.clicked.emit()
+        elif self.drag_start is not None:
+            delta=event.globalPosition().toPoint()-self.drag_start
+            if abs(delta.x())>4:
+                self.walk_to(self.pos()+QPoint(180 if delta.x()>0 else -180,0));self.next_roam=time.monotonic()+25
         self.drag_start=None
     def mouseDoubleClickEvent(self,event): self.stop_travel();self.double_tapped.emit();self.drag_start=None;event.accept()
     def enterEvent(self,event):

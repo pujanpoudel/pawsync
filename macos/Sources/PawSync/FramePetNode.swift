@@ -44,13 +44,14 @@ import SpriteKit
     }
     private var filePoses:[String:FilePose]=[:]
     private(set) var displayedFilePose:String?
-    var hasNativeFilePoses:Bool { filePoses.count == 2 }
+    var hasNativeFilePoses:Bool { filePoses["receive"] != nil && filePoses["hold"] != nil }
     var heldFilesPointInScene:CGPoint { guard let scene else { return .zero };return sprite.convert(heldFiles.position,to:scene) }
     private var expressionReset:DispatchWorkItem?
     private(set) var receivingFiles=false
     private var heldCount=0
     var currentEmotion:PetEmotion? { expression.emotion }
     var affectionLift:CGFloat { sprite.position.y }
+    var bodyRotation:CGFloat { sprite.zRotation }
     var leftPawDisplacement:CGPoint { pawDisplacement(index:0) }
     var tappedPawDisplacement:CGPoint { pawDisplacement(index:lastTappedPaw == "right" ? 1:0) }
     private func pawDisplacement(index pawIndex:Int)->CGPoint {
@@ -106,7 +107,7 @@ import SpriteKit
             if let value=PetExpressionProfile.load(spec.directory.appendingPathComponent(name)) { poseProfiles[index]=value }
         }
         if let directory=Bundle.main.resourceURL?.appendingPathComponent("FileInteractions/"+spec.id),FileManager.default.fileExists(atPath:directory.appendingPathComponent("receive.png").path) {
-            for pose in ["receive","hold"] { filePoses[pose]=try FilePose(directory:directory,name:pose) }
+            for pose in ["receive","hold","cheer"] where FileManager.default.fileExists(atPath:directory.appendingPathComponent(pose+".png").path) { filePoses[pose]=try FilePose(directory:directory,name:pose) }
         }
         let atlas=SKTexture(cgImage:decoded.image)
         for row in 0..<spec.rows {
@@ -137,7 +138,7 @@ import SpriteKit
     private func showFilePose(_ name:String,preserveEmotion:Bool=false) {
         guard let pose=filePoses[name] else { return }
         displayedFilePose=name;sprite.texture=pose.texture;sprite.warpGeometry=nil
-        expression.useProfile(pose.profile,preserveEmotion:preserveEmotion);updateAccessoryFit();onNeedsRender?()
+        expression.useProfile(name == "cheer" ? nil:pose.profile,preserveEmotion:preserveEmotion);updateAccessoryFit();onNeedsRender?()
     }
     private var frameProfile:PetExpressionProfile? {
         if isKnightCat { return profile }
@@ -238,9 +239,8 @@ import SpriteKit
         }
         // Ambient clicks are a quick look/blink, rather than a hello or a flip.
         play(clickMood.isMultiple(of:2) ? .review:.waiting,looping:false,relaxed:false);clickMood+=1
-        let direction:CGFloat=point.x < position.x ? 1:-1
         inputMotionUntil=ProcessInfo.processInfo.systemUptime+0.35
-        let perk=SKAction.group([.rotate(toAngle:direction*0.05,duration:0.09),.scaleY(to:1.035,duration:0.09)])
+        let perk=SKAction.group([.scaleY(to:1.035,duration:0.09)])
         let settle=SKAction.group([.rotate(toAngle:0,duration:0.22),.scaleY(to:1,duration:0.22)])
         perk.timingMode = .easeOut;settle.timingMode = .easeInEaseOut
         sprite.run(.sequence([perk,settle]),withKey:"click-perk");onNeedsRender?()
@@ -249,7 +249,7 @@ import SpriteKit
         if profile != nil { express(.affectionate) } else { play(.review,looping:false,relaxed:true) }
         if isKnightCat {
             knightLimbs(.affection,duration:0.9)
-            let lean=SKAction.rotate(toAngle:max(-0.06,min(0.06,direction*0.009)),duration:0.25)
+            let lean=SKAction.rotate(toAngle:0,duration:0.25)
             let rest=SKAction.rotate(toAngle:0,duration:0.45);lean.timingMode = .easeInEaseOut;rest.timingMode = .easeInEaseOut
             sprite.run(.sequence([lean,rest]),withKey:"knight-body")
         }
@@ -286,8 +286,14 @@ import SpriteKit
                 else {self.show(row:0,column:0)}
             }
             sprite.run(.repeat(.sequence([crouch,.wait(forDuration:0.14),airborne,.wait(forDuration:0.38),land,.wait(forDuration:0.09)]),count:2),withKey:"cuddle-pose")
-        } else if isKnightCat {
-            knightLimbs(.affection,duration:1.22)
+        } else if isKnightCat,filePoses["cheer"] != nil {
+            let raised=SKAction.run { [weak self] in self?.showFilePose("cheer",preserveEmotion:true) }
+            let lowered=SKAction.run { [weak self] in
+                guard let self else{return}
+                if self.heldCount>0 { self.showFilePose("hold",preserveEmotion:true) }
+                else { self.show(row:0,column:0) }
+            }
+            sprite.run(.repeat(.sequence([.wait(forDuration:0.14),raised,.wait(forDuration:0.38),lowered,.wait(forDuration:0.09)]),count:2),withKey:"cuddle-pose")
         } else if hasNativeFilePoses {
             let reach=SKAction.run { [weak self] in self?.showFilePose("receive",preserveEmotion:true) }
             let rest=SKAction.run { [weak self] in
@@ -378,9 +384,9 @@ import SpriteKit
         }
         neutral();if hasNativeFilePoses,heldCount>0 { showFilePose("hold") };expression.show(emotion)
         let duration:TimeInterval=emotion == .sleepy ? 1.8:1.15
-        let tilt:CGFloat=emotion == .curious ? 0.065:emotion == .shy ? -0.04:0
+        // Keep the body upright; facial reactions never pivot around the feet.
         let lift:CGFloat=emotion == .excited ? 9:emotion == .happy || emotion == .proud ? 3:0
-        let upbeat=SKAction.group([.rotate(toAngle:tilt,duration:0.18),.scaleY(to:emotion == .surprised ? 1.04:emotion == .sad ? 0.96:1,duration:0.18),.moveTo(y:lift,duration:0.18)])
+        let upbeat=SKAction.group([.scaleY(to:emotion == .surprised ? 1.04:emotion == .sad ? 0.96:1,duration:0.18),.moveTo(y:lift,duration:0.18)])
         let settle=SKAction.group([.rotate(toAngle:0,duration:0.3),.scaleY(to:1,duration:0.3),.moveTo(y:0,duration:0.3)])
         upbeat.timingMode = .easeOut;settle.timingMode = .easeInEaseOut
         sprite.run(.sequence([upbeat,.wait(forDuration:0.35),settle]),withKey:"emotion")
@@ -400,7 +406,7 @@ import SpriteKit
             if isKnightCat { knightLimbs(.stretch,duration:0.58) }
             let up=SKAction.moveTo(y:30,duration:0.24),down=SKAction.moveTo(y:0,duration:0.34)
             up.timingMode = .easeOut;down.timingMode = .easeIn
-            sprite.run(.group([.sequence([up,down]),.rotate(byAngle:.pi*2,duration:0.58)]),withKey:"celebration")
+            sprite.run(.sequence([up,down]),withKey:"celebration")
             inputMotionUntil=ProcessInfo.processInfo.systemUptime+0.8;onNeedsRender?()
         }
     }
@@ -463,8 +469,7 @@ import SpriteKit
         if profile != nil {
             express(.curious)
             if isKnightCat {
-                let local=sprite.convert(point,from:scene)
-                let turn=SKAction.rotate(toAngle:max(-0.045,min(0.045,local.x/2500)),duration:0.22)
+                let turn=SKAction.rotate(toAngle:0,duration:0.22)
                 let rest=SKAction.rotate(toAngle:0,duration:0.38);turn.timingMode = .easeInEaseOut;rest.timingMode = .easeInEaseOut
                 sprite.run(.sequence([turn,.wait(forDuration:0.25),rest]),withKey:"knight-body")
             }

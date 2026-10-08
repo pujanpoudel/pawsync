@@ -200,7 +200,7 @@ struct SettingsView: View {
                     Button("Walk") {library.record("walk"); model.overlay.wanderNow() }
                     Button("Jump") {library.record("jump"); model.overlay.jumpNow() }
                 }
-                Text("Stroke your pet with a click and drag. Hold Option while dragging to move it.").font(.caption).foregroundStyle(.secondary)
+                Text("Drag your pet to move it; it walks farther in the direction you release. Click for a happy hop.").font(.caption).foregroundStyle(.secondary)
             }
             card {
                 Toggle("Show my companion",isOn:Binding(get:{!preferences.hidden},set:{preferences.hidden = !$0}))

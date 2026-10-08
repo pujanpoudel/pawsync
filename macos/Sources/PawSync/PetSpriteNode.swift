@@ -202,7 +202,7 @@ import SpriteKit
         }
         joints["head"]?.run(.sequence([.repeat(.sequence([eased(.rotate(toAngle:0.06,duration:0.18)),eased(.rotate(toAngle:-0.06,duration:0.18))]),count:3),eased(.rotate(toAngle:0,duration:0.24))]),withKey:"cuddle")
         for (key,side) in [("left_paw",CGFloat(-1)),("right_paw",CGFloat(1))] {
-            joints[key]?.run(.repeat(.sequence([.wait(forDuration:0.14),eased(.rotate(toAngle:side*0.6,duration:0.18)),eased(.rotate(toAngle:0,duration:0.20)),.wait(forDuration:0.09)]),count:2),withKey:"cuddle")
+            joints[key]?.run(.repeat(.sequence([.wait(forDuration:0.14),eased(.rotate(toAngle:side*2.35,duration:0.18)),eased(.rotate(toAngle:0,duration:0.20)),.wait(forDuration:0.09)]),count:2),withKey:"cuddle")
         }
         onNeedsRender?()
     }
