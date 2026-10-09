@@ -231,7 +231,7 @@ import QuartzCore
             }
         })
         workspaceObservers.append(center.addObserver(forName: NSWorkspace.screensDidSleepNotification, object: nil, queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated { self?.screenSleeping = true; self?.stopWalking(); self?.stopDance(); self?.pet?.setRenderingSuspended(true); self?.renderPauseWork?.cancel(); self?.view.isPaused = true; self?.onVisibilityChanged?() }
+            MainActor.assumeIsolated { self?.screenSleeping = true; self?.stopWalking(); self?.stopDance(); self?.pet?.setRenderingSuspended(true); self?.renderPauseWork?.cancel(); self?.pauseRendering(); self?.onVisibilityChanged?() }
         })
         workspaceObservers.append(center.addObserver(forName: NSWorkspace.screensDidWakeNotification, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.screenSleeping = false; self?.reposition(); self?.animate(for: 0.8); self?.onVisibilityChanged?(); self?.onWake?() }
@@ -310,7 +310,7 @@ import QuartzCore
         let destination=roamingOrigin.map{Self.clampedOrigin($0,in:visible,size:scene.size)} ?? CGPoint(x:visible.minX+origin.x,y:visible.minY+origin.y)
         window.setFrame(CGRect(origin:destination,size:scene.size), display: false)
         pet?.setRenderingSuspended(isHidden || screenSleeping || preferences.reactionsPaused)
-        if isHidden { window.orderOut(nil); view.isPaused = true }
+        if isHidden { window.orderOut(nil); pauseRendering() }
         else if !settingsVisible { window.orderFrontRegardless() }
         else if !window.isVisible { window.orderFront(nil) }
         onVisibilityChanged?()
@@ -590,7 +590,7 @@ import QuartzCore
     }
     func refreshAppearance() {
         pet?.setRenderingSuspended(preferences.reactionsPaused || screenSleeping || isHidden)
-        if preferences.reactionsPaused { stopWalking(); stopDance(); view.isPaused = true }
+        if preferences.reactionsPaused { stopWalking(); stopDance(); pauseRendering() }
         else { didReceiveInput(); animate(for: 0.4) }
     }
     func setMenuSleeping(_ value:Bool) { menuSleeping=value;updateSleep() }
@@ -599,20 +599,25 @@ import QuartzCore
         if asleep { stopWalking(); stopDance() }
         animate(for: 1); pet?.setSleeping(asleep); restorePresentation?()
     }
+    private func pauseRendering() {
+        view.isPaused=true
+        view.preferredFramesPerSecond=1
+    }
     func animate(for seconds: TimeInterval) {
         guard !screenSleeping, !isHidden else { return }
         let duration=pet is FramePetNode && pet?.requiresContinuousRendering != true && !walking && !dancing ? min(0.08,seconds):seconds
         animationDeadline = max(animationDeadline, Date().addingTimeInterval(duration))
+        view.preferredFramesPerSecond=walking || pet is FramePetNode ? 30:60
         view.isPaused = false
         renderPauseWork?.cancel()
         let work=DispatchWorkItem { [weak self] in
-            guard let self,Date() >= self.animationDeadline else { return }; self.view.isPaused=true
+            guard let self,Date() >= self.animationDeadline else { return }; self.pauseRendering()
         }
         renderPauseWork=work
         DispatchQueue.main.asyncAfter(deadline:.now()+max(0.01,animationDeadline.timeIntervalSinceNow)+0.005,execute:work)
     }
     private func heartbeat() {
-        guard !screenSleeping, !isHidden, !preferences.reactionsPaused else { stopWalking(); stopDance(); view.isPaused = true; return }
+        guard !screenSleeping, !isHidden, !preferences.reactionsPaused else { stopWalking(); stopDance(); pauseRendering(); return }
         // Inactivity leaves the companion awake so its authored idle and roaming
         // animations can continue. Manual/focus sleep and display sleep are separate.
         if currentReaction == .idle,!focusSleeping,!careSleeping, !menuSleeping,!dancing,!walking,!isInteracting {
@@ -627,7 +632,7 @@ import QuartzCore
             if resumeReaction, Date().timeIntervalSince(lastInput) > 1.5 { resumeReaction = false; playCurrentReaction() }
             if !(pet is FramePetNode) { animate(for:1.2) }
         }
-        if Date() > animationDeadline { view.isPaused = true }
+        if Date() > animationDeadline { pauseRendering() }
         if !(pet is FramePetNode),currentReaction == .idle, !focusSleeping, !careSleeping, !menuSleeping, !dancing, !walking, canRoam, Date() > nextBreath {
             nextBreath = Date().addingTimeInterval(15); animate(for: 2.4); pet?.idle()
         }
