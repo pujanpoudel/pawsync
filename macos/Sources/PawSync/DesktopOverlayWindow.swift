@@ -19,6 +19,17 @@ import QuartzCore
     override var canBecomeMain: Bool { false }
 }
 
+// SpriteKit may consult its delegate from a render thread. Keep the gate
+// independent of AppKit's main-actor view state.
+private final class PetRenderGate:NSObject,SKViewDelegate {
+    private let lock=NSLock()
+    private var enabled=true
+    func setEnabled(_ value:Bool) { lock.lock();enabled=value;lock.unlock() }
+    func view(_ view:SKView,shouldRenderAtTime time:TimeInterval)->Bool {
+        lock.lock();defer{lock.unlock()};return enabled
+    }
+}
+
 @MainActor final class PetInteractionView: SKView {
     override var needsPanelToBecomeKey: Bool { false }
     override func acceptsFirstMouse(for event:NSEvent?)->Bool { true }
@@ -114,6 +125,7 @@ import QuartzCore
 }
 
 @MainActor final class OverlayController: NSObject {
+    private let renderGate=PetRenderGate()
     let window = DesktopOverlayWindow()
     let view = PetInteractionView(frame: CGRect(x: 0, y: 0, width: 280, height: 300))
     let scene = CompanionScene(size: CGSize(width: 280, height: 300))
@@ -204,7 +216,7 @@ import QuartzCore
     init(preferences: Preferences) {
         self.preferences = preferences
         super.init()
-        view.controller = self
+        view.controller = self;view.delegate=renderGate
         view.registerForDraggedTypes([.string,.fileURL])
         view.allowsTransparency = true; view.preferredFramesPerSecond = 30
         view.ignoresSiblingOrder = true; view.shouldCullNonVisibleNodes = true
@@ -600,13 +612,15 @@ import QuartzCore
         animate(for: 1); pet?.setSleeping(asleep); restorePresentation?()
     }
     private func pauseRendering() {
-        view.isPaused=true
-        view.preferredFramesPerSecond=1
+        renderGate.setEnabled(false)
+        if !view.isPaused { view.isPaused=true }
+        if view.preferredFramesPerSecond != 1 { view.preferredFramesPerSecond=1 }
     }
     func animate(for seconds: TimeInterval) {
-        guard !screenSleeping, !isHidden else { return }
+        guard !screenSleeping, !isHidden, !preferences.reactionsPaused else { return }
         let duration=pet is FramePetNode && pet?.requiresContinuousRendering != true && !walking && !dancing ? min(0.08,seconds):seconds
         animationDeadline = max(animationDeadline, Date().addingTimeInterval(duration))
+        renderGate.setEnabled(true)
         view.preferredFramesPerSecond=walking || pet is FramePetNode ? 30:60
         view.isPaused = false
         renderPauseWork?.cancel()

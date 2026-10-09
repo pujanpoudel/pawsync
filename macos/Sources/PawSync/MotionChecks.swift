@@ -294,7 +294,20 @@ import UniformTypeIdentifiers
         controller.reactToPetClick()
         RunLoop.main.run(until:Date().addingTimeInterval(0.7))
         try require(!controller.view.isPaused,"The real overlay paused before Knight Cat's second hop.")
-        try require(controller.view.preferredFramesPerSecond == 60,"Knight Cat's interactive motion is not running at 60 FPS.")
+        try require(controller.view.preferredFramesPerSecond == 30,"Knight Cat's interactive motion did not use the active 30 FPS budget.")
+        // Pause through the controller, not just the frame node: the controller's
+        // heartbeat intentionally continues ambient motion while reactions are on.
+        preferences.reactionsPaused=true
+        defer { preferences.reactionsPaused=false }
+        controller.refreshAppearance()
+        controller.animate(for:0.5)
+        try require(controller.view.isPaused && controller.view.preferredFramesPerSecond == 1,"Paused reactions did not throttle rendering.")
+        try require(controller.view.delegate?.view?(controller.view,shouldRenderAtTime:ProcessInfo.processInfo.systemUptime) == false,"Paused rendering still submits unchanged frames.")
+        preferences.reactionsPaused=false
+        controller.refreshAppearance()
+        controller.previewTyping()
+        try require(!controller.view.isPaused && controller.view.preferredFramesPerSecond == 30,"Typing did not resume active rendering.")
+        try require(controller.view.delegate?.view?(controller.view,shouldRenderAtTime:ProcessInfo.processInfo.systemUptime) == true,"Active rendering remained gated off.")
         controller.reposition(resetPosition:true)
         try require(hypot(controller.window.frame.minX-start.x,controller.window.frame.minY-start.y)<0.01,"Reset Position did not restore the selected anchor.")
     }
