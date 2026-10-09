@@ -24,9 +24,14 @@ import QuartzCore
 private final class PetRenderGate:NSObject,SKViewDelegate {
     private let lock=NSLock()
     private var enabled=true
-    func setEnabled(_ value:Bool) { lock.lock();enabled=value;lock.unlock() }
+    private var singleFrame=false
+    func setEnabled(_ value:Bool) { lock.lock();enabled=value;singleFrame=false;lock.unlock() }
+    func requestFrame() { lock.lock();enabled=true;singleFrame=true;lock.unlock() }
     func view(_ view:SKView,shouldRenderAtTime time:TimeInterval)->Bool {
-        lock.lock();defer{lock.unlock()};return enabled
+        lock.lock();defer{lock.unlock()}
+        let render=enabled
+        if singleFrame { enabled=false }
+        return render
     }
 }
 
@@ -261,10 +266,12 @@ private final class PetRenderGate:NSObject,SKViewDelegate {
         pointerFallback?.invalidate(); pointerFallback = nil
         // Cursor-only fallback remains active even if a keyboard tap is live.
         // A paused render loop or a missed mouse-move event must not strand hit testing.
-        pointerFallback = Timer.scheduledTimer(withTimeInterval: 0.12, repeats: true) { [weak self] _ in
+        // Mouse events update hit testing immediately; polling only covers
+        // stationary-cursor pose changes and missed events.
+        pointerFallback = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.updatePassThrough() }
         }
-        pointerFallback?.tolerance = 0.01
+        pointerFallback?.tolerance = 0.05
     }
     func loadPet(_ id: String) throws {
         stopWalking(); stopDance()
@@ -346,11 +353,18 @@ private final class PetRenderGate:NSObject,SKViewDelegate {
     func updatePassThrough() {
         guard !isInteracting else { return }
         guard !screenSleeping, !isHidden,!preferences.clickThrough else { window.ignoresMouseEvents = true; return }
-        if settingsVisible, !wardrobeDragging, isSettingsPoint?(NSEvent.mouseLocation) == true {
+        let cursor=NSEvent.mouseLocation
+        // Avoid SpriteKit conversion and alpha-mask work far from the pet.
+        guard window.frame.insetBy(dx:-130,dy:-130).contains(cursor) else {
+            if !window.ignoresMouseEvents { window.ignoresMouseEvents=true }
+            nearbySince=nil
+            return
+        }
+        if settingsVisible, !wardrobeDragging, isSettingsPoint?(cursor) == true {
             window.ignoresMouseEvents = true
             return
         }
-        let local = window.convertPoint(fromScreen: NSEvent.mouseLocation)
+        let local = window.convertPoint(fromScreen: cursor)
         let viewPoint = view.convert(local, from: window.contentView)
         let hit = view.bounds.contains(viewPoint) && ((pet?.containsOpaquePoint(scene.convertPoint(fromView: viewPoint)) ?? false) || (pet?.containsHeldFilesPoint(scene.convertPoint(fromView:viewPoint)) ?? false))
         if window.ignoresMouseEvents == hit { window.ignoresMouseEvents = !hit }
@@ -502,7 +516,6 @@ private final class PetRenderGate:NSObject,SKViewDelegate {
         roamingOrigin=window.frame.origin
         animationDeadline=Date()
         walking = false; pet?.setWalking(false); restorePresentation?(); updatePassThrough()
-        view.preferredFramesPerSecond=(pet as? FramePetNode)?.isKnightCat == true ? 60:pet is FramePetNode ? 30:60
     }
     private func travel(to target: CGPoint, jump: Bool, completion: (() -> Void)? = nil) {
         stopWalking(); stopDance(); walking = true
@@ -528,7 +541,6 @@ private final class PetRenderGate:NSObject,SKViewDelegate {
                 self.roamingOrigin=point;self.window.setFrameOrigin(point);self.updatePassThrough()
                 if raw>=1 {
                     timer.invalidate();self.travelTimer=nil;self.window.setFrameOrigin(target);self.walking=false
-                    self.view.preferredFramesPerSecond=(self.pet as? FramePetNode)?.isKnightCat == true ? 60:self.pet is FramePetNode ? 30:60
                     self.pet?.setWalking(false);self.restorePresentation?();self.updatePassThrough();completion?()
                 }
             }
@@ -608,21 +620,36 @@ private final class PetRenderGate:NSObject,SKViewDelegate {
     func setMenuSleeping(_ value:Bool) { menuSleeping=value;updateSleep() }
     private func updateSleep() {
         let asleep=focusSleeping || careSleeping || menuSleeping
-        if asleep { stopWalking(); stopDance() }
-        animate(for: 1); pet?.setSleeping(asleep); restorePresentation?()
+        if asleep {
+            stopWalking(); stopDance(); interruptReaction()
+            currentReaction = .idle;resumeReaction=false
+            // A cancelled jump can leave the panel midway through its arc.
+            // Focus returns it to its chosen resting anchor before freezing.
+            if focusSleeping { reposition(resetPosition:true) }
+        }
+        pet?.setSleeping(asleep);restorePresentation?();animate(for:1)
     }
     private func pauseRendering() {
         renderGate.setEnabled(false)
-        if !view.isPaused { view.isPaused=true }
-        if view.preferredFramesPerSecond != 1 { view.preferredFramesPerSecond=1 }
+        // The delegate skips both updates and rendering between authored
+        // frames. Toggling SKView.isPaused each time also restarts its display
+        // link, so reserve that for an actual visibility/permission pause.
+        let fullyPaused=screenSleeping || isHidden || preferences.reactionsPaused || focusSleeping || careSleeping || menuSleeping || !(pet is FramePetNode)
+        if view.isPaused != fullyPaused { view.isPaused=fullyPaused }
+        // Keep the display link stable instead of rebuilding it per atlas frame.
     }
     func animate(for seconds: TimeInterval) {
         guard !screenSleeping, !isHidden, !preferences.reactionsPaused else { return }
-        let duration=pet is FramePetNode && pet?.requiresContinuousRendering != true && !walking && !dancing ? min(0.08,seconds):seconds
+        let staticFrame=pet is FramePetNode && pet?.requiresContinuousRendering != true && !walking && !dancing
+        let duration=staticFrame ? min(0.08,seconds):seconds
         animationDeadline = max(animationDeadline, Date().addingTimeInterval(duration))
-        renderGate.setEnabled(true)
-        view.preferredFramesPerSecond=walking || pet is FramePetNode ? 30:60
-        view.isPaused = false
+        if staticFrame { renderGate.requestFrame() } else { renderGate.setEnabled(true) }
+        // Resting atlases change about once per second. Keep their clock slow
+        // between frames; active authored clips and actions resume immediately.
+        let resting=staticFrame && (pet as? FramePetNode)?.isResting == true
+        let fps=resting ? 2:walking || pet is FramePetNode ? 30:60
+        if view.preferredFramesPerSecond != fps { view.preferredFramesPerSecond=fps }
+        if view.isPaused { view.isPaused=false }
         renderPauseWork?.cancel()
         let work=DispatchWorkItem { [weak self] in
             guard let self,Date() >= self.animationDeadline else { return }; self.pauseRendering()

@@ -13,7 +13,6 @@ import SpriteKit
     private let heldFiles=PetHeldFilesIndicator()
     private var nextLeftPaw = true
     private(set) var lastTappedPaw: String?
-    private let caption = SKLabelNode(fontNamed: NSFont.systemFont(ofSize:10,weight:.semibold).fontName)
     private var restPositions: [String: CGPoint] = [:]
     private(set) var sleeping = false
     var onNeedsRender:(()->Void)?
@@ -96,8 +95,6 @@ import SpriteKit
         sleepLabel.position = CGPoint(x: 62, y: 143)
         sleepLabel.isHidden = true
         addChild(sleepLabel)
-        caption.fontSize = 10; caption.fontColor = NSColor(calibratedRed: 0.38, green: 0.29, blue: 0.23, alpha: 1)
-        caption.position = CGPoint(x: 0, y: -25); addChild(caption)
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) is unsupported") }
 
@@ -276,7 +273,7 @@ import SpriteKit
         accessorySlot.childNode(withName:"free-headphones")?.setScale(head.size.width/90)
     }
     func setAccessoryVisibility(_ visible: Bool) { accessorySlot.isHidden = !visible }
-    func setCaption(_ text: String) { if caption.text != text { caption.text = text } }
+    func setCaption(_ text: String) {}
     func containsHeldFilesPoint(_ point:CGPoint)->Bool { heldFiles.containsScenePoint(point) }
     func setHeldFileCount(_ count:Int) { heldFiles.setCount(count);onNeedsRender?() }
     func setReceivingFiles(_ active:Bool) {
@@ -340,7 +337,7 @@ import SpriteKit
     }
     func presentation(flipped: Bool, hudScale: Double, hat: HatTransform) {
         hatTransform=hat
-        joints["body"]?.xScale = flipped ? -1 : 1; caption.setScale(hudScale)
+        joints["body"]?.xScale = flipped ? -1 : 1
         updateAccessoryFit()
     }
     func accessoryPlacement(at point:CGPoint) -> HatTransform {
@@ -414,7 +411,7 @@ import SpriteKit
         let tail = joints["tail"]!
         head.childNode(withName:"export-expression")?.removeFromParent()
         childNode(withName:"export-feet")?.removeFromParent()
-        shadow.isHidden = true; caption.isHidden = true; sleepLabel.isHidden = true
+        shadow.isHidden = true; sleepLabel.isHidden = true
         switch row {
         case 0: // quiet idle, including an occasional soft blink
             body.yScale = 1 - 0.018 * (1 + sin(phase))

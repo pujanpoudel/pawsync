@@ -17,6 +17,13 @@ import SwiftUI
         for (title,action,key) in [("Cut",#selector(NSText.cut(_:)),"x"),("Copy",#selector(NSText.copy(_:)),"c"),("Paste",#selector(NSText.paste(_:)),"v"),("Select All",#selector(NSText.selectAll(_:)),"a")] {editMenu.addItem(NSMenuItem(title:title,action:action,keyEquivalent:key))}
         NSApp.mainMenu=appMenu
         model = AppModel()
+        if CommandLine.arguments.contains("--benchmark-idle") {
+            // Diagnostic only: keep the real listeners, timers and animated
+            // companion running, but prevent live input from starting active
+            // reactions or granting XP during a controlled idle measurement.
+            model.input.onTyping=nil;model.input.onClick=nil
+            model.overlay.canRoam=false
+        }
         model.openSettings = { [weak self] in self?.showSettings() }
         model.overlay.isSettingsPoint = { [weak self] point in
             guard let window=self?.settingsWindow,window.isVisible else { return false }

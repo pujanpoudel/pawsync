@@ -171,6 +171,10 @@ class Companion(QWidget):
         self.frame_timer.start();self.update_visual()
     def rest(self):
         self.mode='Idle';self.row=0;self.column=6 if self.pet and self.pet.rows==11 else 0;self.pose='hold' if self.holding and (self.native_pose('hold') or self.pet.rig) else None;self.emotion=None
+    def set_focus_sleep(self,value):
+        self.stop_travel()
+        if value:self.reanchor(reset=True)
+        self.sleeping=value;self.frame_timer.stop();self.rest();self.update_visual()
     def native_pose(self,pose): return self.pet and (RESOURCES/'FileInteractions'/self.pet.id/(pose+'.png')).exists()
     def advance(self,now=None):
         now=time.monotonic() if now is None else now

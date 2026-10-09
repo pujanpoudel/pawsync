@@ -301,14 +301,29 @@ import UniformTypeIdentifiers
         defer { preferences.reactionsPaused=false }
         controller.refreshAppearance()
         controller.animate(for:0.5)
-        try require(controller.view.isPaused && controller.view.preferredFramesPerSecond == 1,"Paused reactions did not throttle rendering.")
+        try require(controller.view.isPaused && controller.view.preferredFramesPerSecond == 30,"Paused reactions did not preserve a stable render clock.")
         try require(controller.view.delegate?.view?(controller.view,shouldRenderAtTime:ProcessInfo.processInfo.systemUptime) == false,"Paused rendering still submits unchanged frames.")
         preferences.reactionsPaused=false
         controller.refreshAppearance()
-        controller.previewTyping()
+        controller.typing()
         try require(!controller.view.isPaused && controller.view.preferredFramesPerSecond == 30,"Typing did not resume active rendering.")
         try require(controller.view.delegate?.view?(controller.view,shouldRenderAtTime:ProcessInfo.processInfo.systemUptime) == true,"Active rendering remained gated off.")
         controller.reposition(resetPosition:true)
         try require(hypot(controller.window.frame.minX-start.x,controller.window.frame.minY-start.y)<0.01,"Reset Position did not restore the selected anchor.")
+        try controller.loadPet("openpets-default")
+        controller.animate(for:0.08)
+        let clock=ProcessInfo.processInfo.systemUptime
+        try require(controller.view.delegate?.view?(controller.view,shouldRenderAtTime:clock) == true,"An authored atlas change did not request a frame.")
+        try require(controller.view.delegate?.view?(controller.view,shouldRenderAtTime:clock+0.01) == false,"An unchanged atlas frame was rendered repeatedly.")
+        RunLoop.main.run(until:Date().addingTimeInterval(0.15))
+        try require(!controller.view.isPaused,"Idle atlas frames restarted the display link by pausing the view.")
+        controller.jumpNow()
+        RunLoop.main.run(until:Date().addingTimeInterval(0.35))
+        controller.focusSleeping=true
+        try require(hypot(controller.window.frame.minX-start.x,controller.window.frame.minY-start.y)<0.01,"Focus left the pet stranded midway through a jump.")
+        try require((controller.pet as? FramePetNode)?.currentFrame.row == 0,"Focus froze an active animation instead of restoring the resting pose.")
+        controller.focusSleeping=false
+        controller.typing()
+        try require(!controller.view.isPaused,"Ending focus did not resume pet rendering.")
     }
 }

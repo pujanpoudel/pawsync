@@ -35,7 +35,7 @@ class Controller(QObject):
         app.setWindowIcon(icon);self.tray=QSystemTrayIcon(icon,self);self.menu=QMenu();self.tray.setContextMenu(self.menu);self.tray.activated.connect(lambda reason:self.library.open_page('Pets') if reason==QSystemTrayIcon.DoubleClick else None);self.rebuild_menu();self.tray.show();self.state.changed.connect(self.rebuild_menu)
         self.timer=QTimer(self);self.timer.setInterval(1000);self.timer.timeout.connect(self.tick);self.timer.start();self.save_timer=QTimer(self);self.save_timer.setInterval(30000);self.save_timer.timeout.connect(self.flush);self.save_timer.start();self.app.installEventFilter(self)
         app.aboutToQuit.connect(self.shutdown);self.enforce_license();self.start_background();QTimer.singleShot(200,self.enable_input)
-        if self.focus_end>time.time():self.pet.sleeping=True;self.pet.update_visual()
+        if self.focus_end>time.time():self.pet.set_focus_sleep(True)
         if self.state.prefs['greet'] and not self.focus_end:QTimer.singleShot(1500,lambda:self.say('A little friend for your day. Let’s make it a kind one ♡','Happy'))
         self.reminder_to_show=None;self.pet.travel_finished.connect(self.reminder_arrived)
         self.pet.moved.connect(self.move_popups)
@@ -71,8 +71,8 @@ class Controller(QObject):
     def hide_hour(self):self.hide_pet(True);QTimer.singleShot(3600000,lambda:self.hide_pet(False))
     def start_focus(self,checked=False):
         if not self.backend.licensed:return
-        self.focus_end=time.time()+25*60;self.break_end=0;self.pet.stop_travel();self.pet.sleeping=True;self.pet.frame_timer.stop();self.pet.rest();self.pet.update_visual();self.state.value['focus']={'ends':self.focus_end};self.state.save();self.library.open_page('Wellness')
-    def stop_focus(self):self.focus_end=0;self.break_end=0;self.pet.sleeping=False;self.pet.rest();self.pet.update_visual();self.state.value['focus']={};self.state.save()
+        self.focus_end=time.time()+25*60;self.break_end=0;self.pet.set_focus_sleep(True);self.state.value['focus']={'ends':self.focus_end};self.state.save();self.library.open_page('Wellness')
+    def stop_focus(self):self.focus_end=0;self.break_end=0;self.pet.set_focus_sleep(False);self.state.value['focus']={};self.state.save()
     def tick(self):
         now=time.time();self.tools.tick(bool(self.focus_end))
         if hasattr(self.library,'timer_readout'):self.library.timer_readout.setText(self.tools.timer_text())

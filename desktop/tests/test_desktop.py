@@ -99,3 +99,15 @@ def test_bubble_tail_tracks_pet_and_stays_attached_at_screen_edges(qtbot,state,c
 def test_openpets_click_uses_two_arm_jump_not_one_arm_wave(qtbot,state,catalog,content):
     state.choose(catalog.by_id['openpets-dobby']);pet=Companion(state,catalog,content);qtbot.addWidget(pet);pet.heartbeat.stop();pet.react('Cuddle');pet.advance(pet.started+.3)
     assert pet.row==4 and pet.column==2
+
+def test_focus_interrupts_jump_at_resting_anchor_and_resumes_typing(qtbot,state,catalog,content):
+    pet=Companion(state,catalog,content);qtbot.addWidget(pet);pet.heartbeat.stop()
+    pet.reanchor(reset=True);resting=pet.pos()
+    pet.roam(True);pet.advance(pet.travel[2]+.35)
+    assert pet.pos()!=resting
+    pet.set_focus_sleep(True)
+    assert pet.pos()==resting and pet.travel is None
+    assert pet.sleeping and pet.mode=='Idle' and pet.row==0
+    assert not pet.frame_timer.isActive()
+    pet.set_focus_sleep(False);pet.react('Typing')
+    assert pet.mode=='Typing' and pet.frame_timer.isActive()

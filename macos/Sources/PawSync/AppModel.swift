@@ -80,7 +80,7 @@ import Combine
             return self.presentation.name(for:self.preferences.companion) ?? self.originalPetName(self.preferences.companion).components(separatedBy:" the ").first ?? "Buddy"
         }
         presentation.$state.map(\.names).removeDuplicates().dropFirst().sink { [weak self] _ in
-            DispatchQueue.main.async {guard let self else{return};self.objectWillChange.send();self.updateCaption()}
+            DispatchQueue.main.async {guard let self else{return};self.objectWillChange.send()}
         }.store(in:&subscriptions)
         fileInbox.objectWillChange.sink { [weak self] _ in
             DispatchQueue.main.async { guard let self else { return };self.overlay.setHeldFileCount(self.fileInbox.files.count) }
@@ -331,7 +331,6 @@ import Combine
         preferences.$movement.dropFirst().sink { [weak self] _ in DispatchQueue.main.async { self?.overlay.stopWalking() } }.store(in: &subscriptions)
         preferences.$hidden.dropFirst().sink { [weak self] hidden in if hidden { self?.speech.dismiss(); self?.reminders.complete() }
             DispatchQueue.main.async { self?.configureMusic() } }.store(in: &subscriptions)
-        activity.$snapshot.map { CompanionActivity.level(for: $0.total) }.removeDuplicates().sink { [weak self] _ in DispatchQueue.main.async { self?.updateCaption() } }.store(in: &subscriptions)
         preferences.$edgeTraversal.dropFirst().sink { [weak self] enabled in
             if enabled { self?.windowEdges.requestPermission() }
         }.store(in: &subscriptions)
@@ -342,7 +341,6 @@ import Combine
             DispatchQueue.main.async { self?.configureMusic(force: true) }
         }.store(in: &subscriptions)
         library.choosePet(preferences.companion)
-        library.$state.map{state in state.activeTrack + ":" + String(state.tracks.first{$0.id==state.activeTrack}?.level ?? 1)}.removeDuplicates().sink{[weak self] _ in DispatchQueue.main.async{self?.updateCaption()}}.store(in:&subscriptions)
         preferences.$petOpacity.removeDuplicates().sink{[weak self] value in self?.overlay.window.alphaValue=value}.store(in:&subscriptions)
         preferences.$clickThrough.removeDuplicates().sink{[weak self] _ in DispatchQueue.main.async{self?.overlay.updatePassThrough()}}.store(in:&subscriptions)
         input.start(); loadPet(preferences.companion); configureServer()
@@ -372,7 +370,6 @@ import Combine
         overlay.pet?.setAccessoryVisibility(preferences.headAccessoriesVisible)
         applyPresentation()
         care.select(id)
-        updateCaption()
     }
     func selectLibraryPet(_ id:String) {guard library.canSelect(id) else{notice="This friend joins at level \(LibraryProgress.petUnlock(id)). Keep earning to unlock them.";return};notice="";preferences.companion=id}
     func originalPetName(_ id:String)->String {PetStore.builtInNames[id] ?? custom.customPets.first{$0.id==id}?.name ?? (try? PetStore.load(id).name) ?? id}
@@ -506,12 +503,6 @@ import Combine
     @objc private func menuGallery() { settingsSection = .gallery; openSettings?() }
     @objc private func menuSettings() { openSettings?() }
     @objc private func menuHide() { preferences.hidden=true }
-    private func updateCaption() {
-        let name = presentation.name(for:preferences.companion) ?? originalPetName(preferences.companion).components(separatedBy:" the ").first ?? "PawSync"
-        let hideBearCaption=["bear","pawpaw-bear"].contains(preferences.companion)
-        overlay.pet?.setCaption(hideBearCaption ? "" : "\(String(name.prefix(40))) · Lv.\(library.active.level)")
-        overlay.animate(for: 0.2)
-    }
     private func licenseChanged() {
         configureServer(); configureMusic(force: true)
         if !canUseApp { focus.stop(); preferences.hidden = true; preferences.accessory = "none" }

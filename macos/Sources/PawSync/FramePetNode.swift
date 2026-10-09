@@ -65,7 +65,6 @@ import SpriteKit
     private var accessorySKU="none"
     private var hatTransform=HatTransform()
     private var animationState:PetAnimation = .idle
-    private let caption=SKLabelNode(fontNamed:NSFont.systemFont(ofSize:10,weight:.semibold).fontName)
     private let accessories=SKNode()
     private let sleepLabel=SKLabelNode(fontNamed:NSFont.systemFont(ofSize:17,weight:.semibold).fontName)
     private let heldFiles=PetHeldFilesIndicator()
@@ -80,6 +79,7 @@ import SpriteKit
     private let restingWarp=SKWarpGeometryGrid(columns:12,rows:16)
     private lazy var pawWarps:[SKWarpGeometryGrid]=[Self.pawWarp(left:true),Self.pawWarp(left:false)]
     var requiresContinuousRendering:Bool { ProcessInfo.processInfo.systemUptime < inputMotionUntil }
+    var isResting:Bool { animationState == .idle && !requiresContinuousRendering }
     var remainingAnimationDuration:TimeInterval { max(0,inputMotionUntil-ProcessInfo.processInfo.systemUptime) }
     private static func pawWarp(left:Bool)->SKWarpGeometryGrid {
         var source:[SIMD2<Float>]=[],destination:[SIMD2<Float>]=[]
@@ -119,7 +119,6 @@ import SpriteKit
         sprite.size=CGSize(width:192,height:208); sprite.anchorPoint=CGPoint(x:0.5,y:0)
         addChild(sprite); accessories.name="head-accessories"; accessories.zPosition=10; sprite.addChild(accessories)
         sprite.addChild(expression)
-        caption.fontSize=10; caption.fontColor = .brown; caption.position.y = -25; addChild(caption)
         sleepLabel.text="z z"; sleepLabel.fontSize=17; sleepLabel.fontColor = .systemPurple; sleepLabel.position=CGPoint(x:63,y:154); sleepLabel.isHidden=true; addChild(sleepLabel)
         heldFiles.setTheme(spec.id);heldFiles.position=CGPoint(x:0,y:36);sprite.addChild(heldFiles)
         show(row:0,column:spec.rows == 11 ? 6 : 0)
@@ -398,7 +397,7 @@ import SpriteKit
     func setSleeping(_ value:Bool) {
         guard value != sleeping else { return }; sleeping=value; travelling=false; stopFrames(); sprite.removeAllActions(); sprite.position = .zero; sprite.zRotation=0; sprite.setScale(1); updateFacing()
         sleepLabel.isHidden = !value; sprite.alpha=1
-        neutral(); if value,profile != nil { show(row:0,column:5);expression.show(.sleepy) };if !value { idle() }; onNeedsRender?()
+        neutral(); if value,profile != nil { expression.show(.sleepy) };if !value { idle() }; onNeedsRender?()
     }
     func celebrate() {
         play(.jumping,looping:false,relaxed:false)
@@ -583,9 +582,10 @@ import SpriteKit
     }
     func setAccessory(_ sku:String) { accessorySKU=sku; accessories.childNode(withName:"cosmetic")?.removeFromParent(); if let node=PetAccessories.make(sku) { accessories.addChild(node) }; updateAccessoryFit(); onNeedsRender?() }
     func setAccessoryVisibility(_ visible:Bool) { accessories.isHidden = !visible; onNeedsRender?() }
-    func setCaption(_ text:String) { guard caption.text != text else { return }; caption.text=text; onNeedsRender?() }
+    // Companion identity and progress belong in the Library, not on the desktop.
+    func setCaption(_ text:String) {}
     func presentation(flipped:Bool,hudScale:Double,hat:HatTransform) {
-        self.flipped=flipped; hatTransform=hat; updateFacing(); caption.setScale(hudScale)
+        self.flipped=flipped; hatTransform=hat; updateFacing()
         updateAccessoryFit()
         onNeedsRender?()
     }

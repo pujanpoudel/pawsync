@@ -20,7 +20,7 @@ struct SpeechAction:Identifiable { let id:String;let title:String;let icon:Strin
     private weak var petWindow:NSWindow?
     private var moveObserver:NSObjectProtocol?
     private var scale:CGFloat=1
-    func setScale(_ value:Double) { scale=CGFloat(max(0.7,min(1.5,value)));refreshPanelContent();reposition() }
+    func setScale(_ value:Double) { scale=CGFloat(max(0.7,min(1.5,value)));if isVisible { refreshPanelContent();reposition() } }
     private func refreshPanelContent() {
         guard let panel else { return }
         panel.setContentSize(CGSize(width:310*scale,height:bubbleHeight*scale))
@@ -43,13 +43,13 @@ struct SpeechAction:Identifiable { let id:String;let title:String;let icon:Strin
             p.becomesKeyOnlyIfNeeded=true;p.ignoresMouseEvents=false;p.worksWhenModal=true;p.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary,.ignoresCycle]
             p.level=NSWindow.Level(rawValue:NSWindow.Level.mainMenu.rawValue-1);panel=p
         }
-        refreshPanelContent();reposition();panel?.orderFrontRegardless();onVisibility?(true)
+        refreshPanelContent();reposition(force:true);panel?.orderFrontRegardless();onVisibility?(true)
         let timer=Timer(timeInterval:reminder ? 12:8,repeats:false) { [weak self] _ in MainActor.assumeIsolated { guard let self else { return };if self.isReminder { self.onAutoDismiss?() };self.dismiss() } }
         RunLoop.main.add(timer,forMode:.common);dismissTimer=timer;return true
     }
     private func complete() { if isReminder { onDone?() } else { dismiss() } }
-    func reposition() {
-        guard let panel,let petWindow else { return }
+    func reposition(force:Bool=false) {
+        guard (force || isVisible),let panel,let petWindow else { return }
         let context=attachment?() ?? .fallback(petWindow)
         // Three thought dots descend toward the companion's head, rather than
         // centering a floating card above the whole transparent window.
