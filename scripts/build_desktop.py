@@ -10,7 +10,7 @@ def build():
     sep=';' if sys.platform=='win32' else ':'
     # Only live runtime art is included, not reference sheets or development resources.
     staging=work/'resources';shutil.rmtree(staging,ignore_errors=True);staging.mkdir(parents=True)
-    for folder in ('OpenPets','Pets','FileInteractions','Library'):
+    for folder in ('OpenPets','Pets','FileInteractions','Library','Locomotion'):
         shutil.copytree(ROOT/'macos/Resources'/folder,staging/folder,ignore=shutil.ignore_patterns('*.zip','*.psd','*.xcf'))
     for file in ('Config.json','AppIcon.icns'):shutil.copy2(ROOT/'macos/Resources'/file,staging/file)
     # Release callers explicitly supply a signed-license config; never invent live credentials.

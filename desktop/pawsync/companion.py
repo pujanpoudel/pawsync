@@ -7,6 +7,7 @@ from PySide6.QtGui import QImage, QPainter, QColor, QPen, QPainterPath, QRegion,
 from PySide6.QtWidgets import QWidget, QApplication
 from .assets import ASSETS, RESOURCES, read_profile
 from .platform import all_workspaces, foreground_rect
+from .gait import WalkingFrames
 
 INK=QColor('#40312b'); PAPER=QColor('#fffaf5'); PURPLE=QColor('#7b57a6'); PINK=QColor('#c3428c')
 EMOTIONS=['Happy','Curious','Surprised','Affectionate','Shy','Sad','Sleepy','Excited','Proud','Focused','Playful','Delighted','Cozy','Grumpy']
@@ -14,7 +15,7 @@ EMOTIONS=['Happy','Curious','Surprised','Affectionate','Shy','Sad','Sleepy','Exc
 class Artwork:
     def __init__(self,pet,content):
         self.pet=pet; self.sheet=QImage(str(pet.directory/'spritesheet.webp')) if not pet.rig else None
-        self.cache=OrderedDict(); self.profile_cache={}; self.profile=pet.profile; self.parts={}; self.item_cache={}
+        self.walking=WalkingFrames(pet);self.cache=OrderedDict(); self.profile_cache={}; self.profile=pet.profile; self.parts={}; self.item_cache={}
         self.fits=next((p['fits'] for p in content['pets'] if p['id']==pet.id),None)
         if pet.rig:
             for name,part in pet.rig['parts'].items(): self.parts[name]=QImage(str(pet.directory/part['file']))
@@ -36,15 +37,16 @@ class Artwork:
         if file not in self.profile_cache:
             self.profile_cache[file]=read_profile(file) if file.exists() else None
         return self.profile_cache[file] or self.profile
-    def paint(self,painter,row=0,column=0,pose=None,emotion=None,item=None,transform=None,blink=False,dance=False,tap=0):
+    def paint(self,painter,row=0,column=0,pose=None,emotion=None,item=None,transform=None,blink=False,dance=False,tap=0,walk_phase=None):
         if self.pet.rig:
             self.paint_rig(painter,tap,emotion,blink,pose); profile=None
         else:
-            painter.drawImage(QRectF(0,0,192,208),self.frame(row,column,pose))
+            base=self.frame(row,column,pose)
+            painter.drawImage(QRectF(0,0,192,208),self.walking.frame(base,walk_phase) if walk_phase is not None and self.walking.procedural else base)
             profile=self.profile_for(row,column,pose)
             # Side-view flight/running artwork retains its own natural eyes.
             if self.pet.id=='bunny' and row==4 or row in (1,2): profile=None
-            self.face(painter,profile,'Cozy' if blink else emotion)
+            self.face(painter,None if walk_phase is not None else profile,'Cozy' if blink else emotion)
             if pose=='cheer':
                 fit_file=RESOURCES/'FileInteractions'/self.pet.id/'cheer'/'interaction.json'
                 if fit_file not in self.profile_cache:self.profile_cache[fit_file]=read_profile(fit_file) if fit_file.exists() else None
@@ -184,7 +186,11 @@ class Companion(QWidget):
             start,target,began,duration,jump=self.travel;t=min(1,(now-began)/duration);e=(1-math.cos(t*math.pi))/2 if jump else t
             x=start.x()+(target.x()-start.x())*e;y=start.y()+(target.y()-start.y())*e-(math.sin(math.pi*e)*80 if jump else 0)
             self.move(round(x),round(y));self.roaming_position=self.pos();self.moved.emit()
-            self.column=min(4,int(t*5)) if jump else int((now-began)*8)%6
+            if jump: self.column=min(4,int(t*5))
+            else:
+                gait=self.art.walking.gait
+                self.row=gait['row'] if self.art.walking.procedural else 0 if self.pet.id=='knight-cat' else 1
+                self.column=gait['column'] if self.art.walking.procedural else int((now-began)/self.walk_cycle()*8)%8
             if t>=1: self.travel=None;self.rest();self.travel_finished.emit()
         elif self.mode=='Cuddle':
             cycle=elapsed%.61
@@ -217,13 +223,16 @@ class Companion(QWidget):
         elif self.mode=='Success':
             progress=min(1,elapsed/self.duration);painter.translate(96,104-math.sin(progress*math.pi)*30);painter.rotate(progress*360);painter.translate(-96,-104)
         if self.travel and self.mode=='Walk':
+            gait=self.art.walking.gait
+            if gait and gait['bob']:
+                painter.translate(0,-gait['bob']*(1-math.cos(elapsed/self.walk_cycle()*4*math.pi))/2)
             direction=1 if self.travel[1].x()>self.travel[0].x() else -1; source=-1 if self.pet.id=='knight-cat' else 1
             if direction!=source: painter.translate(192,0);painter.scale(-1,1)
         elif self.state.prefs['mirror']: painter.translate(192,0);painter.scale(-1,1)
         item=next((i for i in self.content['items'] if i['id']==self.state.prefs['accessory']),None) if self.state.prefs['headAccessoriesVisible'] else None
         if item and not self.state.can_equip(item['id'],self.owned):item=None
         transform=self.state.progress['placements'].get(self.pet.id+'::'+self.state.prefs['accessory'])
-        self.art.paint(painter,self.row,self.column,self.pose,'Sleepy' if self.sleeping else self.emotion,item,transform,dance=self.dancing and self.state.prefs['headAccessoriesVisible'],tap=math.sin(elapsed*(18 if self.mode=='Typing' else 8)) if self.mode in ('Typing','Walk','Dance') else 0)
+        self.art.paint(painter,self.row,self.column,self.pose,'Sleepy' if self.sleeping else self.emotion,item,transform,dance=self.dancing and self.state.prefs['headAccessoriesVisible'],tap=math.sin(elapsed*(18 if self.mode=='Typing' else 8)) if self.mode in ('Typing','Walk','Dance') else 0,walk_phase=(elapsed/self.walk_cycle())%1 if self.mode=='Walk' else None)
         if self.mode=='Failed':
             painter.setPen(QPen(INK,2));painter.setBrush(QColor('#d8af80'));painter.drawRoundedRect(QRectF(34,145,124,58),8,8);painter.drawLine(96,146,96,160)
         if self.sleeping: painter.setPen(PURPLE);painter.drawText(QPointF(145,36),'z z')
@@ -238,16 +247,27 @@ class Companion(QWidget):
         if time.monotonic()<self.locked_mask_until and self.last_mask is not None:region=self.last_mask
         if region!=self.last_mask: self.setMask(region);self.last_mask=region
         self.update();self.moved.emit()
+    def walk_cycle(self):
+        if not self.travel:return .8
+        start,target,_,duration,_=self.travel
+        speed=math.hypot(target.x()-start.x(),target.y()-start.y())/max(.1,duration)/self.state.prefs['scale']
+        stride=max((limb['stride'] for limb in (self.art.walking.gait or {}).get('limbs',[])),default=10)
+        return max(.4,min(1.5,(2*stride/.6)/max(20,speed)))
     def head_point(self):
         profile=self.art.profile_for(self.row,self.column,self.pose)
         if self.pose=='cheer':
             profile=self.art.profile_cache.get(RESOURCES/'FileInteractions'/self.pet.id/'cheer'/'interaction.json')
-        crown=profile['crown'] if profile else None
+        crown=profile['crown'] if profile and (self.pose or profile.get('full_body')) else None
         if crown: x,y=crown[0]*192,crown[1]*208
         elif self.art.fits:
             x,y=self.art.fits[min(self.row,len(self.art.fits)-1)][self.column]['crown']
         else:x,y=96,38
-        if self.state.prefs['mirror']:x=192-x
+        if self.travel and self.mode=='Walk':
+            direction=1 if self.travel[1].x()>self.travel[0].x() else -1
+            if direction!=(-1 if self.pet.id=='knight-cat' else 1):x=192-x
+            gait=self.art.walking.gait
+            if gait:y-=gait['bob']*(1-math.cos((time.monotonic()-self.started)/self.walk_cycle()*4*math.pi))/2
+        elif self.state.prefs['mirror']:x=192-x
         if self.mode=='Cuddle':
             phase=min(time.monotonic()-self.started,1.4)%.61
             if .14<=phase<=.52:y-=22*max(0,math.sin((phase-.14)/.38*math.pi))
@@ -266,10 +286,10 @@ class Companion(QWidget):
             front=foreground_rect()
             if front: target.setY(front[1]-self.height()+32 if abs(start.y()-(visible.bottom()-self.height()+1))<20 else visible.bottom()-self.height()+1);jump=True
         target=self.clamped(target);duration=1.68 if jump else max(1.2,abs(target.x()-start.x())/self.state.prefs['walkSpeed'])
-        self.travel=(start,target,time.monotonic(),duration,jump);self.started=time.monotonic();self.duration=duration;self.mode='Jump' if jump else 'Walk';self.row=4 if jump else 1;self.pose=None;self.emotion=None;self.frame_timer.start();self.next_roam=time.monotonic()+self.state.prefs['wanderInterval']
+        self.travel=(start,target,time.monotonic(),duration,jump);self.started=time.monotonic();self.duration=duration;self.mode='Jump' if jump else 'Walk';self.row=4 if jump else (self.art.walking.gait['row'] if self.art.walking.procedural else 1);self.column=0;self.pose=None;self.emotion=None;self.frame_timer.start();self.next_roam=time.monotonic()+self.state.prefs['wanderInterval']
     def walk_to(self,point):
         self.stop_travel();target=self.clamped(point);start=self.pos();duration=min(2.5,max(.4,(target-start).manhattanLength()/150))
-        self.travel=(start,target,time.monotonic(),duration,False);self.started=time.monotonic();self.duration=duration;self.mode='Walk';self.row=1;self.pose=None;self.frame_timer.start()
+        self.travel=(start,target,time.monotonic(),duration,False);self.started=time.monotonic();self.duration=duration;self.mode='Walk';self.row=self.art.walking.gait['row'] if self.art.walking.procedural else 1;self.column=0;self.pose=None;self.emotion=None;self.frame_timer.start()
     def idle_tick(self):
         if self.state.prefs['hidden'] or self.screen_sleep: return
         if self.sleeping: return

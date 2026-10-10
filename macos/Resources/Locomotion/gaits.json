@@ -1,0 +1,2622 @@
+{
+  "pixel-cat": {
+    "kind": "quadruped",
+    "row": 1,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.8,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          58,
+          151
+        ],
+        "tip": [
+          43,
+          190
+        ],
+        "phase": 0,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      },
+      {
+        "pivot": [
+          82,
+          155
+        ],
+        "tip": [
+          87,
+          184
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      },
+      {
+        "pivot": [
+          115,
+          146
+        ],
+        "tip": [
+          124,
+          187
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      },
+      {
+        "pivot": [
+          142,
+          147
+        ],
+        "tip": [
+          152,
+          182
+        ],
+        "phase": 0,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      }
+    ]
+  },
+  "shibe": {
+    "kind": "quadruped",
+    "row": 1,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.8,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          54,
+          151
+        ],
+        "tip": [
+          38,
+          185
+        ],
+        "phase": 0,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      },
+      {
+        "pivot": [
+          78,
+          156
+        ],
+        "tip": [
+          79,
+          188
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      },
+      {
+        "pivot": [
+          120,
+          147
+        ],
+        "tip": [
+          112,
+          177
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      },
+      {
+        "pivot": [
+          133,
+          150
+        ],
+        "tip": [
+          139,
+          186
+        ],
+        "phase": 0,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      }
+    ]
+  },
+  "fox": {
+    "kind": "quadruped",
+    "row": 1,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.8,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          63,
+          150
+        ],
+        "tip": [
+          53,
+          188
+        ],
+        "phase": 0,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      },
+      {
+        "pivot": [
+          87,
+          153
+        ],
+        "tip": [
+          88,
+          188
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      },
+      {
+        "pivot": [
+          113,
+          148
+        ],
+        "tip": [
+          117,
+          187
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      },
+      {
+        "pivot": [
+          136,
+          152
+        ],
+        "tip": [
+          149,
+          182
+        ],
+        "phase": 0,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      }
+    ]
+  },
+  "bunny": {
+    "kind": "hop",
+    "row": 1,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.8,
+    "bob": 2,
+    "limbs": [
+      {
+        "pivot": [
+          71,
+          152
+        ],
+        "tip": [
+          45,
+          187
+        ],
+        "phase": 0,
+        "role": "leg",
+        "stride": 10,
+        "lift": 9
+      },
+      {
+        "pivot": [
+          87,
+          153
+        ],
+        "tip": [
+          89,
+          180
+        ],
+        "phase": 0,
+        "role": "leg",
+        "stride": 10,
+        "lift": 9
+      },
+      {
+        "pivot": [
+          109,
+          152
+        ],
+        "tip": [
+          111,
+          187
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 10,
+        "lift": 9
+      },
+      {
+        "pivot": [
+          130,
+          151
+        ],
+        "tip": [
+          144,
+          182
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 10,
+        "lift": 9
+      }
+    ]
+  },
+  "panda": {
+    "kind": "quadruped",
+    "row": 1,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.8,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          76,
+          144
+        ],
+        "tip": [
+          60,
+          188
+        ],
+        "phase": 0,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      },
+      {
+        "pivot": [
+          87,
+          151
+        ],
+        "tip": [
+          80,
+          176
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      },
+      {
+        "pivot": [
+          125,
+          145
+        ],
+        "tip": [
+          127,
+          175
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      },
+      {
+        "pivot": [
+          141,
+          140
+        ],
+        "tip": [
+          149,
+          179
+        ],
+        "phase": 0,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      }
+    ]
+  },
+  "hamster": {
+    "kind": "quadruped",
+    "row": 1,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.65,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          39,
+          158
+        ],
+        "tip": [
+          26,
+          189
+        ],
+        "phase": 0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 5
+      },
+      {
+        "pivot": [
+          62,
+          159
+        ],
+        "tip": [
+          68,
+          184
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 5
+      },
+      {
+        "pivot": [
+          84,
+          154
+        ],
+        "tip": [
+          84,
+          183
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 5
+      },
+      {
+        "pivot": [
+          125,
+          153
+        ],
+        "tip": [
+          143,
+          184
+        ],
+        "phase": 0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 5
+      }
+    ]
+  },
+  "otter": {
+    "kind": "quadruped",
+    "row": 1,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.8,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          89,
+          161
+        ],
+        "tip": [
+          70,
+          189
+        ],
+        "phase": 0,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      },
+      {
+        "pivot": [
+          98,
+          158
+        ],
+        "tip": [
+          100,
+          182
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      },
+      {
+        "pivot": [
+          107,
+          149
+        ],
+        "tip": [
+          130,
+          188
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      },
+      {
+        "pivot": [
+          125,
+          153
+        ],
+        "tip": [
+          146,
+          183
+        ],
+        "phase": 0,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      }
+    ]
+  },
+  "capybara": {
+    "kind": "quadruped",
+    "row": 1,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.8,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          39,
+          151
+        ],
+        "tip": [
+          22,
+          185
+        ],
+        "phase": 0,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      },
+      {
+        "pivot": [
+          66,
+          158
+        ],
+        "tip": [
+          67,
+          184
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      },
+      {
+        "pivot": [
+          103,
+          150
+        ],
+        "tip": [
+          99,
+          190
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      },
+      {
+        "pivot": [
+          127,
+          150
+        ],
+        "tip": [
+          146,
+          182
+        ],
+        "phase": 0,
+        "role": "leg",
+        "stride": 10,
+        "lift": 8
+      }
+    ]
+  },
+  "bear": {
+    "kind": "biped",
+    "row": 1,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          73,
+          147
+        ],
+        "tip": [
+          55,
+          184
+        ],
+        "phase": 0,
+        "role": "leg",
+        "stride": 10,
+        "lift": 7
+      },
+      {
+        "pivot": [
+          103,
+          150
+        ],
+        "tip": [
+          116,
+          184
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 10,
+        "lift": 7
+      },
+      {
+        "pivot": [
+          86,
+          123
+        ],
+        "tip": [
+          65,
+          142
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 6,
+        "lift": 0
+      },
+      {
+        "pivot": [
+          115,
+          122
+        ],
+        "tip": [
+          137,
+          140
+        ],
+        "phase": 0,
+        "role": "arm",
+        "stride": 6,
+        "lift": 0
+      }
+    ]
+  },
+  "openpets-default": {
+    "kind": "authored",
+    "row": 1,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.8,
+    "bob": 0,
+    "limbs": []
+  },
+  "openpets-snoopy": {
+    "kind": "authored",
+    "row": 1,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.8,
+    "bob": 0,
+    "limbs": []
+  },
+  "openpets-clippit": {
+    "kind": "authored",
+    "row": 1,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.8,
+    "bob": 0,
+    "limbs": []
+  },
+  "openpets-tux": {
+    "kind": "authored",
+    "row": 1,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.8,
+    "bob": 0,
+    "limbs": []
+  },
+  "openpets-wall-e": {
+    "kind": "authored",
+    "row": 1,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.8,
+    "bob": 0,
+    "limbs": []
+  },
+  "openpets-dobby": {
+    "kind": "authored",
+    "row": 1,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.8,
+    "bob": 0,
+    "limbs": []
+  },
+  "pawpaw-shiba": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          56.11,
+          159.08
+        ],
+        "tip": [
+          56.11,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          121.39,
+          159.08
+        ],
+        "tip": [
+          121.39,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          66.11,
+          119.28
+        ],
+        "tip": [
+          56.11,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          111.39,
+          119.28
+        ],
+        "tip": [
+          121.39,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-fox": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          59.11,
+          159.08
+        ],
+        "tip": [
+          59.11,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          124.39,
+          159.08
+        ],
+        "tip": [
+          124.39,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          69.11,
+          119.28
+        ],
+        "tip": [
+          59.11,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          114.39,
+          119.28
+        ],
+        "tip": [
+          124.39,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-bear": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          63.36,
+          159.08
+        ],
+        "tip": [
+          63.36,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          128.64,
+          159.08
+        ],
+        "tip": [
+          128.64,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          73.36,
+          119.28
+        ],
+        "tip": [
+          63.36,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          118.63999999999999,
+          119.28
+        ],
+        "tip": [
+          128.64,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-hamster": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          62.36,
+          159.08
+        ],
+        "tip": [
+          62.36,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          127.64,
+          159.08
+        ],
+        "tip": [
+          127.64,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          72.36,
+          119.28
+        ],
+        "tip": [
+          62.36,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          117.64,
+          119.28
+        ],
+        "tip": [
+          127.64,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-koala": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          60.36,
+          159.08
+        ],
+        "tip": [
+          60.36,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          125.64,
+          159.08
+        ],
+        "tip": [
+          125.64,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          70.36,
+          119.28
+        ],
+        "tip": [
+          60.36,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          115.64,
+          119.28
+        ],
+        "tip": [
+          125.64,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-pig": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          65.61,
+          159.08
+        ],
+        "tip": [
+          65.61,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          130.89,
+          159.08
+        ],
+        "tip": [
+          130.89,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          75.61,
+          119.28
+        ],
+        "tip": [
+          65.61,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          120.88999999999999,
+          119.28
+        ],
+        "tip": [
+          130.89,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-corgi": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          67.61,
+          159.08
+        ],
+        "tip": [
+          67.61,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          132.89,
+          159.08
+        ],
+        "tip": [
+          132.89,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          77.61,
+          119.28
+        ],
+        "tip": [
+          67.61,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          122.88999999999999,
+          119.28
+        ],
+        "tip": [
+          132.89,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-wolf": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          57.11,
+          159.08
+        ],
+        "tip": [
+          57.11,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          122.39,
+          159.08
+        ],
+        "tip": [
+          122.39,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          67.11,
+          119.28
+        ],
+        "tip": [
+          57.11,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          112.39,
+          119.28
+        ],
+        "tip": [
+          122.39,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-capybara": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          63.11,
+          159.08
+        ],
+        "tip": [
+          63.11,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          128.39,
+          159.08
+        ],
+        "tip": [
+          128.39,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          73.11,
+          119.28
+        ],
+        "tip": [
+          63.11,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          118.38999999999999,
+          119.28
+        ],
+        "tip": [
+          128.39,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-raccoon": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          58.86,
+          159.08
+        ],
+        "tip": [
+          58.86,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          124.14,
+          159.08
+        ],
+        "tip": [
+          124.14,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          68.86,
+          119.28
+        ],
+        "tip": [
+          58.86,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          114.14,
+          119.28
+        ],
+        "tip": [
+          124.14,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-seal": {
+    "kind": "swim",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          72.61,
+          119.28
+        ],
+        "tip": [
+          62.61,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 6,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          117.89,
+          119.28
+        ],
+        "tip": [
+          127.89,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 6,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-season2-sheep": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          52.86,
+          159.08
+        ],
+        "tip": [
+          52.86,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          118.14,
+          159.08
+        ],
+        "tip": [
+          118.14,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          62.86,
+          119.28
+        ],
+        "tip": [
+          52.86,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          108.14,
+          119.28
+        ],
+        "tip": [
+          118.14,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-season2-dolphin": {
+    "kind": "swim",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          63.11,
+          119.28
+        ],
+        "tip": [
+          53.11,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 6,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          108.39,
+          119.28
+        ],
+        "tip": [
+          118.39,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 6,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-season2-squirrel": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          46.61,
+          159.08
+        ],
+        "tip": [
+          46.61,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          111.89,
+          159.08
+        ],
+        "tip": [
+          111.89,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          56.61,
+          119.28
+        ],
+        "tip": [
+          46.61,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          101.89,
+          119.28
+        ],
+        "tip": [
+          111.89,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-season2-bat": {
+    "kind": "fly",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 2,
+    "limbs": [
+      {
+        "pivot": [
+          69,
+          139
+        ],
+        "tip": [
+          49,
+          165
+        ],
+        "phase": 0,
+        "role": "arm",
+        "stride": 6,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          115,
+          139
+        ],
+        "tip": [
+          138,
+          165
+        ],
+        "phase": 0,
+        "role": "arm",
+        "stride": 6,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-season2-penguin": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          73.36,
+          159.08
+        ],
+        "tip": [
+          73.36,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          138.64,
+          159.08
+        ],
+        "tip": [
+          138.64,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          83.36,
+          119.28
+        ],
+        "tip": [
+          73.36,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          128.64,
+          119.28
+        ],
+        "tip": [
+          138.64,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-season2-giant-panda": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          62.36,
+          159.08
+        ],
+        "tip": [
+          62.36,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          127.64,
+          159.08
+        ],
+        "tip": [
+          127.64,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          72.36,
+          119.28
+        ],
+        "tip": [
+          62.36,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          117.64,
+          119.28
+        ],
+        "tip": [
+          127.64,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-season2-frog": {
+    "kind": "hop",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 2,
+    "limbs": [
+      {
+        "pivot": [
+          69.11,
+          159.08
+        ],
+        "tip": [
+          69.11,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          134.39,
+          159.08
+        ],
+        "tip": [
+          134.39,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          79.11,
+          119.28
+        ],
+        "tip": [
+          69.11,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          124.38999999999999,
+          119.28
+        ],
+        "tip": [
+          134.39,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-season2-shetland-sheepdog": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          57.36,
+          159.08
+        ],
+        "tip": [
+          57.36,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          122.64,
+          159.08
+        ],
+        "tip": [
+          122.64,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          67.36,
+          119.28
+        ],
+        "tip": [
+          57.36,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          112.64,
+          119.28
+        ],
+        "tip": [
+          122.64,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-season2-chameleon": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          35.36,
+          159.08
+        ],
+        "tip": [
+          35.36,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          100.64,
+          159.08
+        ],
+        "tip": [
+          100.64,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          45.36,
+          119.28
+        ],
+        "tip": [
+          35.36,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          90.64,
+          119.28
+        ],
+        "tip": [
+          100.64,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-season2-otter": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          57.61,
+          159.08
+        ],
+        "tip": [
+          57.61,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          122.89,
+          159.08
+        ],
+        "tip": [
+          122.89,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          67.61,
+          119.28
+        ],
+        "tip": [
+          57.61,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          112.89,
+          119.28
+        ],
+        "tip": [
+          122.89,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-season2-hedgehog": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          51.11,
+          159.08
+        ],
+        "tip": [
+          51.11,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          116.39,
+          159.08
+        ],
+        "tip": [
+          116.39,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          61.11,
+          119.28
+        ],
+        "tip": [
+          51.11,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          106.39,
+          119.28
+        ],
+        "tip": [
+          116.39,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-season2-beluga": {
+    "kind": "swim",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          53.86,
+          119.28
+        ],
+        "tip": [
+          43.86,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 6,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          99.14,
+          119.28
+        ],
+        "tip": [
+          109.14,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 6,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-season2-sloth": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          66.61,
+          159.08
+        ],
+        "tip": [
+          66.61,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          131.89,
+          159.08
+        ],
+        "tip": [
+          131.89,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          76.61,
+          119.28
+        ],
+        "tip": [
+          66.61,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          121.88999999999999,
+          119.28
+        ],
+        "tip": [
+          131.89,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-season2-skunk": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          46.86,
+          159.08
+        ],
+        "tip": [
+          46.86,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          112.14,
+          159.08
+        ],
+        "tip": [
+          112.14,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          56.86,
+          119.28
+        ],
+        "tip": [
+          46.86,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          102.14,
+          119.28
+        ],
+        "tip": [
+          112.14,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-season2-axolotl": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          54.86,
+          159.08
+        ],
+        "tip": [
+          54.86,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          120.14,
+          159.08
+        ],
+        "tip": [
+          120.14,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          64.86,
+          119.28
+        ],
+        "tip": [
+          54.86,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          110.14,
+          119.28
+        ],
+        "tip": [
+          120.14,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-season2-tanuki": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          65.86,
+          159.08
+        ],
+        "tip": [
+          65.86,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          131.14,
+          159.08
+        ],
+        "tip": [
+          131.14,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          75.86,
+          119.28
+        ],
+        "tip": [
+          65.86,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          121.13999999999999,
+          119.28
+        ],
+        "tip": [
+          131.14,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-season2-manatee": {
+    "kind": "swim",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          55.86,
+          119.28
+        ],
+        "tip": [
+          45.86,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 6,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          101.14,
+          119.28
+        ],
+        "tip": [
+          111.14,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 6,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-season2-armadillo": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          42.61,
+          159.08
+        ],
+        "tip": [
+          42.61,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          107.89,
+          159.08
+        ],
+        "tip": [
+          107.89,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          52.61,
+          119.28
+        ],
+        "tip": [
+          42.61,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          97.89,
+          119.28
+        ],
+        "tip": [
+          107.89,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-season2-platypus": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          61.36,
+          159.08
+        ],
+        "tip": [
+          61.36,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          126.64,
+          159.08
+        ],
+        "tip": [
+          126.64,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          71.36,
+          119.28
+        ],
+        "tip": [
+          61.36,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          116.64,
+          119.28
+        ],
+        "tip": [
+          126.64,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "pawpaw-season2-opossum": {
+    "kind": "biped",
+    "row": 0,
+    "column": 0,
+    "facing": 1,
+    "cycle": 0.85,
+    "bob": 1,
+    "limbs": [
+      {
+        "pivot": [
+          41.36,
+          159.08
+        ],
+        "tip": [
+          41.36,
+          184.08
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          106.64,
+          159.08
+        ],
+        "tip": [
+          106.64,
+          184.08
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 5,
+        "lift": 4
+      },
+      {
+        "pivot": [
+          51.36,
+          119.28
+        ],
+        "tip": [
+          41.36,
+          137.28
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      },
+      {
+        "pivot": [
+          96.64,
+          119.28
+        ],
+        "tip": [
+          106.64,
+          137.28
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 5,
+        "lift": 2
+      }
+    ]
+  },
+  "knight-cat": {
+    "kind": "knight",
+    "row": 0,
+    "column": 0,
+    "facing": -1,
+    "cycle": 0.8,
+    "bob": 1.5,
+    "limbs": [
+      {
+        "pivot": [
+          79.0,
+          157.0
+        ],
+        "tip": [
+          79.0,
+          186.0
+        ],
+        "phase": 0.0,
+        "role": "leg",
+        "stride": 7,
+        "lift": 5
+      },
+      {
+        "pivot": [
+          115.0,
+          159.0
+        ],
+        "tip": [
+          115.0,
+          188.0
+        ],
+        "phase": 0.5,
+        "role": "leg",
+        "stride": 7,
+        "lift": 5
+      },
+      {
+        "pivot": [
+          73.0,
+          122.0
+        ],
+        "tip": [
+          64.0,
+          144.0
+        ],
+        "phase": 0.5,
+        "role": "arm",
+        "stride": 4,
+        "lift": 0
+      },
+      {
+        "pivot": [
+          115.0,
+          123.0
+        ],
+        "tip": [
+          124.0,
+          145.0
+        ],
+        "phase": 0.0,
+        "role": "arm",
+        "stride": 4,
+        "lift": 0
+      }
+    ]
+  }
+}

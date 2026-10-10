@@ -31,6 +31,7 @@ import SpriteKit
     func catchFiles()
     func express(_ emotion:PetEmotion)
     func wave()
+    func setWalkSpeed(_ pointsPerSecond:CGFloat)
     func setWalking(_ value: Bool)
     func face(_ direction: CGFloat)
     func look(toward point: CGPoint)
@@ -46,6 +47,7 @@ extension CompanionAnimating {
     var companionBoundsInScene:CGRect { (self as? SKNode)?.calculateAccumulatedFrame() ?? .zero }
     func containsHeldFilesPoint(_ point:CGPoint)->Bool { false }
     func setRenderingSuspended(_ value:Bool) {}
+    func setWalkSpeed(_ pointsPerSecond:CGFloat) {}
     func setHeldFileCount(_ count:Int) {}
     func setReceivingFiles(_ active:Bool) {}
     func catchFiles() { celebrate() }

@@ -524,6 +524,7 @@ private final class PetRenderGate:NSObject,SKViewDelegate {
         let start = window.frame.origin
         let speed=max(20,min(200,movementSettings?.state.walkSpeed ?? 95))
         let duration = jump ? (pet is FramePetNode ? 1.68 : 1.1) : max(1.2,min(30,hypot(target.x-start.x,target.y-start.y)/speed))
+        pet?.setWalkSpeed(CGFloat(speed)/max(0.3,abs(pet?.xScale ?? 1)))
         pet?.face(target.x-start.x)
         if jump { pet?.play(.jumping,looping:false,relaxed:false) } else { pet?.setWalking(true) }
         animate(for: duration+0.5); window.ignoresMouseEvents = true

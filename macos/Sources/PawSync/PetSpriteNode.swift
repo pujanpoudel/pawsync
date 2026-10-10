@@ -355,7 +355,7 @@ import SpriteKit
         if value {
             transition("walking")
             let base=restPositions["body"]!.y
-            body.run(.repeatForever(.sequence([eased(.group([.rotate(toAngle:-0.025,duration:0.18),.moveTo(y:base+1.5,duration:0.18)])),eased(.group([.rotate(toAngle:0.025,duration:0.18),.moveTo(y:base,duration:0.18)]))])),withKey:"walking")
+            body.run(.repeatForever(.sequence([eased(.group([.moveTo(y:base+1.5,duration:0.18)])),eased(.group([.moveTo(y:base,duration:0.18)]))])),withKey:"walking")
             for (key, sign) in [("left_paw", CGFloat(1)), ("right_paw", CGFloat(-1))] {
                 joints[key]?.run(.repeatForever(.sequence([eased(.rotate(toAngle:sign*0.25,duration:0.18)),eased(.rotate(toAngle:-sign*0.25,duration:0.18))])),withKey:"walking")
             }

@@ -18,12 +18,16 @@ import SpriteKit
     private var flipped=false
     private var travelling=false
     private let petID:String
+    private var gait:PetGait? { PetGait.catalog[petID] }
+    private var walkCycle:TimeInterval=0.8
+    func setWalkSpeed(_ pointsPerSecond:CGFloat) { walkCycle=max(0.4,min(1.5,(2*(gait?.limbs.map(\.stride).max() ?? 10)/0.6)/max(20,Double(pointsPerSecond)))) }
     var isKnightCat:Bool { petID == "knight-cat" }
     // Knight's source artwork faces left; the other full-body atlases face right.
-    private var artworkFacing:CGFloat { isKnightCat ? -1:1 }
+    private var artworkFacing:CGFloat { isKnightCat ? -1:CGFloat(gait?.facing ?? 1) }
     var visualFacingDirection:CGFloat { artworkFacing * (sprite.xScale < 0 ? -1:1) }
     private func updateFacing() {
-        sprite.xScale=travelling && profile?.fullBody == true ? facing * artworkFacing : (flipped ? -1:1)
+        let directionalRows=animationState == .running && !isKnightCat && gait?.procedural != true
+        sprite.xScale=travelling ? (directionalRows ? 1:(profile?.fullBody == true || gait?.procedural == true) ? facing * artworkFacing:1) : (flipped ? -1:1)
     }
     private let profile:PetExpressionProfile?
     private var poseProfiles:[Int:PetExpressionProfile]=[:]
@@ -429,35 +433,28 @@ import SpriteKit
     func setWalking(_ value:Bool) {
         guard !receivingFiles else { return }
         if value {
-            travelling=true;updateFacing()
-            animationState = .running; begin(PetFrameSequence(row:(facing < 0) != flipped ? 2 : 1,frames:8,duration:1.06,iterations:nil))
-            if profile?.fullBody == true {
-                sprite.warpGeometry=restingWarp
-                if isKnightCat {
-                    knightLimbs(.walk,duration:0.72,looping:true)
-                    let rise=SKAction.moveTo(y:1.5,duration:0.18),fall=SKAction.moveTo(y:0,duration:0.18)
+            travelling=true;animationState = .running
+            if let gait,gait.procedural {
+                stopFrames();show(row:gait.row,column:gait.column)
+                expression.clear();sprite.warpGeometry=PetGait.rest
+                sprite.run(.repeatForever(gait.action(duration:walkCycle)),withKey:"gait")
+                if gait.bob>0 {
+                    let rise=SKAction.moveTo(y:gait.bob,duration:walkCycle/4),fall=SKAction.moveTo(y:0,duration:walkCycle/4)
                     rise.timingMode = .easeInEaseOut;fall.timingMode = .easeInEaseOut
-                    sprite.run(.repeatForever(.sequence([rise,fall])),withKey:"gait")
-                } else if let left=SKAction.warp(to:footWarp(left:true),duration:0.18),let right=SKAction.warp(to:footWarp(left:false),duration:0.18) {
-                    left.timingMode = .easeInEaseOut;right.timingMode = .easeInEaseOut;sprite.run(.repeatForever(.sequence([left,right])),withKey:"gait")
+                    sprite.run(.repeatForever(.sequence([rise,fall])),withKey:"gait-bob")
+                }
+            } else {
+                // Authored right/left frame rows already face their travel direction.
+                begin(PetFrameSequence(row:isKnightCat ? 0:(facing < 0 ? 2:1),frames:isKnightCat ? 1:8,duration:walkCycle,iterations:nil))
+                if isKnightCat {
+                    knightLimbs(.walk,duration:walkCycle,looping:true)
+                    let rise=SKAction.moveTo(y:1.5,duration:walkCycle/4),fall=SKAction.moveTo(y:0,duration:walkCycle/4)
+                    rise.timingMode = .easeInEaseOut;fall.timingMode = .easeInEaseOut
+                    sprite.run(.repeatForever(.sequence([rise,fall])),withKey:"gait-bob")
                 }
             }
-        }
-        else { idle() }
-    }
-    private func footWarp(left:Bool)->SKWarpGeometryGrid {
-        let feet=profile?.footCenters ?? [[0.32,0.12],[0.68,0.12]]
-        var source:[SIMD2<Float>]=[],target:[SIMD2<Float>]=[]
-        for row in 0...16 { for column in 0...12 {
-            let x=Float(column)/12,y=Float(row)/16;source.append(SIMD2<Float>(x,y));var ty=y,tx=x
-            for (index,foot) in feet.enumerated() {
-                let dx=(x-Float(foot[0]))/0.10,dy=(y-Float(foot[1]))/0.08,strength=exp(-(dx*dx+dy*dy)*0.5)
-                let lifted=(index == 0) == left
-                ty+=(lifted ? 0.025:-0.006)*strength;tx+=(lifted ? -0.014:0.014)*strength
-            }
-            target.append(SIMD2<Float>(tx,ty))
-        } }
-        return SKWarpGeometryGrid(columns:12,rows:16,sourcePositions:source,destinationPositions:target)
+            updateFacing();onNeedsRender?()
+        } else { idle() }
     }
     func face(_ direction:CGFloat) {
         if direction != 0 { facing=direction < 0 ? -1:1 }
@@ -488,7 +485,7 @@ import SpriteKit
     }
     func containsOpaquePoint(_ point:CGPoint)->Bool {
         guard let scene else { return false }; let p=sprite.convert(point,from:scene)
-        if isKnightCat,let grid=sprite.warpGeometry as? SKWarpGeometryGrid,grid.numberOfColumns == KnightCatMotion.columns {
+        if let grid=sprite.warpGeometry as? SKWarpGeometryGrid {
             guard let source=KnightCatMotion.sourcePoint(SIMD2<Float>(Float(p.x/192+0.5),Float(p.y/208)),in:grid) else { return false }
             let x=Int(floor(source.x*192)),y=207-Int(floor(source.y*208))
             if let pose=displayedFilePose.flatMap({filePoses[$0]}) { return pose.mask.contains(x:x,y:y) }

@@ -69,6 +69,7 @@ import UniformTypeIdentifiers
             try require(clip.column(at:animation.duration*2) == nil,"A finite animation did not finish.")
         }
         let renderer=try Renderer()
+        try anatomyGaits(renderer:renderer,directory:directory)
         renderer.renderer.shouldCullNonVisibleNodes=true
         let driver=SKNode(); driver.position=CGPoint(x:1200,y:100); renderer.scene.addChild(driver)
         let path=CGMutablePath(); path.move(to:driver.position); path.addLine(to:CGPoint(x:1000,y:100))
@@ -211,6 +212,44 @@ import UniformTypeIdentifiers
         try require(restored.snapshot.total == 700 && restored.snapshot.today == 700,"Pending activity was not saved on shutdown.")
         try overlayTravel()
         print("Motion checks passed: Knight Cat walks/jumps facing travel in both directions with either Flip preference; lifted boots swing forward and planted boots sweep backward; original and imported motion, interruption, frame timing, suspension, real overlay travel and batched activity persistence. Proof sheets: \(directory.path)")
+    }
+    private static func anatomyGaits(renderer:Renderer,directory:URL) throws {
+        let specs=PetStore.rigIDs.compactMap { PetStore.frameOriginal($0) }+PetStore.imports.filter { $0.local != true }
+        try require(Set(specs.map(\.id)) == Set(PetGait.catalog.keys),"A bundled pet is missing its walking anatomy.")
+        var proofs:[(String,[CGImage])]=[]
+        for spec in specs {
+            guard let gait=PetGait.catalog[spec.id] else { continue }
+            if gait.kind == "quadruped" {
+                try require(gait.limbs.count == 4 && gait.limbs.map(\.phase) == [0,0.5,0.5,0],"Four-legged gait lost its diagonal pairs: \(spec.id).")
+            }
+            for phase in [0.0,0.2,0.5,0.8] where gait.procedural {
+                let grid=gait.geometry(phase:phase)
+                for index in 0..<grid.vertexCount {
+                    let source=grid.sourcePosition(at:index)
+                    if source.y>0.6 { try require(grid.destPosition(at:index) == source,"Walking deformed the face: \(spec.id).") }
+                    if let recovered=KnightCatMotion.sourcePoint(grid.destPosition(at:index),in:grid) {
+                        try require(abs(recovered.x-source.x)<0.001 && abs(recovered.y-source.y)<0.001,"Moving limb hit-test inverse is wrong: \(spec.id).")
+                    } else { throw PawError.message("Moving limb cannot be hit-tested: \(spec.id).") }
+                }
+            }
+            renderer.scene.removeAllChildren()
+            let node=try FramePetNode(spec:spec);node.position=CGPoint(x:130,y:24);renderer.scene.addChild(node)
+            node.setWalkSpeed(95);node.face(1);node.setWalking(true)
+            var images:[CGImage]=[]
+            for phase in [0.05,0.20,0.40,0.60] {
+                node.advanceFrame(at:node.frameStartedAt+phase)
+                renderer.advance(0.12);images.append(try renderer.capture())
+                try require(abs(node.bodyRotation)<0.001,"Walking rotated the entire body about its feet: \(spec.id).")
+                if gait.procedural { try require(node.currentFrame.row == gait.row && node.currentFrame.column == gait.column,"Walking swapped into a waving pose: \(spec.id).") }
+            }
+            node.face(-1);node.presentation(flipped:true,hudScale:1,hat:HatTransform())
+            if gait.procedural || spec.id == "knight-cat" { try require(node.visualFacingDirection == -1,"Walking faces backward: \(spec.id).") }
+            node.setWalking(false);node.setRenderingSuspended(true)
+            try require(!node.requiresContinuousRendering,"Walking kept the resting render loop active: \(spec.id).")
+            proofs.append((spec.name+" · "+gait.kind,images))
+        }
+        try writeGrid(proofs,columns:["Plant","Push off","Recover","Opposite step"],to:directory.appendingPathComponent("all-pet-gaits.png"))
+        print("Anatomical gait checks passed: \(specs.count) pets; coordinated quadrupeds, arm/leg opposition, hops/flippers/wings, fixed faces/body pivots and inverse mesh hit testing.")
     }
     private static func knightTravelFacing(renderer:Renderer,directory:URL) throws {
         guard let spec=PetStore.imports.first(where:{$0.id == "knight-cat"}),

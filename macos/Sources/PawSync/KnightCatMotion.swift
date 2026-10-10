@@ -65,6 +65,7 @@ enum KnightCatMotion {
             let sa=grid.sourcePosition(at:ia)
             return sa+(grid.sourcePosition(at:ib)-sa)*u+(grid.sourcePosition(at:ic)-sa)*v
         }
+        let columns=grid.numberOfColumns,rows=grid.numberOfRows
         let cx=max(0,min(columns-1,Int(point.x*Float(columns)))),cy=max(0,min(rows-1,Int(point.y*Float(rows))))
         for row in max(0,cy-3)...min(rows-1,cy+3) { for column in max(0,cx-3)...min(columns-1,cx+3) {
             let a=row*(columns+1)+column,b=a+1,c=a+columns+1,d=c+1
